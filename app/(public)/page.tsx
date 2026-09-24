@@ -1,3 +1,4 @@
+import { BattleTeaser } from "@/components/home/BattleTeaser";
 import { EntryCards } from "@/components/home/EntryCards";
 import { FeaturedEventsSection } from "@/components/home/FeaturedEventsSection";
 import { Hero } from "@/components/home/Hero";
@@ -9,6 +10,7 @@ export default function HomePage() {
     <>
       <Hero />
       <EntryCards />
+      <BattleTeaser />
       <TopicsSection />
       <FeaturedEventsSection />
     </>

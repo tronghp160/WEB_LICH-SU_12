@@ -163,6 +163,103 @@ path.map-center {
   stroke-width: 2;
 }
 
+/* Mô phỏng trận đánh (components/battle). Ba loại đơn vị khác HÌNH DÁNG (vuông / tròn / thoi), không chỉ khác màu. */
+:root {
+  --battle-defender: #1d5fa8;
+  --battle-defender-land: #2f7d4f;
+  --battle-invader: #b3261e;
+  --battle-water: #3b82c4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --battle-defender: #6aa6e8;
+    --battle-defender-land: #5fbf85;
+    --battle-invader: #ea5a50;
+    --battle-water: #5b9bd5;
+  }
+}
+
+.battle-unit {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  margin: 2px;
+  border: 3px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.battle-unit--invader-ship {
+  border-radius: 4px;
+  background: var(--battle-invader);
+}
+
+.battle-unit--defender-boat {
+  border-radius: 50%;
+  background: var(--battle-defender);
+}
+
+.battle-unit--defender-land {
+  width: 20px;
+  height: 20px;
+  margin: 3px;
+  border-radius: 3px;
+  background: var(--battle-defender-land);
+  transform: rotate(45deg);
+}
+
+/* Thuyền chìm: xám, có dấu gạch chéo. */
+.battle-unit--sunk {
+  background: #6b6660;
+}
+
+.battle-unit--sunk::after {
+  content: "✕";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+path.battle-river {
+  stroke: var(--battle-water);
+  stroke-opacity: 0.4;
+  fill: none;
+}
+
+path.battle-stake {
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+
+path.battle-stake--submerged {
+  fill: var(--muted-foreground);
+  fill-opacity: 0.45;
+}
+
+path.battle-stake--exposed {
+  fill: var(--gold-deep);
+  fill-opacity: 1;
+}
+
+.leaflet-tooltip.battle-tooltip {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--surface-foreground);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.leaflet-tooltip-right.battle-tooltip::before {
+  border-right-color: var(--border);
+}
+
 /* Popup theo màu theme (mặc định của Leaflet luôn là nền trắng). */
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
