@@ -1,0 +1,64 @@
+import { describe, expect, it } from "vitest";
+import { evaluateReadiness, isReady } from "@/lib/admin/readiness";
+
+const fullEvent = {
+  kind: "su-kien" as const,
+  content: "Nội dung",
+  sourceCount: 1,
+  hasPrimaryLocation: true,
+  figureCount: 2,
+  unpublishedLinkedCount: 0,
+  mediaMissingAltCount: 0,
+};
+
+describe("evaluateReadiness — sự kiện", () => {
+  it("đủ mọi thứ → sẵn sàng, không cảnh báo", () => {
+    const result = evaluateReadiness(fullEvent);
+    expect(result).toEqual({ blocking: [], warnings: [] });
+    expect(isReady(result)).toBe(true);
+  });
+
+  it("thiếu nguồn → chặn (khớp yêu cầu ≥ 1 nguồn và trigger G4)", () => {
+    const result = evaluateReadiness({ ...fullEvent, sourceCount: 0 });
+    expect(result.blocking).toEqual(["Sự kiện phải có ít nhất 1 nguồn tham khảo."]);
+    expect(isReady(result)).toBe(false);
+  });
+
+  it("ảnh thiếu alt text → chặn", () => {
+    const result = evaluateReadiness({ ...fullEvent, mediaMissingAltCount: 2 });
+    expect(result.blocking[0]).toContain("2 ảnh");
+    expect(isReady(result)).toBe(false);
+  });
+
+  it("thiếu địa điểm chính chỉ là cảnh báo (khuyến nghị), không chặn", () => {
+    const result = evaluateReadiness({ ...fullEvent, hasPrimaryLocation: false });
+    expect(isReady(result)).toBe(true);
+    expect(result.warnings.join(" ")).toContain("địa điểm chính");
+  });
+
+  it("thiếu nội dung/nhân vật, liên kết chưa công bố → cảnh báo", () => {
+    const result = evaluateReadiness({ ...fullEvent, content: "  ", figureCount: 0, unpublishedLinkedCount: 3 });
+    expect(isReady(result)).toBe(true);
+    expect(result.warnings).toHaveLength(3);
+  });
+});
+
+describe("evaluateReadiness — các loại khác", () => {
+  it("địa điểm không có tọa độ → cảnh báo, vẫn gửi duyệt được", () => {
+    const result = evaluateReadiness({ kind: "dia-diem", latitude: null, longitude: null, accuracyLevel: "unknown", description: "Mô tả" });
+    expect(isReady(result)).toBe(true);
+    expect(result.warnings.join(" ")).toContain("tọa độ");
+  });
+
+  it("có tọa độ nhưng độ chính xác chưa xác định → cảnh báo", () => {
+    const result = evaluateReadiness({ kind: "dia-diem", latitude: 21, longitude: 105, accuracyLevel: "unknown", description: "Mô tả" });
+    expect(result.warnings.join(" ")).toContain("Chưa xác định");
+  });
+
+  it("nhân vật và chủ đề: chỉ cảnh báo thiếu mô tả/tiểu sử", () => {
+    expect(evaluateReadiness({ kind: "nhan-vat", biography: null }).warnings).toHaveLength(1);
+    expect(evaluateReadiness({ kind: "nhan-vat", biography: "Tiểu sử" }).warnings).toHaveLength(0);
+    expect(evaluateReadiness({ kind: "chu-de", description: "" }).warnings).toHaveLength(1);
+    expect(isReady(evaluateReadiness({ kind: "chu-de", description: null }))).toBe(true);
+  });
+});

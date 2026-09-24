@@ -51,6 +51,8 @@ export type Database = {
           description: string | null
           sort_order: number
           workflow_status: Database["public"]["Enums"]["content_workflow_status"]
+          // Lý do trả sửa (G1, migration 20260925000000) — chưa có nếu migration chưa chạy.
+          review_note: string | null
           created_at: string | null
         }
         Insert: {
@@ -60,6 +62,7 @@ export type Database = {
           description?: string | null
           sort_order?: number
           workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+          review_note?: string | null
           created_at?: string | null
         }
         Update: {
@@ -69,6 +72,7 @@ export type Database = {
           description?: string | null
           sort_order?: number
           workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+          review_note?: string | null
           created_at?: string | null
         }
         Relationships: []
@@ -84,6 +88,8 @@ export type Database = {
           biography: string | null
           portrait_url: string | null
           workflow_status: Database["public"]["Enums"]["content_workflow_status"]
+          // Lý do trả sửa (G1, migration 20260925000000) — chưa có nếu migration chưa chạy.
+          review_note: string | null
         }
         Insert: {
           id?: string
@@ -95,6 +101,7 @@ export type Database = {
           biography?: string | null
           portrait_url?: string | null
           workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+          review_note?: string | null
         }
         Update: {
           id?: string
@@ -106,6 +113,7 @@ export type Database = {
           biography?: string | null
           portrait_url?: string | null
           workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+          review_note?: string | null
         }
         Relationships: []
       }
@@ -123,6 +131,8 @@ export type Database = {
           accuracy_level: string
           accuracy_note: string | null
           workflow_status: Database["public"]["Enums"]["content_workflow_status"]
+          // Lý do trả sửa (G1, migration 20260925000000) — chưa có nếu migration chưa chạy.
+          review_note: string | null
           // Cột generated (geography(Point,4326)) — chỉ đọc, không insert/update.
           geom: unknown | null
         }
@@ -137,6 +147,7 @@ export type Database = {
           accuracy_level?: string
           accuracy_note?: string | null
           workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+          review_note?: string | null
         }
         Update: {
           id?: string
@@ -149,6 +160,7 @@ export type Database = {
           accuracy_level?: string
           accuracy_note?: string | null
           workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+          review_note?: string | null
         }
         Relationships: []
       }
@@ -206,6 +218,8 @@ export type Database = {
           content: string | null
           is_featured: boolean | null
           workflow_status: Database["public"]["Enums"]["content_workflow_status"]
+          // Lý do trả sửa (G1, migration 20260925000000) — chưa có nếu migration chưa chạy.
+          review_note: string | null
           created_at: string | null
           updated_at: string
         }
@@ -224,6 +238,7 @@ export type Database = {
           content?: string | null
           is_featured?: boolean | null
           workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+          review_note?: string | null
           created_at?: string | null
           updated_at?: string
         }
@@ -242,6 +257,7 @@ export type Database = {
           content?: string | null
           is_featured?: boolean | null
           workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+          review_note?: string | null
           created_at?: string | null
           updated_at?: string
         }
