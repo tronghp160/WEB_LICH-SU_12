@@ -40,7 +40,9 @@ export function SourceForm({ id, initial }: SourceFormProps) {
       </Field>
       <Field name="source_type" label="Loại nguồn" required error={errors.source_type}>
         {(props) => (
-          <Select {...props} defaultValue={value("source_type")}>
+          // key theo giá trị đã nhập: React chỉ áp defaultValue của <select> lúc dựng lần đầu, nên khi form
+          // trả lỗi phải dựng lại ô để không mất lựa chọn của người dùng.
+          <Select key={value("source_type")} {...props} defaultValue={value("source_type")}>
             <option value="">— Chọn loại nguồn —</option>
             {Object.entries(sourceTypeLabels).map(([key, label]) => (
               <option key={key} value={key}>

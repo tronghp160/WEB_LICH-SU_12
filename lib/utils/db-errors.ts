@@ -14,10 +14,17 @@ export type DbErrorResult = {
   field?: string;
 };
 
-/** Cột vi phạm UNIQUE, suy ra từ `details` dạng: Key (slug)=(abc) already exists. */
+/**
+ * Cột vi phạm UNIQUE. PostgREST thường KHÔNG trả `details` cho khách/nhân sự, chỉ có tên ràng buộc
+ * trong `message` (ví dụ `historical_events_slug_key` → cột `slug`); nếu có `details`
+ * dạng `Key (slug)=(abc) already exists.` thì dùng luôn.
+ */
 function uniqueColumn(error: DbErrorLike): string | null {
-  const match = /Key \(([^)]+)\)=/.exec(error.details ?? "");
-  return match ? match[1] : null;
+  const fromDetails = /Key \(([^)]+)\)=/.exec(error.details ?? "");
+  if (fromDetails) return fromDetails[1];
+  // Chỉ có hai cột UNIQUE ở dạng constraint tên `<bảng>_<cột>_key`: slug và name.
+  const fromConstraint = /unique constraint "[a-z_]*_(slug|name)_key"/.exec(error.message ?? "");
+  return fromConstraint ? fromConstraint[1] : null;
 }
 
 const uniqueMessages: Record<string, DbErrorResult> = {
@@ -38,7 +45,7 @@ export function translateDbError(error: DbErrorLike): DbErrorResult {
     case "23505": {
       const column = uniqueColumn(error);
       if (column && uniqueMessages[column]) return uniqueMessages[column];
-      if (/event_locations/.test(text)) {
+      if (/uq_event_locations_one_primary|event_locations/.test(text)) {
         return { message: "Mỗi sự kiện chỉ có tối đa một địa điểm chính." };
       }
       return { message: "Dữ liệu bị trùng với một bản ghi đã có." };

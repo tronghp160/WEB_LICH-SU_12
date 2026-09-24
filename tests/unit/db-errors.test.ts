@@ -11,6 +11,20 @@ describe("translateDbError", () => {
     expect(result).toEqual({ message: "Đường dẫn đã tồn tại. Hãy chọn đường dẫn khác.", field: "slug" });
   });
 
+  it("23505 khi database KHÔNG trả details: suy ra cột từ tên ràng buộc (trường hợp thực tế)", () => {
+    for (const constraint of ["historical_events_slug_key", "curriculum_topics_slug_key", "historical_figures_slug_key", "historical_locations_slug_key"]) {
+      const result = translateDbError({
+        code: "23505",
+        details: null,
+        message: `duplicate key value violates unique constraint "${constraint}"`,
+      });
+      expect(result, constraint).toEqual({ message: "Đường dẫn đã tồn tại. Hãy chọn đường dẫn khác.", field: "slug" });
+    }
+    expect(
+      translateDbError({ code: "23505", message: 'duplicate key value violates unique constraint "curriculum_topics_name_key"' }).field,
+    ).toBe("name");
+  });
+
   it("23505 trùng tên chủ đề", () => {
     const result = translateDbError({ code: "23505", details: "Key (name)=(A) already exists." });
     expect(result.field).toBe("name");
@@ -19,10 +33,9 @@ describe("translateDbError", () => {
   it("23505 hai địa điểm chính", () => {
     const result = translateDbError({
       code: "23505",
-      message: 'duplicate key value violates unique constraint "one_primary_location_per_event"',
-      details: "Key (event_id)=(x) already exists.",
+      message: 'duplicate key value violates unique constraint "uq_event_locations_one_primary"',
     });
-    expect(result.message).toBe("Dữ liệu bị trùng với một bản ghi đã có.");
+    expect(result.message).toBe("Mỗi sự kiện chỉ có tối đa một địa điểm chính.");
   });
 
   it("23514 vi phạm CHECK: diễn giải theo cột", () => {

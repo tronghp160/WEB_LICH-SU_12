@@ -51,7 +51,7 @@ export function EventForm({ id, initial, initialLinks, options, readOnly }: Even
       <fieldset disabled={readOnly} className="m-0 flex min-w-0 flex-col gap-5 border-0 p-0">
         <Field name="topic_id" label="Chủ đề" required error={errors.topic_id}>
           {(props) => (
-            <Select {...props} defaultValue={value("topic_id")}>
+            <Select key={value("topic_id")} {...props} defaultValue={value("topic_id")}>
               <option value="">— Chọn chủ đề —</option>
               {options.topics.map((topic) => (
                 <option key={topic.id} value={topic.id}>
@@ -96,7 +96,7 @@ export function EventForm({ id, initial, initialLinks, options, readOnly }: Even
               hint="Mốc gần đúng hoặc còn tranh luận sẽ được gắn nhãn cho người đọc."
             >
               {(props) => (
-                <Select {...props} defaultValue={value("date_precision")}>
+                <Select key={value("date_precision")} {...props} defaultValue={value("date_precision")}>
                   <option value="">— Chọn độ chính xác —</option>
                   {Object.entries(datePrecisionLabels).map(([key, label]) => (
                     <option key={key} value={key}>

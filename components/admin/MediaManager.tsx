@@ -58,7 +58,7 @@ function MediaItem({ item, eventId, sources, readOnly }: { item: MediaItemData; 
             </Field>
             <Field name={`source-${item.id}`} label="Nguồn của ảnh" error={errors.source_id}>
               {(props) => (
-                <Select {...props} name="source_id" defaultValue={typed?.source_id ?? item.source_id ?? ""}>
+                <Select key={typed?.source_id ?? item.source_id ?? ""} {...props} name="source_id" defaultValue={typed?.source_id ?? item.source_id ?? ""}>
                   <option value="">— Không chọn —</option>
                   {sources.map((source) => (
                     <option key={source.id} value={source.id}>
@@ -223,7 +223,7 @@ function AddMediaForm({ eventId, sources }: { eventId: string; sources: Option[]
       </Field>
       <Field name="source_id" label="Nguồn của ảnh" error={errors.source_id} hint="Nên chọn để ghi rõ tác giả/giấy phép ảnh.">
         {(props) => (
-          <Select {...props} defaultValue={typed?.source_id ?? ""}>
+          <Select key={typed?.source_id ?? ""} {...props} defaultValue={typed?.source_id ?? ""}>
             <option value="">— Không chọn —</option>
             {sources.map((source) => (
               <option key={source.id} value={source.id}>

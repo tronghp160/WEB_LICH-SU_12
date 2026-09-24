@@ -136,7 +136,15 @@ export function LocationForm({ id, initial, readOnly }: LocationFormProps) {
           hint="Chọn trung thực: nếu chỉ là ước lượng khu vực thì chọn “Khu vực” hoặc “Gần đúng”."
         >
           {(props) => (
-            <Select {...props} value={accuracy} onChange={(event) => setAccuracy(event.target.value)}>
+            // Không điều khiển (defaultValue) + key theo giá trị đã nhập: form reset sau mỗi Action làm mất
+            // lựa chọn của ô <select> điều khiển; dựng lại ô khi form trả lỗi để giữ đúng lựa chọn.
+            // `accuracy` vẫn được theo dõi bằng onChange để đổi kiểu ghim trên bản đồ.
+            <Select
+              key={value("accuracy_level")}
+              {...props}
+              defaultValue={value("accuracy_level")}
+              onChange={(event) => setAccuracy(event.target.value)}
+            >
               <option value="">— Chọn độ chính xác —</option>
               {Object.entries(accuracyLevelLabels).map(([key, label]) => (
                 <option key={key} value={key}>

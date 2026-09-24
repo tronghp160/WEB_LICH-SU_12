@@ -1,6 +1,7 @@
 "use server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { canEditContent, canSubmitForReview, contentPaths, parseContentSegment, type ContentKind } from "@/lib/admin/content-kinds";
 import { evaluateReadiness, isReady } from "@/lib/admin/readiness";
@@ -70,6 +71,8 @@ async function saveRecord(options: {
         return { ...state, message: `Đã lưu thông tin chính nhưng chưa lưu được liên kết: ${state.message}` };
       }
     }
+    // Làm mới trang sửa: checklist "Gửi duyệt" và danh sách liên kết được dựng ở server từ dữ liệu vừa lưu.
+    revalidatePath(contentPaths.edit(segment, id));
     return { status: "success", message: `Đã lưu ${label}.`, values };
   }
 
@@ -311,6 +314,7 @@ export async function addMediaAction(_previous: ActionState, formData: FormData)
   });
   if (error) return dbErrorState(error, values);
 
+  revalidatePath(contentPaths.edit("su-kien", parsed.data.event_id));
   return { status: "success", message: "Đã thêm ảnh.", values: {} };
 }
 
@@ -336,6 +340,7 @@ export async function updateMediaAction(_previous: ActionState, formData: FormDa
   if (error) return dbErrorState(error, values);
   if (!data || data.length === 0) return errorState("Không tìm thấy ảnh cần sửa.", values);
 
+  revalidatePath(contentPaths.edit("su-kien", parsed.data.event_id));
   return { status: "success", message: "Đã cập nhật ảnh.", values };
 }
 
@@ -365,6 +370,7 @@ export async function deleteMediaAction(_previous: ActionState, formData: FormDa
     await supabase.storage.from("media").remove([decodeURIComponent(match[1])]);
   }
 
+  revalidatePath(contentPaths.edit("su-kien", eventId));
   return { status: "success", message: "Đã xóa ảnh.", values: {} };
 }
 
