@@ -72,6 +72,32 @@ try {
   record("reviewer sửa nội dung (summary) của bản đã công bố", outcome(await reviewer.from("historical_events").update({ summary: "reviewer sửa nội dung" }).eq("id", ePub).select("id")), "chặn", "G5 (đã bỏ qua ở Phase 1): policy reviewer_update_status chỉ kiểm tra trạng thái mới nên published → published (đổi nội dung) vẫn hợp lệ");
   record("reviewer xóa sự kiện", outcome(await reviewer.from("historical_events").delete().eq("id", ePub).select("id")), "chặn");
 
+  // ---- Địa điểm CÓ tọa độ: cột `geom` sinh tự động không được làm trigger G5 chặn nhầm (lỗi đã gặp) ----
+  const mkLocation = async (slug, coords) => {
+    const r = await editor.from("historical_locations").insert({ name: "ZZ " + slug, slug, accuracy_level: "exact", ...(coords ? { latitude: 21.03, longitude: 105.85 } : {}), workflow_status: "draft" }).select("id").single();
+    await editor.from("historical_locations").update({ workflow_status: "pending_review" }).eq("id", r.data.id);
+    return r.data.id;
+  };
+  const locCoords = await mkLocation("zz-kiem-thu-r-dd-toa-do", true);
+  const locNoCoords = await mkLocation("zz-kiem-thu-r-dd-khong-toa-do", false);
+  record("reviewer công bố địa điểm CÓ tọa độ", outcome(await reviewer.from("historical_locations").update({ workflow_status: "published", review_note: null }).eq("id", locCoords).select("id")), "được");
+  record("reviewer công bố địa điểm KHÔNG có tọa độ", outcome(await reviewer.from("historical_locations").update({ workflow_status: "published", review_note: null }).eq("id", locNoCoords).select("id")), "được");
+  record("reviewer ẩn địa điểm có tọa độ", outcome(await reviewer.from("historical_locations").update({ workflow_status: "hidden" }).eq("id", locCoords).select("id")), "được");
+  record("reviewer đổi tọa độ địa điểm", outcome(await reviewer.from("historical_locations").update({ latitude: 10.5, longitude: 106.5 }).eq("id", locNoCoords).select("id")), "chặn");
+  record("reviewer đổi tên địa điểm", outcome(await reviewer.from("historical_locations").update({ name: "ZZ reviewer đổi tên" }).eq("id", locNoCoords).select("id")), "chặn");
+  // nhân vật và chủ đề: cùng trigger
+  const mkSimple = async (table, row) => {
+    const r = await editor.from(table).insert({ ...row, workflow_status: "draft" }).select("id").single();
+    await editor.from(table).update({ workflow_status: "pending_review" }).eq("id", r.data.id);
+    return r.data.id;
+  };
+  const figId = await mkSimple("historical_figures", { name: "ZZ nv", slug: "zz-kiem-thu-r-nv", biography: "Tiểu sử" });
+  const topId = await mkSimple("curriculum_topics", { name: "ZZ chủ đề", slug: "zz-kiem-thu-r-chu-de", description: "Mô tả" });
+  record("reviewer sửa tiểu sử nhân vật", outcome(await reviewer.from("historical_figures").update({ biography: "reviewer sửa" }).eq("id", figId).select("id")), "chặn");
+  record("reviewer công bố nhân vật", outcome(await reviewer.from("historical_figures").update({ workflow_status: "published", review_note: null }).eq("id", figId).select("id")), "được");
+  record("reviewer sửa mô tả chủ đề", outcome(await reviewer.from("curriculum_topics").update({ description: "reviewer sửa" }).eq("id", topId).select("id")), "chặn");
+  record("reviewer công bố chủ đề", outcome(await reviewer.from("curriculum_topics").update({ workflow_status: "published", review_note: null }).eq("id", topId).select("id")), "được");
+
   // ---- Editor không tự duyệt ----
   await setStatus(ePending, "pending_review");
   record("editor: pending_review → published", outcome(await editor.from("historical_events").update({ workflow_status: "published" }).eq("id", ePending).select("id")), "chặn");

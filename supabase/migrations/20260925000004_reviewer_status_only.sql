@@ -1,7 +1,8 @@
 -- G5: Kiểm duyệt viên chỉ được đổi TRẠNG THÁI và GHI CHÚ KIỂM DUYỆT, không được sửa nội dung
 -- (Mục 4.2 KE_HOACH_DU_AN.md — hạng mục G5 đã bỏ qua ở Phase 1, nay áp dụng vì đã kiểm chứng lỗ hổng).
 --
--- ⚠ CHƯA CHẠY TRÊN DATABASE THẬT — chờ người dùng đồng ý. Mỗi migration chỉ chạy MỘT lần.
+-- ĐÃ CHẠY một lần trên database thật (4 trigger). LƯU Ý: bản này chặn nhầm việc reviewer công bố/ẩn ĐỊA ĐIỂM CÓ TỌA ĐỘ
+-- vì bỏ sót cột sinh tự động `geom` — được sửa bằng migration 20260925000005_reviewer_status_only_fix_geom.sql.
 --
 -- Vấn đề đã kiểm chứng trên database thật (tests/rls/reviewer.mjs): policy `reviewer_update_status`
 -- chỉ kiểm tra TRẠNG THÁI mới (WITH CHECK status in (needs_revision, published, hidden)) nên chuyển
