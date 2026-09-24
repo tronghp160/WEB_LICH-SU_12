@@ -80,3 +80,134 @@ body {
     scroll-behavior: smooth;
   }
 }
+
+/* ---- Bản đồ (Phase 6) ----
+   Marker/vòng tròn dùng biến màu của theme để tự đổi theo dark mode. */
+.map-marker {
+  background: transparent;
+  border: 0;
+}
+
+.map-pin {
+  display: block;
+  box-sizing: border-box;
+  border: 3px solid var(--accent);
+}
+
+/* Ghim chính xác (đặc) và gần đúng (viền rỗng): hình giọt nước = hình vuông bo góc xoay 45°. */
+.map-pin--exact,
+.map-pin--approximate {
+  width: 26px;
+  height: 26px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.map-pin--exact {
+  background: var(--accent);
+}
+
+.map-pin--approximate {
+  background: var(--surface);
+}
+
+.map-pin--exact::after,
+.map-pin--approximate::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.map-pin--approximate::after {
+  background: var(--accent);
+}
+
+/* Vòng tròn mờ nét đứt: tọa độ chỉ đại diện cho một khu vực, không phải một điểm. */
+.map-pin--region {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px dashed var(--accent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.map-marker:focus-visible .map-pin,
+.map-marker:hover .map-pin {
+  filter: brightness(1.15);
+}
+
+.leaflet-container.map-picking {
+  cursor: crosshair;
+}
+
+/* CSS ghi đè thuộc tính SVG do Leaflet đặt → dùng được biến theme. */
+path.map-radius {
+  fill: var(--gold);
+  fill-opacity: 0.12;
+  stroke: var(--gold-deep);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+}
+
+path.map-center {
+  fill: var(--gold-deep);
+  fill-opacity: 1;
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+/* Popup theo màu theme (mặc định của Leaflet luôn là nền trắng). */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface);
+  color: var(--surface-foreground);
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Leaflet ép màu liên kết xanh và margin 17px cho <p> trong popup → trả về theo theme. */
+.leaflet-container .leaflet-popup-content a {
+  color: var(--accent);
+}
+
+.leaflet-popup-content p {
+  margin: 0;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--muted-foreground);
+}
+
+/* Chú giải (mẫu thu nhỏ của các loại marker). */
+.map-legend {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+}
+
+.map-legend--exact {
+  background: var(--accent);
+}
+
+.map-legend--approximate {
+  background: var(--surface);
+}
+
+.map-legend--region {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}

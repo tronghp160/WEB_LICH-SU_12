@@ -55,6 +55,14 @@ export function parseDatePrecision(value: string): DatePrecision {
     : "approximate";
 }
 
+/**
+ * `accuracy_level` cũng là text có CHECK nên kiểu sinh ra chỉ là `string`. Giá
+ * trị lạ được coi là "unknown" — vẫn hiện nhãn cảnh báo thay vì giả vờ chính xác.
+ */
+export function parseAccuracyLevel(value: string): AccuracyLevel {
+  return Object.hasOwn(accuracyLevelLabels, value) ? (value as AccuracyLevel) : "unknown";
+}
+
 export type WorkflowStatus = keyof typeof workflowStatusLabels;
 export type StaffRole = keyof typeof staffRoleLabels;
 export type AccountStatus = keyof typeof accountStatusLabels;
