@@ -9,6 +9,8 @@ export type SourceListItem = {
   url?: string | null;
   sourceType: SourceType;
   sourceNote?: string | null;
+  /** Ghi chú về độ tin cậy của thông tin lấy từ nguồn này (`event_sources.confidence_note`). */
+  confidenceNote?: string | null;
 };
 
 type SourceListProps = {
@@ -39,6 +41,12 @@ export function SourceList({ sources }: SourceListProps) {
           <p className="text-sm text-muted-foreground">{source.citation}</p>
           {source.sourceNote && (
             <p className="mt-1 text-sm text-muted-foreground italic">{source.sourceNote}</p>
+          )}
+          {source.confidenceNote && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              <span className="font-medium text-surface-foreground">Độ tin cậy: </span>
+              {source.confidenceNote}
+            </p>
           )}
           {source.url && (
             <a

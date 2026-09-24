@@ -63,6 +63,11 @@ export function parseAccuracyLevel(value: string): AccuracyLevel {
   return Object.hasOwn(accuracyLevelLabels, value) ? (value as AccuracyLevel) : "unknown";
 }
 
+/** `source_type` cũng là text có CHECK; giá trị lạ được coi là "other". */
+export function parseSourceType(value: string): SourceType {
+  return Object.hasOwn(sourceTypeLabels, value) ? (value as SourceType) : "other";
+}
+
 export type WorkflowStatus = keyof typeof workflowStatusLabels;
 export type StaffRole = keyof typeof staffRoleLabels;
 export type AccountStatus = keyof typeof accountStatusLabels;

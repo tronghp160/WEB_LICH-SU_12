@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { toRelatedEvent, type RelatedEvent, type RelatedEventRow } from "@/lib/queries/events";
 import { createPublicClient } from "@/lib/supabase/public";
 import { parseAccuracyLevel, type AccuracyLevel } from "@/lib/utils/labels";
 
@@ -88,3 +90,58 @@ export async function getMapLocations(): Promise<MapLocation[]> {
     ];
   });
 }
+
+export type LocationDetail = {
+  slug: string;
+  name: string;
+  historicalName: string | null;
+  description: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  accuracyLevel: AccuracyLevel;
+  accuracyNote: string | null;
+  /** Sự kiện đã công bố diễn ra tại địa điểm, theo thời gian; `role` là vai trò của địa điểm trong sự kiện. */
+  events: (RelatedEvent & { role: string | null; isPrimary: boolean })[];
+};
+
+/** Một địa điểm ĐÃ CÔNG BỐ theo slug kèm các sự kiện đã công bố liên quan (UC05); không có → null. */
+export const getLocationDetail = cache(async (slug: string): Promise<LocationDetail | null> => {
+  const supabase = await createPublicClient();
+
+  const { data, error } = await supabase
+    .from("historical_locations")
+    .select(
+      `slug, name, historical_name, description, latitude, longitude, accuracy_level, accuracy_note,
+       event_locations(location_role, is_primary, historical_events(slug, title, summary, date_text, date_precision, is_featured, start_year, workflow_status, curriculum_topics(name, slug)))`,
+    )
+    .eq("slug", slug)
+    .eq("workflow_status", "published")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Không tải được địa điểm: ${error.message}`);
+  }
+  if (!data) return null;
+
+  const events = data.event_locations
+    .flatMap((link) => {
+      // Sự kiện là null lúc chạy nếu nó chưa published (RLS ẩn với khách).
+      const event = link.historical_events as RelatedEventRow | null;
+      return event && event.workflow_status === "published"
+        ? [{ ...toRelatedEvent(event), role: link.location_role, isPrimary: link.is_primary ?? false }]
+        : [];
+    })
+    .sort((a, b) => a.startYear - b.startYear || a.title.localeCompare(b.title, "vi"));
+
+  return {
+    slug: data.slug,
+    name: data.name,
+    historicalName: data.historical_name,
+    description: data.description,
+    latitude: data.latitude,
+    longitude: data.longitude,
+    accuracyLevel: parseAccuracyLevel(data.accuracy_level),
+    accuracyNote: data.accuracy_note,
+    events,
+  };
+});

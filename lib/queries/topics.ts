@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 
 export type PublishedTopic = {
@@ -33,3 +34,22 @@ export async function getPublishedTopics(): Promise<PublishedTopic[]> {
     eventCount: topic.historical_events[0]?.count ?? 0,
   }));
 }
+
+export type TopicDetail = Omit<PublishedTopic, "eventCount">;
+
+/** Một chủ đề ĐÃ CÔNG BỐ theo slug (UC05); không có / chưa công bố → null. */
+export const getTopicDetail = cache(async (slug: string): Promise<TopicDetail | null> => {
+  const supabase = await createPublicClient();
+
+  const { data, error } = await supabase
+    .from("curriculum_topics")
+    .select("id, slug, name, description")
+    .eq("slug", slug)
+    .eq("workflow_status", "published")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Không tải được chủ đề: ${error.message}`);
+  }
+  return data;
+});

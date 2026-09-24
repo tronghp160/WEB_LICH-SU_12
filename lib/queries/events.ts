@@ -49,7 +49,7 @@ type EventRow = {
   curriculum_topics: unknown;
 };
 
-function toEventSummary(event: EventRow): EventSummary {
+export function toEventSummary(event: EventRow): EventSummary {
   // Chủ đề có thể là null lúc chạy nếu nó chưa published (RLS ẩn với khách),
   // dù kiểu sinh ra coi là luôn có (topic_id NOT NULL).
   const topic = event.curriculum_topics as { name: string; slug: string } | null;
@@ -64,6 +64,16 @@ function toEventSummary(event: EventRow): EventSummary {
     topicName: topic?.name,
     topicSlug: topic?.slug,
   };
+}
+
+/** Sự kiện rút gọn kèm năm — dùng cho danh sách liên quan ở trang nhân vật/địa điểm/chủ đề. */
+export type RelatedEvent = EventSummary & { startYear: number };
+
+/** Hàng sự kiện nhúng (embedded) đủ trường để dựng RelatedEvent. */
+export type RelatedEventRow = EventRow & { start_year: number; workflow_status: string };
+
+export function toRelatedEvent(event: RelatedEventRow): RelatedEvent {
+  return { ...toEventSummary(event), startYear: event.start_year };
 }
 
 /** Sự kiện trên dòng thời gian: thêm năm (để nhóm) và địa điểm chính (để nối sang bản đồ). */
