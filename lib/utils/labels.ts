@@ -14,6 +14,9 @@ export const staffRoleLabels = {
   system_admin: "Quản trị viên hệ thống",
 } as const;
 
+/** Mọi vai trò nhân sự (đúng thứ tự nghiệp vụ). */
+export const STAFF_ROLES = ["editor", "reviewer", "system_admin"] as const;
+
 export const accountStatusLabels = {
   active: "Hoạt động",
   locked: "Đã khóa",
