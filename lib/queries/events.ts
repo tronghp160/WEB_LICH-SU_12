@@ -36,20 +36,76 @@ export async function getFeaturedEvents(limit = 12): Promise<EventSummary[]> {
     throw new Error(`Không tải được sự kiện nổi bật: ${error.message}`);
   }
 
+  return data.map(toEventSummary);
+}
+
+type EventRow = {
+  slug: string;
+  title: string;
+  summary: string;
+  date_text: string;
+  date_precision: string;
+  is_featured: boolean | null;
+  curriculum_topics: unknown;
+};
+
+function toEventSummary(event: EventRow): EventSummary {
+  // Chủ đề có thể là null lúc chạy nếu nó chưa published (RLS ẩn với khách),
+  // dù kiểu sinh ra coi là luôn có (topic_id NOT NULL).
+  const topic = event.curriculum_topics as { name: string; slug: string } | null;
+
+  return {
+    slug: event.slug,
+    title: event.title,
+    summary: event.summary,
+    dateText: event.date_text,
+    datePrecision: parseDatePrecision(event.date_precision),
+    isFeatured: event.is_featured ?? false,
+    topicName: topic?.name,
+    topicSlug: topic?.slug,
+  };
+}
+
+/** Sự kiện trên dòng thời gian: thêm năm (để nhóm) và địa điểm chính (để nối sang bản đồ). */
+export type TimelineEvent = EventSummary & {
+  startYear: number;
+  primaryLocation?: { name: string; slug: string };
+};
+
+/**
+ * Toàn bộ sự kiện đã công bố cho dòng thời gian (UC02), sắp theo `start_year`,
+ * rồi `start_date` (null xếp sau), rồi `title`; kèm chủ đề và địa điểm chính.
+ * Chỉ 25–35 sự kiện nên lấy hết một lần, lọc chủ đề làm phía trình duyệt.
+ */
+export async function getTimelineEvents(): Promise<TimelineEvent[]> {
+  const supabase = await createPublicClient();
+
+  const { data, error } = await supabase
+    .from("historical_events")
+    .select(
+      "slug, title, summary, date_text, date_precision, is_featured, start_year, curriculum_topics(name, slug), event_locations(is_primary, historical_locations(name, slug))",
+    )
+    .eq("workflow_status", "published")
+    // Chỉ nhúng địa điểm chính (không dùng !inner nên sự kiện không có vẫn được trả về).
+    .eq("event_locations.is_primary", true)
+    .order("start_year", { ascending: true })
+    .order("start_date", { ascending: true, nullsFirst: false })
+    .order("title", { ascending: true });
+
+  if (error) {
+    throw new Error(`Không tải được dòng thời gian: ${error.message}`);
+  }
+
   return data.map((event) => {
-    // Chủ đề có thể là null lúc chạy nếu nó chưa published (RLS ẩn với khách),
-    // dù kiểu sinh ra coi là luôn có (topic_id NOT NULL).
-    const topic = event.curriculum_topics as { name: string; slug: string } | null;
+    // Địa điểm là null lúc chạy nếu nó chưa published (RLS ẩn với khách).
+    const location = event.event_locations
+      .map((link) => link.historical_locations as { name: string; slug: string } | null)
+      .find((item) => item !== null);
 
     return {
-      slug: event.slug,
-      title: event.title,
-      summary: event.summary,
-      dateText: event.date_text,
-      datePrecision: parseDatePrecision(event.date_precision),
-      isFeatured: event.is_featured ?? false,
-      topicName: topic?.name,
-      topicSlug: topic?.slug,
+      ...toEventSummary(event),
+      startYear: event.start_year,
+      primaryLocation: location ? { name: location.name, slug: location.slug } : undefined,
     };
   });
 }

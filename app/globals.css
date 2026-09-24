@@ -72,3 +72,11 @@ body {
     transparent 70%
   );
 }
+
+/* Cuộn mượt khi bấm thanh "nhảy nhanh" của dòng thời gian, trừ khi người dùng
+   bật "giảm chuyển động" trong hệ điều hành. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

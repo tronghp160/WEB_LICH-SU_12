@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { TopicBadge } from "@/components/content/TopicBadge";
@@ -11,6 +12,11 @@ export type EventCardProps = EventSummary & {
    * khu vực vốn chỉ liệt kê sự kiện nổi bật, nơi badge này chỉ lặp thừa.
    */
   showFeaturedBadge?: boolean;
+  /**
+   * Hành động phụ dưới thẻ (ví dụ "Xem trên bản đồ"). Được nâng lên z-10 nên
+   * bấm được độc lập với liên kết trải rộng của cả thẻ.
+   */
+  children?: ReactNode;
 };
 
 /**
@@ -28,6 +34,7 @@ export function EventCard({
   topicName,
   topicSlug,
   showFeaturedBadge = true,
+  children,
 }: EventCardProps) {
   const showFeatured = showFeaturedBadge && isFeatured;
   const hasBadges = showFeatured || Boolean(topicName) || datePrecision !== "exact";
@@ -57,6 +64,7 @@ export function EventCard({
       </h3>
       <p className="line-clamp-2 text-sm font-medium text-gold-deep">{dateText}</p>
       <p className="line-clamp-3 text-sm text-muted-foreground">{summary}</p>
+      {children && <div className="relative z-10 mt-auto pt-2">{children}</div>}
     </Card>
   );
 }
