@@ -319,3 +319,22 @@ export async function getReadinessSnapshot(
     },
   };
 }
+
+/**
+ * Trạng thái của các sự kiện đang dùng một nguồn — qua nguồn tham khảo (event_sources) HOẶC nguồn của
+ * ảnh (media_assets). Dùng để biết nguồn có bị khóa với biên tập viên không (isSourceLockedForEditor).
+ */
+export async function getSourceLinkedStatuses(sourceId: string): Promise<WorkflowStatus[]> {
+  const supabase = await createClient();
+  const [viaSources, viaMedia] = await Promise.all([
+    supabase.from("event_sources").select("historical_events(workflow_status)").eq("source_id", sourceId),
+    supabase.from("media_assets").select("historical_events(workflow_status)").eq("source_id", sourceId),
+  ]);
+  if (viaSources.error) fail("sự kiện dùng nguồn", viaSources.error);
+  if (viaMedia.error) fail("ảnh dùng nguồn", viaMedia.error);
+
+  return [...viaSources.data, ...viaMedia.data].flatMap((row) => {
+    const event = row.historical_events as { workflow_status: WorkflowStatus } | null;
+    return event ? [event.workflow_status] : [];
+  });
+}

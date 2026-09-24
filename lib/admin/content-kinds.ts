@@ -45,6 +45,15 @@ export function canEditContent(role: StaffRole, status: WorkflowStatus): boolean
   return false;
 }
 
+/**
+ * Biên tập viên có bị KHÓA sửa/xóa một nguồn không: khi nguồn đang gắn (qua event_sources hoặc ảnh)
+ * với ít nhất một sự kiện mà chính họ không còn được sửa (pending_review/published/hidden).
+ * Phản chiếu policy `editor_update_unlinked` / `editor_delete_unlinked` của bảng `sources`.
+ */
+export function isSourceLockedForEditor(linkedEventStatuses: readonly WorkflowStatus[]): boolean {
+  return linkedEventStatuses.some((status) => !canEditContent("editor", status));
+}
+
 /** Được GỬI DUYỆT khi đang là bản nháp hoặc bản cần chỉnh sửa (UC09). */
 export function canSubmitForReview(role: StaffRole, status: WorkflowStatus): boolean {
   return (role === "editor" || role === "system_admin") && (status === "draft" || status === "needs_revision");

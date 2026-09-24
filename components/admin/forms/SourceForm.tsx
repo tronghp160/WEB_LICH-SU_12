@@ -23,10 +23,11 @@ type SourceFormProps = {
     citation: string;
     accessed_at: string | null;
   };
+  readOnly?: boolean;
 };
 
 /** Form nguồn tham khảo (UC08). Nguồn trang web bắt buộc có ngày truy cập. */
-export function SourceForm({ id, initial }: SourceFormProps) {
+export function SourceForm({ id, initial, readOnly }: SourceFormProps) {
   const [state, formAction, pending] = useActionState(saveSourceAction, initialActionState);
   const value = valueReader(state, initial);
   const errors = state.fieldErrors ?? {};
@@ -35,55 +36,57 @@ export function SourceForm({ id, initial }: SourceFormProps) {
     <form action={formAction} noValidate className="flex max-w-3xl flex-col gap-5">
       {id && <input type="hidden" name="id" value={id} />}
       <FormMessage state={state} />
-      <Field name="title" label="Tên nguồn" required error={errors.title}>
-        {(props) => <Input {...props} defaultValue={value("title")} maxLength={300} />}
-      </Field>
-      <Field name="source_type" label="Loại nguồn" required error={errors.source_type}>
-        {(props) => (
-          // key theo giá trị đã nhập: React chỉ áp defaultValue của <select> lúc dựng lần đầu, nên khi form
-          // trả lỗi phải dựng lại ô để không mất lựa chọn của người dùng.
-          <Select key={value("source_type")} {...props} defaultValue={value("source_type")}>
-            <option value="">— Chọn loại nguồn —</option>
-            {Object.entries(sourceTypeLabels).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </Select>
-        )}
-      </Field>
-      <Field
-        name="citation"
-        label="Trích dẫn"
-        required
-        error={errors.citation}
-        hint="Thông tin đủ để người khác tìm lại nguồn: tác giả, tên tài liệu, nhà xuất bản, năm, trang…"
-      >
-        {(props) => <Textarea {...props} defaultValue={value("citation")} rows={3} />}
-      </Field>
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field name="author_org" label="Tác giả / tổ chức" error={errors.author_org}>
-          {(props) => <Input {...props} defaultValue={value("author_org")} />}
+      <fieldset disabled={readOnly} className="m-0 flex min-w-0 flex-col gap-5 border-0 p-0">
+        <Field name="title" label="Tên nguồn" required error={errors.title}>
+          {(props) => <Input {...props} defaultValue={value("title")} maxLength={300} />}
         </Field>
-        <Field name="publisher" label="Nhà xuất bản" error={errors.publisher}>
-          {(props) => <Input {...props} defaultValue={value("publisher")} />}
-        </Field>
-        <Field name="published_year" label="Năm xuất bản" error={errors.published_year}>
-          {(props) => <Input {...props} inputMode="numeric" defaultValue={value("published_year")} />}
+        <Field name="source_type" label="Loại nguồn" required error={errors.source_type}>
+          {(props) => (
+            // key theo giá trị đã nhập: React chỉ áp defaultValue của <select> lúc dựng lần đầu, nên khi form
+            // trả lỗi phải dựng lại ô để không mất lựa chọn của người dùng.
+            <Select key={value("source_type")} {...props} defaultValue={value("source_type")}>
+              <option value="">— Chọn loại nguồn —</option>
+              {Object.entries(sourceTypeLabels).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+          )}
         </Field>
         <Field
-          name="accessed_at"
-          label="Ngày truy cập"
-          error={errors.accessed_at}
-          hint="Bắt buộc với nguồn trang web."
+          name="citation"
+          label="Trích dẫn"
+          required
+          error={errors.citation}
+          hint="Thông tin đủ để người khác tìm lại nguồn: tác giả, tên tài liệu, nhà xuất bản, năm, trang…"
         >
-          {(props) => <Input {...props} type="date" defaultValue={value("accessed_at")} />}
+          {(props) => <Textarea {...props} defaultValue={value("citation")} rows={3} />}
         </Field>
-      </div>
-      <Field name="url" label="Đường dẫn (URL)" error={errors.url} hint="Bắt đầu bằng http:// hoặc https://.">
-        {(props) => <Input {...props} type="url" defaultValue={value("url")} />}
-      </Field>
-      <FormFooter pending={pending} cancelHref={contentPaths.list("nguon")} />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field name="author_org" label="Tác giả / tổ chức" error={errors.author_org}>
+            {(props) => <Input {...props} defaultValue={value("author_org")} />}
+          </Field>
+          <Field name="publisher" label="Nhà xuất bản" error={errors.publisher}>
+            {(props) => <Input {...props} defaultValue={value("publisher")} />}
+          </Field>
+          <Field name="published_year" label="Năm xuất bản" error={errors.published_year}>
+            {(props) => <Input {...props} inputMode="numeric" defaultValue={value("published_year")} />}
+          </Field>
+          <Field
+            name="accessed_at"
+            label="Ngày truy cập"
+            error={errors.accessed_at}
+            hint="Bắt buộc với nguồn trang web."
+          >
+            {(props) => <Input {...props} type="date" defaultValue={value("accessed_at")} />}
+          </Field>
+        </div>
+        <Field name="url" label="Đường dẫn (URL)" error={errors.url} hint="Bắt đầu bằng http:// hoặc https://.">
+          {(props) => <Input {...props} type="url" defaultValue={value("url")} />}
+        </Field>
+      </fieldset>
+      <FormFooter pending={pending} cancelHref={contentPaths.list("nguon")} readOnly={readOnly} />
     </form>
   );
 }

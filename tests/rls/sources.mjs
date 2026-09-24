@@ -7,7 +7,6 @@ const reviewer = await as("reviewer@test.local");
 const admin = await as("admin@test.local");
 const res = { cases: {}, links: {} };
 const P = "ZZ KIỂM THỬ SRC ";
-const created = { events: [], sources: [] };
 
 async function cleanup() {
   await admin.from("historical_events").delete().like("slug", "zz-kiem-thu-%");
@@ -19,7 +18,7 @@ const outcome = (r) => (r.error ? `bị chặn (${r.error.code})` : r.data?.leng
 
 try {
   const topicId = (await admin.from("curriculum_topics").select("id").limit(1).single()).data.id;
-  const mkEvent = async (slug, status) => {
+  const mkEvent = async (slug) => {
     const ins = await editor.from("historical_events").insert({ topic_id: topicId, title: "ZZ " + slug, slug, start_year: 1954, date_text: "1954", date_precision: "year", summary: "s", workflow_status: "draft" }).select("id").single();
     if (ins.error) throw new Error("event " + slug + ": " + ins.error.message);
     return ins.data.id;

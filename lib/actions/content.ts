@@ -50,6 +50,8 @@ async function saveRecord(options: {
   values: Record<string, string>;
   update: (db: Db, id: string) => Result<{ id: string }[]>;
   insert: (db: Db) => Result<{ id: string }>;
+  /** Thông báo khi cập nhật không ảnh hưởng dòng nào (thường do RLS); mặc định nói về trạng thái chỉnh sửa. */
+  notEditableMessage?: string;
   /** Chạy sau khi ghi bản ghi chính (ví dụ lưu liên kết của sự kiện). */
   afterSave?: (db: Db, id: string) => Promise<DbErrorLike | null>;
 }): Promise<ActionState> {
@@ -62,7 +64,7 @@ async function saveRecord(options: {
 
     const { data, error } = await options.update(supabase, id);
     if (error) return dbErrorState(error, values);
-    if (!data || data.length === 0) return errorState(NOT_EDITABLE_MESSAGE, values);
+    if (!data || data.length === 0) return errorState(options.notEditableMessage ?? NOT_EDITABLE_MESSAGE, values);
 
     if (options.afterSave) {
       const linkError = await options.afterSave(supabase, id);
@@ -257,6 +259,8 @@ export async function saveSourceAction(_previous: ActionState, formData: FormDat
     segment: "nguon",
     label: "nguồn",
     values,
+    notEditableMessage:
+      "Không sửa được: nguồn không tồn tại hoặc đang được dùng trong sự kiện đã gửi duyệt/công bố. Hãy liên hệ quản trị viên nếu cần chỉnh sửa.",
     update: (db, id) => db.from("sources").update(parsed.data).eq("id", id).select("id"),
     insert: (db) => db.from("sources").insert(parsed.data).select("id").single(),
   });
@@ -277,7 +281,12 @@ export async function deleteSourceAction(_previous: ActionState, formData: FormD
       ? { ...state, message: "Không xóa được nguồn này vì đang được gắn với sự kiện. Hãy gỡ nguồn khỏi các sự kiện trước." }
       : state;
   }
-  if (!data || data.length === 0) return errorState("Không xóa được: nguồn không tồn tại hoặc bạn không có quyền.", values);
+  if (!data || data.length === 0) {
+    return errorState(
+      "Không xóa được: nguồn không tồn tại, hoặc đang được dùng trong sự kiện đã gửi duyệt/công bố (hay bạn không có quyền).",
+      values,
+    );
+  }
 
   redirect(`${contentPaths.list("nguon")}?thong-bao=da-xoa`);
 }

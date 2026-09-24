@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canEditContent, canSubmitForReview, parseContentSegment } from "@/lib/admin/content-kinds";
+import { canEditContent, canSubmitForReview, isSourceLockedForEditor, parseContentSegment } from "@/lib/admin/content-kinds";
 import type { StaffRole, WorkflowStatus } from "@/lib/utils/labels";
 
 const statuses: WorkflowStatus[] = ["draft", "pending_review", "needs_revision", "published", "hidden"];
@@ -44,6 +44,23 @@ describe("parseContentSegment", () => {
   it("giá trị lạ (kể cả thuộc tính của Object.prototype) → null", () => {
     for (const value of ["", "abc", "constructor", "__proto__", "SU-KIEN"]) {
       expect(parseContentSegment(value), value).toBeNull();
+    }
+  });
+});
+
+describe("isSourceLockedForEditor (phản chiếu policy của bảng sources)", () => {
+  it("nguồn chưa gắn sự kiện nào → không khóa", () => {
+    expect(isSourceLockedForEditor([])).toBe(false);
+  });
+
+  it("chỉ gắn với sự kiện draft/needs_revision → không khóa", () => {
+    expect(isSourceLockedForEditor(["draft", "needs_revision", "draft"])).toBe(false);
+  });
+
+  it("gắn với BẤT KỲ sự kiện pending_review/published/hidden nào → khóa", () => {
+    for (const locked of ["pending_review", "published", "hidden"] as const) {
+      expect(isSourceLockedForEditor([locked]), locked).toBe(true);
+      expect(isSourceLockedForEditor(["draft", locked]), `draft + ${locked}`).toBe(true);
     }
   });
 });

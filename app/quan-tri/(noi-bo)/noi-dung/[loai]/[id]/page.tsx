@@ -15,6 +15,7 @@ import {
   canEditContent,
   canSubmitForReview,
   contentKindLabels,
+  isSourceLockedForEditor,
   contentPaths,
   parseContentSegment,
   type ContentKind,
@@ -28,6 +29,7 @@ import {
   getLocationForEdit,
   getReadinessSnapshot,
   getSourceForEdit,
+  getSourceLinkedStatuses,
   getTopicForEdit,
   isUuid,
   listSources,
@@ -51,14 +53,20 @@ export default async function EditContentPage({ params, searchParams }: Props) {
   const query = await searchParams;
   const noticeCode = typeof query["thong-bao"] === "string" ? query["thong-bao"] : undefined;
 
-  if (segment === "nguon") return <EditSource id={id} noticeCode={noticeCode} />;
+  if (segment === "nguon") return <EditSource id={id} staff={staff} noticeCode={noticeCode} />;
   return <EditWorkflowContent kind={segment} id={id} staff={staff} noticeCode={noticeCode} />;
 }
 
-async function EditSource({ id, noticeCode }: { id: string; noticeCode?: string }) {
-  const [source, sources] = await Promise.all([getSourceForEdit(id), listSources()]);
+async function EditSource({ id, staff, noticeCode }: { id: string; staff: Staff; noticeCode?: string }) {
+  const [source, sources, linkedStatuses] = await Promise.all([
+    getSourceForEdit(id),
+    listSources(),
+    getSourceLinkedStatuses(id),
+  ]);
   if (!source) notFound();
   const usedBy = sources.find((item) => item.id === id)?.usedBy ?? 0;
+  // Biên tập viên không được sửa/xóa nguồn đang gắn với sự kiện đã gửi duyệt/công bố/ẩn (RLS ở bảng sources).
+  const locked = staff.role === "editor" && isSourceLockedForEditor(linkedStatuses);
 
   return (
     <div className="flex flex-col gap-6">
@@ -73,10 +81,18 @@ async function EditSource({ id, noticeCode }: { id: string; noticeCode?: string 
         <h1 className="mt-3 font-serif text-3xl font-bold text-foreground">{source.title}</h1>
       </div>
       <Notice code={noticeCode} />
-      <SourceForm id={id} initial={source} />
-      <div className="max-w-3xl">
-        <DeleteSourceForm id={id} usedBy={usedBy} />
-      </div>
+      {locked && (
+        <p role="note" className="max-w-3xl rounded-lg border border-border bg-muted px-4 py-3 text-sm text-foreground">
+          Nguồn này đang được dùng trong sự kiện đã gửi duyệt, đã công bố hoặc đã ẩn nên bạn chỉ có thể xem. Nếu cần
+          chỉnh sửa hoặc xóa, hãy liên hệ quản trị viên.
+        </p>
+      )}
+      <SourceForm id={id} initial={source} readOnly={locked} />
+      {!locked && (
+        <div className="max-w-3xl">
+          <DeleteSourceForm id={id} usedBy={usedBy} />
+        </div>
+      )}
     </div>
   );
 }
