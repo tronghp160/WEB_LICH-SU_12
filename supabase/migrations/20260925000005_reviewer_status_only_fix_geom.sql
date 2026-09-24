@@ -1,7 +1,7 @@
 -- Sửa lỗi của migration 20260925000004 (G5): trigger `reviewer_may_only_change_status` chặn NHẦM việc kiểm duyệt viên
 -- công bố/ẩn ĐỊA ĐIỂM CÓ TỌA ĐỘ.
 --
--- ⚠ CHƯA CHẠY TRÊN DATABASE THẬT — chờ người dùng duyệt. Mỗi migration chỉ chạy MỘT lần.
+-- ✔ ĐÃ CHẠY TRÊN DATABASE THẬT (2026-09-24) sau khi được người dùng duyệt. Mỗi migration chỉ chạy MỘT lần — KHÔNG chạy lại.
 --
 -- Nguyên nhân (đã tái hiện trên database thật): bảng `historical_locations` có cột `geom` là cột SINH TỰ ĐỘNG
 -- (generated always ... stored) từ latitude/longitude. Postgres tính cột sinh SAU khi các trigger BEFORE ROW chạy, nên trong

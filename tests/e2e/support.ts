@@ -21,14 +21,36 @@ function readEnv(): Record<string, string> {
 }
 
 /** Client Supabase đăng nhập bằng tài khoản thử (dùng để chuẩn bị/dọn dữ liệu bằng API, RLS vẫn áp dụng). */
-export async function asUser(email: string): Promise<SupabaseClient> {
+export async function asUser(email: string, password: string | undefined = TEST_PW): Promise<SupabaseClient> {
   const env = readEnv();
   const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const { error } = await client.auth.signInWithPassword({ email, password: TEST_PW ?? "" });
+  const { error } = await client.auth.signInWithPassword({ email, password: password ?? "" });
   if (error) throw new Error(`Không đăng nhập được ${email}: ${error.message}`);
   return client;
+}
+
+/** Đã cấu hình khóa bí mật (cần cho việc dọn tài khoản Auth do bộ kiểm thử tạo ra). KHÔNG bao giờ in giá trị khóa. */
+export function hasSecretKey(): boolean {
+  return Boolean(readEnv().SUPABASE_SECRET_KEY);
+}
+
+/** Client dùng khóa bí mật (bỏ qua RLS) — CHỈ để dọn dữ liệu của bộ kiểm thử; chạy trong Node, không bao giờ vào bundle. */
+export function adminApi(): SupabaseClient {
+  const env = readEnv();
+  return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+/** Xóa tài khoản Auth theo email (hồ sơ `staff_profiles` xóa theo nhờ ON DELETE CASCADE). */
+export async function deleteAuthUserByEmail(email: string): Promise<void> {
+  const api = adminApi();
+  const { data } = await api.auth.admin.listUsers({ perPage: 1000 });
+  for (const user of data?.users ?? []) {
+    if (user.email === email) await api.auth.admin.deleteUser(user.id);
+  }
 }
 
 /** Đăng nhập nhân sự qua giao diện. */

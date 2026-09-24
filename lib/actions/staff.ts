@@ -78,7 +78,7 @@ export async function createStaffAction(_previous: ActionState, formData: FormDa
   revalidatePath(STAFF_PATH);
   return {
     status: "success",
-    message: `Đã tạo tài khoản ${parsed.data.email} (${staffRoleLabels[parsed.data.role]}). Hãy gửi mật khẩu tạm cho người đó và nhắc đổi khi đăng nhập.`,
+    message: `Đã tạo tài khoản ${parsed.data.email} (${staffRoleLabels[parsed.data.role]}). Hãy sao chép mật khẩu tạm ở ô “Mật khẩu tạm” bên dưới (rời trang sẽ không xem lại được) rồi gửi cho người đó, và nhắc đổi sau khi đăng nhập.`,
     values: {},
   };
 }

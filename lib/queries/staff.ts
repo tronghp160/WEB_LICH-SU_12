@@ -41,14 +41,18 @@ export async function listStaff(): Promise<StaffDirectory> {
   if (!isAdminClientConfigured()) {
     emailWarning = "Chưa cấu hình SUPABASE_SECRET_KEY nên chưa hiển thị được email và chưa tạo được tài khoản mới.";
   } else {
-    try {
-      const { data: users, error: listError } = await createAdminClient().auth.admin.listUsers({ perPage: 1000 });
-      if (listError) throw listError;
-      emails = new Map(users.users.map((user) => [user.id, user.email ?? ""]));
-      emailsAvailable = true;
-    } catch {
-      emailWarning = "Không lấy được email từ hệ thống đăng nhập. Danh sách vẫn hiển thị theo hồ sơ nhân sự.";
+    // Auth Admin API thỉnh thoảng lỗi thoáng qua (mạng/timeout) → thử lại một lần trước khi cảnh báo.
+    for (let attempt = 0; attempt < 2 && !emailsAvailable; attempt++) {
+      try {
+        const { data: users, error: listError } = await createAdminClient().auth.admin.listUsers({ perPage: 1000 });
+        if (listError) throw listError;
+        emails = new Map(users.users.map((user) => [user.id, user.email ?? ""]));
+        emailsAvailable = true;
+      } catch {
+        emailWarning = "Không lấy được email từ hệ thống đăng nhập. Danh sách vẫn hiển thị theo hồ sơ nhân sự.";
+      }
     }
+    if (emailsAvailable) emailWarning = null;
   }
 
   return {

@@ -75,7 +75,9 @@ try {
   // ---- Địa điểm CÓ tọa độ: cột `geom` sinh tự động không được làm trigger G5 chặn nhầm (lỗi đã gặp) ----
   const mkLocation = async (slug, coords) => {
     const r = await editor.from("historical_locations").insert({ name: "ZZ " + slug, slug, accuracy_level: "exact", ...(coords ? { latitude: 21.03, longitude: 105.85 } : {}), workflow_status: "draft" }).select("id").single();
-    await editor.from("historical_locations").update({ workflow_status: "pending_review" }).eq("id", r.data.id);
+    if (r.error) throw new Error(`tạo địa điểm thử ${slug}: ${r.error.code} ${r.error.message}`);
+    const u = await editor.from("historical_locations").update({ workflow_status: "pending_review" }).eq("id", r.data.id).select("id");
+    if (u.error || !u.data?.length) throw new Error(`gửi duyệt địa điểm thử ${slug}: ${u.error ? u.error.message : "0 dòng"}`);
     return r.data.id;
   };
   const locCoords = await mkLocation("zz-kiem-thu-r-dd-toa-do", true);
@@ -88,7 +90,9 @@ try {
   // nhân vật và chủ đề: cùng trigger
   const mkSimple = async (table, row) => {
     const r = await editor.from(table).insert({ ...row, workflow_status: "draft" }).select("id").single();
-    await editor.from(table).update({ workflow_status: "pending_review" }).eq("id", r.data.id);
+    if (r.error) throw new Error(`tạo ${table} thử: ${r.error.code} ${r.error.message}`);
+    const u = await editor.from(table).update({ workflow_status: "pending_review" }).eq("id", r.data.id).select("id");
+    if (u.error || !u.data?.length) throw new Error(`gửi duyệt ${table} thử: ${u.error ? u.error.message : "0 dòng"}`);
     return r.data.id;
   };
   const figId = await mkSimple("historical_figures", { name: "ZZ nv", slug: "zz-kiem-thu-r-nv", biography: "Tiểu sử" });

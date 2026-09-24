@@ -29,8 +29,8 @@
 | Ràng buộc CSDL — hợp lệ và không hợp lệ (mục 8.1) | 41 | 41 | gồm C1–C13 của kế hoạch |
 | Ma trận phân quyền RLS (mục 8.2) | 70 ô (14 thao tác × 5 vai trò) | 70 | + kiểm tra hành vi `updated_at` (C12) |
 | RLS chi tiết — `sources` (link + nguồn) | 13 | 13 | sau migration 000003 |
-| RLS chi tiết — kiểm duyệt viên | 24 | **22** | 2 ca chờ chạy migration 000005 (xem mục 7) |
-| E2E Playwright (mục 8.4) | 22 | 22 | E1–E9 |
+| RLS chi tiết — kiểm duyệt viên | 24 | 24 | sau migration 000005 (chạy 3 lần liên tiếp, đều 24/24) |
+| E2E Playwright (mục 8.4) | 29 | 29 | E1–E9 + 7 ca UC13 (tạo tài khoản); xem lưu ý về mạng ở mục 5 |
 | Phi chức năng (mục 8.5) | — | — | xem mục 5: đạt trợ năng; 1 điểm hiệu năng chưa đạt mục tiêu trong kịch bản mạng chậm |
 
 ## 2. Unit test (Vitest) — 181 test, 16 file
@@ -113,12 +113,17 @@ Hành vi `updated_at` (C12): cập nhật sự kiện ở giao dịch riêng →
 | Kịch bản | Kết quả | Nội dung |
 |---|---|---|
 | `tests/rls/sources.mjs` | 13/13 | editor chỉ sửa/xóa nguồn chưa gắn sự kiện đã khóa (kể cả gắn qua ảnh); reviewer/admin giữ nguyên; liên kết: editor bị chặn ở sự kiện published, đổi `event_id` sang sự kiện published bị chặn |
-| `tests/rls/reviewer.mjs` | 22/24 | chuyển trạng thái hợp lệ/không hợp lệ, không tạo/sửa/xóa nội dung; **2 ca lệch** (công bố/ẩn địa điểm CÓ tọa độ) — xem mục 7 |
+| `tests/rls/reviewer.mjs` | 24/24 | chuyển trạng thái hợp lệ/không hợp lệ, không tạo/sửa/xóa nội dung; gồm công bố/ẩn địa điểm CÓ tọa độ (sau migration 000005) |
 | `tests/rls/editor-publish.mjs` | đạt | editor không tự công bố/ẩn dù bản nháp đã đủ nguồn (chỉ RLS quyết định, trigger G4 không che); reviewer không tạo mới được |
 
-## 5. Kiểm thử E2E (mục 8.4) — 22/22 ca đạt
+## 5. Kiểm thử E2E (mục 8.4) — 29 ca
 
-Bộ Playwright: `tests/e2e/public.spec.ts` (18 ca) và `tests/e2e/staff.spec.ts` (4 ca, chạy tuần tự).
+Bộ Playwright: `tests/e2e/public.spec.ts` (18 ca), `tests/e2e/staff.spec.ts` (4 ca, tuần tự) và `tests/e2e/staff-create.spec.ts` (7 ca UC13, tuần tự; cần `SUPABASE_SECRET_KEY`).
+
+**Lưu ý về độ ổn định:** khi chạy riêng, bộ UC13 đạt 7/7. Khi chạy nhiều lần, có lúc một ca lỗi vì
+mạng từ máy phát triển tới Supabase chập chờn (đo bằng `curl` tới `/auth/v1/health`: 0,4–15 s, có yêu cầu rớt hẳn; gọi `listUsers` song song 30 lần
+có 1 lần `AuthRetryableFetchError: fetch failed`). Khi đó trang Nhân sự khóa form và hiện cảnh báo đúng thiết kế; máy chủ thử lại một lần, test tải lại trang
+tối đa 4 lần. Lỗi thuộc môi trường mạng, không phải logic ứng dụng.
 
 | # | Luồng | Kết quả |
 |---|---|---|
@@ -227,7 +232,13 @@ Trang Vận hành (`/quan-tri/van-hanh`) thực hiện lại các kiểm tra nà
 ### 6.5. Bảo mật và dễ dùng
 
 - Người dùng không ghi được và không đọc được bản ghi chưa công bố: ma trận mục 4.1 (cả 3 vai trò, tài khoản `active` và `locked`).
-- Khóa bí mật: bundle client (`.next/static`) **không chứa** tên biến `SUPABASE_SECRET_KEY` hay giá trị khóa; file quản trị dùng `import "server-only"`.
+- Khóa bí mật (đã điền thật vào `.env.local`, build lại rồi quét): `.next/static` — thứ duy nhất được phục vụ cho trình duyệt — **0 file** chứa giá trị khóa,
+  tên biến `SUPABASE_SECRET_KEY`/`SERVICE_ROLE`, hay chuỗi có dạng khóa thật; chỉ `lib/actions/staff.ts` và `lib/queries/staff.ts` import `lib/supabase/admin`
+  (`import "server-only"`), không file nào là `"use client"`. Chuỗi `sb_secret_` tìm thấy trong bundle là phép kiểm `startsWith("sb_secret_")` của chính thư viện Supabase, không phải khóa.
+  Quét toàn bộ `.next` chỉ thêm 1 kết quả: bộ đệm Turbopack `.next/cache/turbopack/*.sst` (không được phục vụ, nằm trong `.gitignore`).
+- UC13 tạo tài khoản (E2E thật): admin tạo editor mới qua form → người đó đăng nhập được ngay (không cần xác nhận email), chỉ thấy "Tổng quan", "Nội dung",
+  bị chuyển về "không có quyền" ở kiểm duyệt/nhân sự/vận hành, không tự nâng quyền được, và bị khóa tại lần thao tác kế sau khi admin khóa. Mật khẩu tạm không nằm trong
+  thông báo và server không trả lại. Tài khoản thử `editor.moi.e2e@test.local` tự xóa ở cuối.
 - Khu nội bộ có `noindex, nofollow`; đường dẫn `/quan-tri/*` chưa đăng nhập bị chuyển về trang đăng nhập (kể cả viết hoa / dấu `/` cuối).
 - Mọi lỗi hiển thị tiếng Việt; mọi danh sách rỗng có trạng thái trống; `alt_text` bắt buộc khi thêm ảnh; ô nhập có nhãn và `aria-describedby` cho lỗi.
 - Mốc gần đúng/tranh luận hiển thị `date_precision`; tọa độ ước lượng hiển thị `accuracy_level` (marker phân biệt ghim đặc / ghim viền / vòng tròn mờ).
@@ -242,14 +253,14 @@ Trang Vận hành (`/quan-tri/van-hanh`) thực hiện lại các kiểm tra nà
 | 4 | Editor **ghi được liên kết/ảnh của sự kiện đã công bố** qua API | kiểm thử RLS | migration `20260925000002` (đã chạy, 70/70) |
 | 5 | Editor sửa/xóa được **nguồn** của sự kiện đã công bố; xóa nguồn làm ảnh mất nguồn | kiểm thử RLS | migration `20260925000003` (đã chạy, 13/13) |
 | 6 | Reviewer **sửa được nội dung bản đã công bố** qua API (G5) | kiểm thử RLS | migration `20260925000004` (đã chạy) |
-| 7 | **Migration G5 chặn nhầm reviewer công bố/ẩn địa điểm có tọa độ** (cột sinh tự động `geom` bị coi là "đã sửa nội dung") — lỗi do chính migration 000004 | chạy lại e2e Phase 11 sau G5 | migration sửa `20260925000005` — **đã viết, chờ chạy** (hiện `reviewer.mjs` 22/24) |
+| 7 | **Migration G5 chặn nhầm reviewer công bố/ẩn địa điểm có tọa độ** (cột sinh tự động `geom` bị coi là "đã sửa nội dung") — lỗi do chính migration 000004 | chạy lại e2e Phase 11 sau G5 | migration sửa `20260925000005` (**đã chạy**; `reviewer.mjs` 24/24, `phase11-e2e.mjs` đạt trọn vẹn) |
 | 8 | Sau khi bấm "Ẩn", nút biến mất kéo theo thông báo thành công (quản trị nội dung) | e2e Phase 12 | thông báo đưa lên cấp khung |
 | 9 | Hiệu năng: trang chi tiết truy vấn tuần tự; ô bản đồ OSM phát hiện muộn | Lighthouse | truy vấn song song + `preconnect` tới máy chủ ô (xem 6.3) |
 
 ## 8. Hạn chế và việc còn lại
 
-1. **Migration `20260925000005`** (sửa G5 cho địa điểm có tọa độ) chờ chạy → sau đó `reviewer.mjs` phải 24/24 và `phase11-e2e.mjs` phải đạt trọn vẹn (hiện dừng ở bước công bố địa điểm).
-2. **Tạo tài khoản nhân sự** (UC13, `createStaffAction`) chưa thử được vì `SUPABASE_SECRET_KEY` chưa cấu hình; phần còn lại của UC13 đã đạt.
+1. Bộ E2E phụ thuộc mạng tới Supabase: khi mạng chập chờn, một số ca có thể lỗi ngẫu nhiên (xem mục 5); nên chạy lại trên mạng ổn định/CI.
+2. Tài khoản Auth của UC13 do test tạo ra được xóa bằng khóa bí mật ở máy chạy test; khóa này không bao giờ vào Git hay bundle.
 3. **Hiệu năng** đo trên máy phát triển với 10 sự kiện; cần đo lại trên Vercel và với 25–35 sự kiện (Phase 14). Bản đồ vượt 3 s trong kịch bản 4G chậm + CPU 4x.
 4. **Trang chi tiết có ảnh Wikimedia**: điểm "Thực hành tốt nhất" thấp hơn (cookie bên thứ ba do máy chủ ảnh đặt). Khắc phục triệt để bằng cách tải ảnh lên bucket `media` của dự án.
 5. Reviewer vẫn có quyền ghi các bảng liên kết và `sources` (giữ nguyên theo yêu cầu); nếu muốn nghiêm hơn cần một migration riêng.
@@ -262,4 +273,4 @@ Trang Vận hành (`/quan-tri/van-hanh`) thực hiện lại các kiểm tra nà
   bảng liên kết (4 bảng × 2 policy thêm) và bảng `sources` (+4). Báo cáo mẫu ghi 49 — không dùng.
 - Migration đã chạy: `20260924000001–3` (bảng, trigger/index/hàm, RLS), `20260925000000` (toàn vẹn nghiệp vụ G1/G3/G4),
   `20260925000001` (bucket `media`), `20260925000002` (RLS bảng liên kết), `20260925000003` (RLS `sources`), `20260925000004` (G5).
-  Chờ chạy: `20260925000005`.
+  `20260925000005` (sửa G5 cho cột `geom`) — đã chạy ngày 2026-09-24. Không còn migration chờ chạy.
