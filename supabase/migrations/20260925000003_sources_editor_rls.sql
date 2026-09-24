@@ -1,7 +1,8 @@
 -- Siết RLS cho bảng `sources`: biên tập viên được THÊM nguồn mới, nhưng chỉ được SỬA/XÓA nguồn khi
 -- nguồn đó KHÔNG gắn với sự kiện nào đang ở `pending_review`, `published` hoặc `hidden`.
 --
--- ⚠ CHƯA CHẠY TRÊN DATABASE THẬT. Chạy trong Supabase SQL Editor của project. Chạy lại được (idempotent).
+-- ĐÃ CHẠY trên project thật (so_chinh_sach = 6, co_staff_manage = 0) và đã kiểm chứng bằng
+-- tests/rls/sources.mjs: 13/13 ca khớp kỳ vọng. Chạy lại được (idempotent).
 --
 -- Vấn đề đã kiểm chứng trên database thật (tests/rls/sources.mjs, trước migration): chính sách cũ
 -- "staff_manage" cho MỌI nhân sự đang hoạt động ghi `sources`. `sources` dùng chung nhiều sự kiện và
