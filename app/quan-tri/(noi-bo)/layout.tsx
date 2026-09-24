@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { SignOutButton } from "@/components/admin/SignOutButton";
+import { canReview } from "@/lib/admin/review";
 import { requireRole } from "@/lib/auth";
+import { getPendingReviewCount } from "@/lib/queries/review";
 import { STAFF_ROLES, staffRoleLabels } from "@/lib/utils/labels";
 
 /**
@@ -11,6 +13,9 @@ import { STAFF_ROLES, staffRoleLabels } from "@/lib/utils/labels";
  */
 export default async function AdminLayout({ children }: LayoutProps<"/quan-tri">) {
   const staff = await requireRole(STAFF_ROLES);
+
+  // Số nội dung chờ duyệt cho huy hiệu ở sidebar. Chỉ là thông tin phụ: lỗi thì bỏ huy hiệu, không làm hỏng trang.
+  const pendingReview = canReview(staff.role) ? await getPendingReviewCount().catch(() => null) : null;
 
   return (
     <div className="flex flex-1 flex-col md:flex-row">
@@ -28,7 +33,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/quan-tri">
           <SignOutButton />
         </div>
 
-        <AdminNav role={staff.role} />
+        <AdminNav role={staff.role} pendingReview={pendingReview} />
 
         <Link href="/" className="hidden text-sm text-muted-foreground hover:text-foreground hover:underline md:mt-auto md:block">
           ← Xem trang công khai

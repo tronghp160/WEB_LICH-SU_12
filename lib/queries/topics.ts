@@ -1,5 +1,8 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { cache } from "react";
+import type { Database } from "@/lib/database.types";
 import { createPublicClient } from "@/lib/supabase/public";
+import type { WorkflowStatus } from "@/lib/utils/labels";
 
 export type PublishedTopic = {
   id: string;
@@ -35,21 +38,28 @@ export async function getPublishedTopics(): Promise<PublishedTopic[]> {
   }));
 }
 
-export type TopicDetail = Omit<PublishedTopic, "eventCount">;
+export type TopicDetail = Omit<PublishedTopic, "eventCount"> & { status: WorkflowStatus };
 
 /** Một chủ đề ĐÃ CÔNG BỐ theo slug (UC05); không có / chưa công bố → null. */
-export const getTopicDetail = cache(async (slug: string): Promise<TopicDetail | null> => {
-  const supabase = await createPublicClient();
+export const getTopicDetail = cache(async (slug: string): Promise<TopicDetail | null> =>
+  loadTopicDetail(await createPublicClient(), { slug }, true),
+);
 
-  const { data, error } = await supabase
-    .from("curriculum_topics")
-    .select("id, slug, name, description")
-    .eq("slug", slug)
-    .eq("workflow_status", "published")
-    .maybeSingle();
+/** Nạp chủ đề bằng client tùy ý (công khai: ẩn danh + chỉ published; màn hình duyệt: phiên nhân sự, mọi trạng thái). */
+export async function loadTopicDetail(
+  supabase: SupabaseClient<Database>,
+  by: { slug: string } | { id: string },
+  publishedOnly: boolean,
+): Promise<TopicDetail | null> {
+  let query = supabase.from("curriculum_topics").select("id, slug, name, description, workflow_status");
+  query = "id" in by ? query.eq("id", by.id) : query.eq("slug", by.slug);
+  if (publishedOnly) query = query.eq("workflow_status", "published");
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     throw new Error(`Không tải được chủ đề: ${error.message}`);
   }
-  return data;
-});
+  return data
+    ? { id: data.id, slug: data.slug, name: data.name, description: data.description, status: data.workflow_status }
+    : null;
+}

@@ -14,6 +14,8 @@ export type ActionState = {
   values?: Record<string, string>;
   /** Cảnh báo khi lưu thành công nhưng còn điểm nên xem lại. */
   warnings?: string[];
+  /** Nội dung đã đổi trạng thái do người khác xử lý trước — giao diện gợi ý tải lại trang. */
+  stale?: boolean;
 };
 
 export const initialActionState: ActionState = { status: "idle" };

@@ -6,8 +6,14 @@ import { menuForRole } from "@/components/admin/menu";
 import { cn } from "@/lib/utils/cn";
 import type { StaffRole } from "@/lib/utils/labels";
 
+type AdminNavProps = {
+  role: StaffRole;
+  /** Số nội dung chờ duyệt, hiện thành huy hiệu ở mục "Kiểm duyệt" (null = không có/không lấy được). */
+  pendingReview?: number | null;
+};
+
 /** Menu khu vực nội bộ: chỉ hiện các mục của vai trò hiện tại (điện thoại: cuộn ngang; md+: cột dọc). */
-export function AdminNav({ role }: { role: StaffRole }) {
+export function AdminNav({ role, pendingReview = null }: AdminNavProps) {
   const pathname = usePathname();
 
   return (
@@ -32,6 +38,17 @@ export function AdminNav({ role }: { role: StaffRole }) {
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {item.label}
+                {item.href === "/quan-tri/kiem-duyet" && pendingReview !== null && pendingReview > 0 && (
+                  <span
+                    className={cn(
+                      "ml-auto rounded-full px-2 text-xs font-semibold",
+                      isActive ? "bg-accent-foreground text-accent" : "bg-accent text-accent-foreground",
+                    )}
+                  >
+                    {pendingReview}
+                    <span className="sr-only"> nội dung chờ duyệt</span>
+                  </span>
+                )}
               </Link>
             </li>
           );

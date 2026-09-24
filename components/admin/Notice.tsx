@@ -6,6 +6,11 @@ const notices: Record<string, { tone: "success" | "warning"; text: string }> = {
   },
   "da-gui-duyet": { tone: "success", text: "Đã gửi kiểm duyệt. Nội dung sẽ chờ kiểm duyệt viên xử lý." },
   "da-xoa": { tone: "success", text: "Đã xóa." },
+  // Kiểm duyệt (Phase 11)
+  "da-tra-sua": { tone: "success", text: "Đã yêu cầu chỉnh sửa. Lý do đã được gửi tới biên tập viên." },
+  "da-cong-bo": { tone: "success", text: "Đã công bố. Nội dung đã hiển thị ở trang công khai." },
+  "da-an": { tone: "success", text: "Đã ẩn. Nội dung không còn hiển thị ở trang công khai." },
+  "da-cong-bo-lai": { tone: "success", text: "Đã công bố lại. Nội dung đã hiển thị ở trang công khai." },
 };
 
 /** Thông báo sau khi chuyển trang (mã nằm ở `?thong-bao=`); mã lạ bị bỏ qua nên không thể chèn chữ tùy ý. */

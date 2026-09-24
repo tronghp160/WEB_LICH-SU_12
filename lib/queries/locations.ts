@@ -1,7 +1,9 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { cache } from "react";
+import type { Database } from "@/lib/database.types";
 import { toRelatedEvent, type RelatedEvent, type RelatedEventRow } from "@/lib/queries/events";
 import { createPublicClient } from "@/lib/supabase/public";
-import { parseAccuracyLevel, type AccuracyLevel } from "@/lib/utils/labels";
+import { parseAccuracyLevel, type AccuracyLevel, type WorkflowStatus } from "@/lib/utils/labels";
 
 export type MapLocationEvent = {
   slug: string;
@@ -92,6 +94,7 @@ export async function getMapLocations(): Promise<MapLocation[]> {
 }
 
 export type LocationDetail = {
+  status: WorkflowStatus;
   slug: string;
   name: string;
   historicalName: string | null;
@@ -105,18 +108,25 @@ export type LocationDetail = {
 };
 
 /** Một địa điểm ĐÃ CÔNG BỐ theo slug kèm các sự kiện đã công bố liên quan (UC05); không có → null. */
-export const getLocationDetail = cache(async (slug: string): Promise<LocationDetail | null> => {
-  const supabase = await createPublicClient();
+export const getLocationDetail = cache(async (slug: string): Promise<LocationDetail | null> =>
+  loadLocationDetail(await createPublicClient(), { slug }, true),
+);
 
-  const { data, error } = await supabase
+/** Nạp địa điểm bằng client tùy ý (công khai: ẩn danh + chỉ published; màn hình duyệt: phiên nhân sự, mọi trạng thái). */
+export async function loadLocationDetail(
+  supabase: SupabaseClient<Database>,
+  by: { slug: string } | { id: string },
+  publishedOnly: boolean,
+): Promise<LocationDetail | null> {
+  let query = supabase
     .from("historical_locations")
     .select(
-      `slug, name, historical_name, description, latitude, longitude, accuracy_level, accuracy_note,
+      `slug, name, historical_name, description, latitude, longitude, accuracy_level, accuracy_note, workflow_status,
        event_locations(location_role, is_primary, historical_events(slug, title, summary, date_text, date_precision, is_featured, start_year, workflow_status, curriculum_topics(name, slug)))`,
-    )
-    .eq("slug", slug)
-    .eq("workflow_status", "published")
-    .maybeSingle();
+    );
+  query = "id" in by ? query.eq("id", by.id) : query.eq("slug", by.slug);
+  if (publishedOnly) query = query.eq("workflow_status", "published");
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     throw new Error(`Không tải được địa điểm: ${error.message}`);
@@ -134,6 +144,7 @@ export const getLocationDetail = cache(async (slug: string): Promise<LocationDet
     .sort((a, b) => a.startYear - b.startYear || a.title.localeCompare(b.title, "vi"));
 
   return {
+    status: data.workflow_status,
     slug: data.slug,
     name: data.name,
     historicalName: data.historical_name,
@@ -144,4 +155,4 @@ export const getLocationDetail = cache(async (slug: string): Promise<LocationDet
     accuracyNote: data.accuracy_note,
     events,
   };
-});
+}

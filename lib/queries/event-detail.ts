@@ -1,11 +1,15 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { cache } from "react";
 import type { SourceListItem } from "@/components/content/SourceList";
+import type { Database } from "@/lib/database.types";
 import { toEventSummary, type EventSummary } from "@/lib/queries/events";
 import { createPublicClient } from "@/lib/supabase/public";
-import { parseAccuracyLevel, parseSourceType, type AccuracyLevel } from "@/lib/utils/labels";
+import { parseAccuracyLevel, parseSourceType, type AccuracyLevel, type WorkflowStatus } from "@/lib/utils/labels";
 
 export type EventDetail = EventSummary & {
   id: string;
+  /** Trạng thái quy trình của chính sự kiện (trang công khai luôn là "published"; màn hình duyệt thì bất kỳ). */
+  status: WorkflowStatus;
   content: string | null;
   startYear: number;
   endYear: number | null;
@@ -15,6 +19,8 @@ export type EventDetail = EventSummary & {
     birthYear: number | null;
     deathYear: number | null;
     relationship: string | null;
+    /** Nhân vật chưa công bố sẽ không hiện ở trang công khai — màn hình duyệt dùng để cảnh báo. */
+    status: WorkflowStatus;
   }[];
   locations: {
     slug: string;
@@ -26,6 +32,7 @@ export type EventDetail = EventSummary & {
     longitude: number | null;
     accuracyLevel: AccuracyLevel;
     accuracyNote: string | null;
+    status: WorkflowStatus;
   }[];
   sources: (SourceListItem & { confidenceNote: string | null })[];
   media: {
@@ -47,22 +54,34 @@ type Embedded<T> = T | null;
  * Nhân vật, địa điểm, nguồn, media chưa published bị RLS ẩn nên chỉ còn phần đã công bố.
  * Bọc `cache` để `generateMetadata` và trang dùng chung một lần truy vấn.
  */
-export const getEventDetail = cache(async (slug: string): Promise<EventDetail | null> => {
-  const supabase = await createPublicClient();
+export const getEventDetail = cache(async (slug: string): Promise<EventDetail | null> =>
+  loadEventDetail(await createPublicClient(), { slug }, true),
+);
 
-  const { data, error } = await supabase
+/**
+ * Nạp chi tiết sự kiện bằng MỘT client tùy ý:
+ *  - trang công khai: client ẩn danh + `publishedOnly = true`
+ *  - màn hình duyệt (Phase 11): phiên của nhân sự + `publishedOnly = false` để xem trước bản chờ duyệt
+ * RLS vẫn là lớp quyết định dữ liệu nào trả về; `publishedOnly` chỉ là lớp phòng thủ thứ hai.
+ */
+export async function loadEventDetail(
+  supabase: SupabaseClient<Database>,
+  by: { slug: string } | { id: string },
+  publishedOnly: boolean,
+): Promise<EventDetail | null> {
+  let query = supabase
     .from("historical_events")
     .select(
-      `id, slug, title, summary, content, date_text, date_precision, is_featured, start_year, end_year,
+      `id, slug, title, summary, content, date_text, date_precision, is_featured, start_year, end_year, workflow_status,
        curriculum_topics(name, slug),
-       event_figures(relationship, sort_order, historical_figures(slug, name, birth_year, death_year)),
-       event_locations(location_role, is_primary, historical_locations(slug, name, historical_name, latitude, longitude, accuracy_level, accuracy_note)),
+       event_figures(relationship, sort_order, historical_figures(slug, name, birth_year, death_year, workflow_status)),
+       event_locations(location_role, is_primary, historical_locations(slug, name, historical_name, latitude, longitude, accuracy_level, accuracy_note, workflow_status)),
        event_sources(source_note, confidence_note, sources(id, title, citation, url, source_type)),
        media_assets(id, file_url, media_type, caption, alt_text, sort_order, sources(title))`,
-    )
-    .eq("slug", slug)
-    .eq("workflow_status", "published")
-    .maybeSingle();
+    );
+  query = "id" in by ? query.eq("id", by.id) : query.eq("slug", by.slug);
+  if (publishedOnly) query = query.eq("workflow_status", "published");
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     throw new Error(`Không tải được sự kiện: ${error.message}`);
@@ -77,6 +96,7 @@ export const getEventDetail = cache(async (slug: string): Promise<EventDetail | 
         name: string;
         birth_year: number | null;
         death_year: number | null;
+        workflow_status: WorkflowStatus;
       }>;
       return figure
         ? [
@@ -86,6 +106,7 @@ export const getEventDetail = cache(async (slug: string): Promise<EventDetail | 
               birthYear: figure.birth_year,
               deathYear: figure.death_year,
               relationship: link.relationship,
+              status: figure.workflow_status,
             },
           ]
         : [];
@@ -101,6 +122,7 @@ export const getEventDetail = cache(async (slug: string): Promise<EventDetail | 
         longitude: number | null;
         accuracy_level: string;
         accuracy_note: string | null;
+        workflow_status: WorkflowStatus;
       }>;
       return location
         ? [
@@ -114,6 +136,7 @@ export const getEventDetail = cache(async (slug: string): Promise<EventDetail | 
               longitude: location.longitude,
               accuracyLevel: parseAccuracyLevel(location.accuracy_level),
               accuracyNote: location.accuracy_note,
+              status: location.workflow_status,
             },
           ]
         : [];
@@ -158,6 +181,7 @@ export const getEventDetail = cache(async (slug: string): Promise<EventDetail | 
   return {
     ...toEventSummary(data),
     id: data.id,
+    status: data.workflow_status,
     content: data.content,
     startYear: data.start_year,
     endYear: data.end_year,
@@ -166,4 +190,4 @@ export const getEventDetail = cache(async (slug: string): Promise<EventDetail | 
     sources,
     media,
   };
-});
+}
