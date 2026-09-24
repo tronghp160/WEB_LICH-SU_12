@@ -195,10 +195,10 @@ try {
   await revB.ctx.close();
 
   // ---------- I. Các loại nội dung khác ----------
-  for (const [seg, id, table, publicPath, h1] of [
-    ["nhan-vat", F2, "historical_figures", "/nhan-vat/zz-kiem-thu-p11-nv", "ZZ Kiểm thử P11 Nhân vật"],
-    ["dia-diem", L2, "historical_locations", "/dia-diem/zz-kiem-thu-p11-dd", "ZZ Kiểm thử P11 Địa điểm"],
-    ["chu-de", T1, "curriculum_topics", "/chu-de/zz-kiem-thu-p11-chu-de", "ZZ Kiểm thử P11 Chủ đề"],
+  for (const [seg, id, table, publicPath] of [
+    ["nhan-vat", F2, "historical_figures", "/nhan-vat/zz-kiem-thu-p11-nv"],
+    ["dia-diem", L2, "historical_locations", "/dia-diem/zz-kiem-thu-p11-dd"],
+    ["chu-de", T1, "curriculum_topics", "/chu-de/zz-kiem-thu-p11-chu-de"],
   ]) {
     await rp.goto(`${base}/quan-tri/kiem-duyet/${seg}/${id}`);
     const before = (await fetch(base + publicPath)).status;
