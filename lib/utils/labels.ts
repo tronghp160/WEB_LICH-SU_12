@@ -43,6 +43,18 @@ export const sourceTypeLabels = {
   other: "Khác",
 } as const;
 
+/**
+ * `date_precision` trong DB là text có CHECK (không phải enum) nên kiểu sinh ra
+ * chỉ là `string`. Hàm này thu hẹp về DatePrecision; giá trị lạ (không thể xảy
+ * ra khi CHECK còn nguyên, nhưng có thể khi schema đổi mà nhãn chưa cập nhật)
+ * được coi là "approximate" để vẫn hiện nhãn cảnh báo thay vì giấu sự không chắc chắn.
+ */
+export function parseDatePrecision(value: string): DatePrecision {
+  return Object.hasOwn(datePrecisionLabels, value)
+    ? (value as DatePrecision)
+    : "approximate";
+}
+
 export type WorkflowStatus = keyof typeof workflowStatusLabels;
 export type StaffRole = keyof typeof staffRoleLabels;
 export type AccountStatus = keyof typeof accountStatusLabels;

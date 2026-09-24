@@ -69,7 +69,28 @@ SGK/nguồn chính thức** — đề nghị đối chiếu lại, đặc biệt
 - `historical_figures.portrait_url` mới chỉ có cho `ho-chi-minh`; 8 nhân
   vật còn lại chưa có ảnh chân dung.
 
-## 6. Việc cần làm tiếp
+## 6. Phát hiện khi xây trang chủ (Phase 4)
+
+Hai điểm về dữ liệu lộ ra khi xem trang chủ thật — chưa sửa vì cần bạn quyết định:
+
+1. **Chủ đề "trống"**: `doi-ngoai-viet-nam` và `bao-ve-to-quoc-sau-1975` hiện
+   "Chưa có sự kiện". Lý do: Phụ lục B.2 xếp Hiệp định Genève/Paris vào *nhiều*
+   chủ đề (ví dụ "2, 6"), nhưng bảng `historical_events` chỉ có **một** cột
+   `topic_id` nên seed đã chọn chủ đề đầu tiên. Muốn một sự kiện thuộc nhiều
+   chủ đề cần bảng nối `event_topics` (thay đổi schema — phải hỏi trước, Quy
+   tắc 1). Cách nhẹ nhàng hơn: chuyển hẳn Genève/Paris sang chủ đề 6 (đổi
+   `topic_id`), hoặc chấp nhận chủ đề đó trống cho tới khi thêm sự kiện.
+2. **`date_text` quá dài** của `tong-tien-cong-va-noi-day-tet-mau-than-1968`
+   ("Đêm 30, rạng sáng 31/1/1968 (Tết Mậu Thân) và các đợt tiếp theo trong năm
+   1968") làm thẻ sự kiện cao hơn các thẻ khác (đã bị cắt 2 dòng trên thẻ). Gợi ý
+   rút gọn (chạy trong pgAdmin nếu đồng ý):
+   ```sql
+   update public.historical_events
+   set date_text = 'Từ đêm 30/1/1968'
+   where slug = 'tong-tien-cong-va-noi-day-tet-mau-than-1968';
+   ```
+
+## 7. Việc cần làm tiếp
 
 1. Đối chiếu toàn bộ bảng trên với SGK Lịch sử 12 đang dùng.
 2. Chạy `supabase/migrations/20260925000000_workflow_integrity.sql` (nếu

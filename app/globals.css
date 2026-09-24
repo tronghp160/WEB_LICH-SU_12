@@ -15,6 +15,8 @@
   --accent-foreground: #ffffff;
   --gold: #b08d57;
   --gold-foreground: #2b2622;
+  /* Vàng đồng đậm dùng cho CHỮ trên nền sáng (--gold gốc chỉ đạt ~2.8:1, dưới chuẩn AA 4.5:1). */
+  --gold-deep: #85652b;
   --radius-card: 0.75rem;
   --shadow-card: 0 1px 2px rgba(43, 38, 34, 0.06), 0 2px 8px rgba(43, 38, 34, 0.06);
 }
@@ -28,10 +30,11 @@
     --border: #3a332b;
     --muted: #2a2520;
     --muted-foreground: #b8af9c;
-    --accent: #e0473e;
+    --accent: #ea5a50;
     --accent-foreground: #1c1815;
     --gold: #c9a36d;
     --gold-foreground: #1c1815;
+    --gold-deep: #c9a36d;
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 }
@@ -48,6 +51,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
+  --color-gold-deep: var(--gold-deep);
   --radius-card: var(--radius-card);
   --shadow-card: var(--shadow-card);
   --font-serif: var(--font-lora);
@@ -58,4 +62,13 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Ánh vàng đồng nhẹ ở góc phải trên của hero, gợi cảm giác giấy cũ. */
+.hero-glow {
+  background-image: radial-gradient(
+    60% 100% at 90% 0%,
+    color-mix(in srgb, var(--gold) 18%, transparent),
+    transparent 70%
+  );
 }
