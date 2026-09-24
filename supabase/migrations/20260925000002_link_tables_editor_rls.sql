@@ -1,7 +1,8 @@
 -- Siết RLS cho các bảng liên kết của sự kiện: biên tập viên chỉ được GHI khi sự kiện cha đang ở
 -- `draft` hoặc `needs_revision` (Phase 10 — Quy tắc 3: phân quyền dựa vào RLS ở database).
 --
--- ⚠ CHƯA CHẠY TRÊN DATABASE THẬT. Chạy trong Supabase SQL Editor của project. Chạy lại được (idempotent).
+-- ĐÃ CHẠY trên project thật và đã kiểm chứng bằng tests/rls/sources.mjs (phần "links") và luồng
+-- biên tập viên. Chạy lại được (idempotent).
 --
 -- Vấn đề đã kiểm chứng trên database thật (kiểm thử Phase 10): chính sách cũ "staff_manage" cho MỌI
 -- nhân sự đang hoạt động ghi các bảng này bất kể trạng thái sự kiện cha, nên biên tập viên có thể gọi
