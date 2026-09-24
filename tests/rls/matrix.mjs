@@ -87,7 +87,7 @@ let mismatches = 0;
 for (const op of OPS) {
   const actual = [];
   for (const role of ROLES) {
-    try { actual.push(await op.run(clients[role])); } catch (e) { actual.push("💥"); }
+    try { actual.push(await op.run(clients[role])); } catch { actual.push(""); }
   }
   const got = actual.join("");
   const match = got === op.expected;
