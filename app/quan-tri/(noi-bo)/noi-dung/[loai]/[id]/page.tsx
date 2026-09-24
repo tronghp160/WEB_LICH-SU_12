@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AdminContentPanel } from "@/components/admin/AdminContentPanel";
 import { DeleteSourceForm } from "@/components/admin/DeleteSourceForm";
 import { EventForm } from "@/components/admin/forms/EventForm";
 import { FigureForm } from "@/components/admin/forms/FigureForm";
@@ -171,6 +172,12 @@ async function EditWorkflowContent({
           warnings={checklist.warnings}
         />
       </div>
+
+      {staff.role === "system_admin" && (
+        <div className="max-w-3xl">
+          <AdminContentPanel kind={kind} id={id} status={status} title={title} />
+        </div>
+      )}
     </div>
   );
 
