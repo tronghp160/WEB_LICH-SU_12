@@ -6,7 +6,7 @@ import { hasHorizontalOverflow } from "./support";
 test.describe("Tái hiện trận Bạch Đằng năm 938", () => {
   test("lối vào từ trang chủ, có đủ 6 bước và bản đồ", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: /Tái hiện trận Bạch Đằng năm 938/ }).click();
+    await page.locator('a[href="/tai-hien/bach-dang-938"]').click();
     await expect(page).toHaveURL(/\/tai-hien\/bach-dang-938$/);
     await expect(page.locator("h1")).toHaveText("Trận Bạch Đằng năm 938");
     await expect(page.getByRole("note")).toContainText("mô phỏng minh họa");

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { easeInOut, interpolateFrame, lerpLatLng, pointsAlong } from "@/lib/battles/animation";
+import { easeInOut, headingDegrees, interpolateFrame, lerpLatLng, partialPath, pointsAlong } from "@/lib/battles/animation";
+import type { BattleStep } from "@/lib/battles/types";
 import { bachDang938 } from "@/lib/battles/bach-dang-938";
 
 describe("easeInOut", () => {
@@ -53,8 +54,8 @@ describe("interpolateFrame", () => {
     const end = interpolateFrame(from, to, 1);
     expect(start.units[hanFleetId].position).toEqual(from.units[hanFleetId].position);
     expect(end.units[hanFleetId].position).toEqual(to.units[hanFleetId].position);
-    expect(start.tideLevel).toBeCloseTo(from.tideLevel);
-    expect(end.tideLevel).toBeCloseTo(to.tideLevel);
+    expect(start.tideLevel).toBeCloseTo(from.tideLevel!);
+    expect(end.tideLevel).toBeCloseTo(to.tideLevel!);
   });
 
   it("đơn vị xuất hiện mờ dần từ 0 lên 1", () => {
@@ -94,7 +95,7 @@ describe("kịch bản Bạch Đằng 938", () => {
     for (const step of steps) {
       expect(step.title.trim().length).toBeGreaterThan(0);
       expect(step.caption.trim().length).toBeGreaterThan(20);
-      expect(step.tideLabel.trim().length).toBeGreaterThan(0);
+      expect(step.tideLabel?.trim().length).toBeGreaterThan(0);
     }
   });
 
@@ -107,7 +108,7 @@ describe("kịch bản Bạch Đằng 938", () => {
 
   it("tọa độ nằm trong khu vực cửa sông Bạch Đằng (Quảng Ninh – Hải Phòng)", () => {
     const all = steps.flatMap((step) => Object.values(step.units).map((unit) => unit.position));
-    for (const [lat, lng] of [...all, ...bachDang938.riverPath, ...bachDang938.stakeLine]) {
+    for (const [lat, lng] of [...all, ...bachDang938.riverPath!, ...bachDang938.stakeLine!]) {
       expect(lat).toBeGreaterThan(20.7);
       expect(lat).toBeLessThan(21.1);
       expect(lng).toBeGreaterThan(106.6);
@@ -120,7 +121,7 @@ describe("kịch bản Bạch Đằng 938", () => {
     expect(byId["nhu-dich"].stakes).toBe("submerged");
     expect(byId["duoi-theo"].stakes).toBe("submerged");
     expect(byId["trieu-rut"].stakes).toBe("exposed");
-    expect(byId["duoi-theo"].tideLevel).toBeGreaterThan(byId["trieu-rut"].tideLevel);
+    expect(byId["duoi-theo"].tideLevel).toBeGreaterThan(byId["trieu-rut"].tideLevel!);
 
     for (const step of steps.slice(0, -1)) {
       for (const id of ids.filter((value) => value.startsWith("han-"))) {
@@ -130,5 +131,66 @@ describe("kịch bản Bạch Đằng 938", () => {
     for (const id of ids.filter((value) => value.startsWith("han-"))) {
       expect(steps[steps.length - 1].units[id].status).toBe("sunk");
     }
+  });
+});
+
+describe("phần mở rộng: cứ điểm, mũi tên, vùng, đường vẽ dần", () => {
+  const base: Omit<BattleStep, "id"> = { title: "t", caption: "c", units: {} };
+  const a: BattleStep = { ...base, id: "a", strongpoints: { x: "held", y: "held" }, arrows: ["m1"], zones: ["z1"] };
+  const b: BattleStep = { ...base, id: "b", strongpoints: { x: "captured", y: "held", w: "held" }, arrows: ["m1", "m2"], zones: ["z2"] };
+
+  it("cứ điểm đổi trạng thái ở nửa chặng; cứ điểm mới hiện dần", () => {
+    expect(interpolateFrame(a, b, 0.2).strongpoints.x.status).toBe("held");
+    expect(interpolateFrame(a, b, 0.9).strongpoints.x.status).toBe("captured");
+    expect(interpolateFrame(a, b, 0).strongpoints.w.opacity).toBe(0);
+    expect(interpolateFrame(a, b, 1).strongpoints.w.opacity).toBe(1);
+    expect(interpolateFrame(a, b, 0.5).strongpoints.w.status).toBe("held");
+  });
+
+  it("mũi tên mới được vẽ dần, mũi tên cũ giữ nguyên", () => {
+    const mid = interpolateFrame(a, b, 0.5);
+    expect(mid.arrows.m2.progress).toBeGreaterThan(0);
+    expect(mid.arrows.m2.progress).toBeLessThan(1);
+    expect(mid.arrows.m1).toEqual({ progress: 1, opacity: 1 });
+    // Đi lùi: mũi tên m2 mờ dần chứ không "vẽ ngược"
+    const back = interpolateFrame(b, a, 0.5);
+    expect(back.arrows.m2.progress).toBe(1);
+    expect(back.arrows.m2.opacity).toBeCloseTo(0.5);
+  });
+
+  it("vùng chuyển mượt: z1 mờ dần, z2 hiện dần", () => {
+    const mid = interpolateFrame(a, b, 0.5);
+    expect(mid.zones.z1).toBeCloseTo(0.5);
+    expect(mid.zones.z2).toBeCloseTo(0.5);
+  });
+
+  it("kịch bản không có thủy triều → tideLevel null, bãi cọc none", () => {
+    const frame = interpolateFrame(a, b, 0.5);
+    expect(frame.tideLevel).toBeNull();
+    expect(frame.stakes).toBe("none");
+  });
+
+  it("partialPath cắt đúng theo chiều dài", () => {
+    const path: [number, number][] = [
+      [0, 0],
+      [0, 2],
+      [2, 2],
+    ];
+    expect(partialPath(path, 1)).toEqual(path);
+    expect(partialPath(path, 0.25)).toEqual([
+      [0, 0],
+      [0, 1],
+    ]);
+    expect(partialPath(path, 0.75)).toEqual([
+      [0, 0],
+      [0, 2],
+      [1, 2],
+    ]);
+  });
+
+  it("headingDegrees: bắc 0°, đông 90°, nam 180°", () => {
+    expect(headingDegrees([[0, 0], [1, 0]])).toBeCloseTo(0);
+    expect(headingDegrees([[0, 0], [0, 1]])).toBeCloseTo(90);
+    expect(headingDegrees([[1, 0], [0, 0]])).toBeCloseTo(180);
   });
 });

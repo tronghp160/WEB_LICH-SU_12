@@ -1,13 +1,15 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { Lightbulb, Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { interpolateFrame } from "@/lib/battles/animation";
 import type { BattleScenario } from "@/lib/battles/types";
+import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils/cn";
 
 // Leaflet cần `window` nên chỉ nạp ở trình duyệt.
@@ -16,25 +18,12 @@ const BattleMap = dynamic(() => import("@/components/battle/BattleMap"), {
   loading: () => <Skeleton className="h-full w-full rounded-none" />,
 });
 
-/** Thời gian di chuyển giữa hai bước và thời gian dừng trước khi tự sang bước kế (chế độ "Phát"). */
+/** Thời gian di chuyển giữa hai bước (cũng là thời gian bản đồ "bay" tới khung nhìn mới). */
 const MOVE_MS = 2200;
-const HOLD_MS = 3400;
 
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-
-function subscribeReducedMotion(onChange: () => void) {
-  const query = window.matchMedia(REDUCED_MOTION_QUERY);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-}
-
-/** Người dùng bật "giảm chuyển động" → nhảy thẳng tới vị trí của bước, không hoạt hình. */
-function usePrefersReducedMotion(): boolean {
-  return useSyncExternalStore(
-    subscribeReducedMotion,
-    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
-    () => false,
-  );
+/** Chế độ "Phát": dừng ở mỗi bước đủ lâu để đọc lời dẫn (ước ~22 ký tự/giây), trong khoảng 3,4–12 giây. */
+export function holdMsFor(caption: string): number {
+  return Math.min(12_000, Math.max(3_400, Math.round(caption.length * 45)));
 }
 
 type Motion = {
@@ -45,12 +34,6 @@ type Motion = {
   /** Tăng mỗi lần bắt đầu chuyển động mới để hiệu ứng khởi động lại đúng lúc. */
   run: number;
 };
-
-const legendItems = [
-  { kind: "invader-ship", label: "Thuyền chiến Nam Hán" },
-  { kind: "defender-boat", label: "Thuyền nhẹ của Ngô Quyền" },
-  { kind: "defender-land", label: "Quân mai phục hai bờ" },
-] as const;
 
 /**
  * Mô phỏng trận đánh trên bản đồ: nút Phát/Tạm dừng, chuyển bước, thanh chọn bước và danh sách bước.
@@ -106,14 +89,15 @@ export function BattleReenactment({ scenario }: { scenario: BattleScenario }) {
         if (to >= last) setPlaying(false);
         else goTo(to + 1);
       },
-      to >= last ? 0 : HOLD_MS,
+      to >= last ? 0 : holdMsFor(steps[to].caption),
     );
     return () => clearTimeout(timer);
-  }, [playing, settled, to, last, goTo]);
+  }, [playing, settled, to, last, goTo, steps]);
 
   const frame = useMemo(() => interpolateFrame(steps[from], steps[to], motion.t), [steps, from, to, motion.t]);
   const step = steps[to];
   const atEnd = to === last && settled;
+  const camera = step.camera ?? { center: scenario.center, zoom: scenario.zoom };
 
   function togglePlay() {
     if (playing) {
@@ -132,7 +116,7 @@ export function BattleReenactment({ scenario }: { scenario: BattleScenario }) {
           aria-label={`Bản đồ mô phỏng ${scenario.title}`}
           className="h-[22rem] overflow-hidden rounded-card border border-border sm:h-[30rem]"
         >
-          <BattleMap scenario={scenario} frame={frame} />
+          <BattleMap scenario={scenario} frame={frame} camera={camera} flyDuration={reducedMotion ? 0 : MOVE_MS / 1000} />
         </div>
 
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Điều khiển mô phỏng">
@@ -198,21 +182,25 @@ export function BattleReenactment({ scenario }: { scenario: BattleScenario }) {
           className="w-full accent-[var(--accent)]"
         />
 
-        <div className="flex items-center gap-3">
-          <span className="shrink-0 text-sm font-medium text-foreground">Thủy triều</span>
-          <div className="h-3 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-            <div
-              className="h-full rounded-full"
-              style={{ width: `${Math.round(frame.tideLevel * 100)}%`, backgroundColor: "var(--battle-water)" }}
-            />
-          </div>
-        </div>
-        <p className="-mt-2 text-sm text-muted-foreground">{step.tideLabel}</p>
+        {frame.tideLevel !== null && (
+          <>
+            <div className="flex items-center gap-3">
+              <span className="shrink-0 text-sm font-medium text-foreground">Thủy triều</span>
+              <div className="h-3 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${Math.round(frame.tideLevel * 100)}%`, backgroundColor: "var(--battle-water)" }}
+                />
+              </div>
+            </div>
+            {step.tideLabel && <p className="-mt-2 text-sm text-muted-foreground">{step.tideLabel}</p>}
+          </>
+        )}
 
         <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground" aria-label="Chú giải">
-          {legendItems.map((item) => (
-            <li key={item.kind} className="flex items-center gap-1.5">
-              <span className={cn("battle-unit", `battle-unit--${item.kind}`, "!m-0 !h-4 !w-4 !border-2")} aria-hidden="true" />
+          {scenario.legend.map((item) => (
+            <li key={item.label} className="flex items-center gap-1.5">
+              <span className={cn(item.className, "battle-legend-swatch")} aria-hidden="true" />
               {item.label}
             </li>
           ))}
@@ -223,12 +211,35 @@ export function BattleReenactment({ scenario }: { scenario: BattleScenario }) {
         <Card className="p-5">
           <p className="text-sm font-medium text-gold-deep">
             Bước {to + 1}/{steps.length}
+            {step.dateText && <span> · {step.dateText}</span>}
           </p>
           {/* Vùng live: đọc lại lời dẫn khi đổi bước (chỉ đọc khi bước đã đổi, không đọc từng khung hình). */}
           <div aria-live="polite" aria-atomic="true">
             <h3 className="mt-1 font-serif text-xl font-bold text-surface-foreground">{step.title}</h3>
             <p className="mt-3 leading-relaxed text-surface-foreground">{step.caption}</p>
           </div>
+          {step.fact && (
+            <div key={`${step.id}-fact`} className="lesson-pop mt-4 rounded-card border border-gold/60 bg-muted p-4">
+              <p className="flex items-center gap-2 text-sm font-semibold text-gold-deep">
+                <Lightbulb className="h-4 w-4" aria-hidden="true" />
+                Bạn có biết? {step.fact.title}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-foreground">{step.fact.text}</p>
+            </div>
+          )}
+          {step.image && (
+            <figure key={`${step.id}-image`} className="lesson-pop mt-4">
+              <SafeImage
+                src={step.image.src}
+                alt={step.image.alt}
+                className="max-h-56 w-full rounded-card border border-border object-cover"
+                fallbackClassName="aspect-[16/9] rounded-card"
+              />
+              <figcaption className="mt-2 text-xs text-muted-foreground">
+                {step.image.caption} <span className="opacity-80">({step.image.credit})</span>
+              </figcaption>
+            </figure>
+          )}
         </Card>
 
         <nav aria-label="Các bước diễn biến">
@@ -258,7 +269,10 @@ export function BattleReenactment({ scenario }: { scenario: BattleScenario }) {
                   >
                     {index + 1}
                   </span>
-                  <span>{item.title}</span>
+                  <span>
+                    {item.title}
+                    {item.dateText && <span className="block text-xs font-normal text-muted-foreground">{item.dateText}</span>}
+                  </span>
                 </button>
               </li>
             ))}

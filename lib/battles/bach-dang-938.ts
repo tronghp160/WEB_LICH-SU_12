@@ -55,6 +55,11 @@ export const bachDang938: BattleScenario = {
     { id: "viet-east", kind: "defender-land", label: "Quân mai phục bờ đông" },
     { id: "viet-west", kind: "defender-land", label: "Quân mai phục bờ tây" },
   ],
+  legend: [
+    { className: "battle-unit battle-unit--invader-ship", label: "Thuyền chiến Nam Hán" },
+    { className: "battle-unit battle-unit--defender-boat", label: "Thuyền nhẹ của Ngô Quyền" },
+    { className: "battle-unit battle-unit--defender-land", label: "Quân mai phục hai bờ" },
+  ],
   steps: [
     {
       id: "boi-canh",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, PlayCircle } from "lucide-react";
 import { AccuracyBadge } from "@/components/content/AccuracyBadge";
 import { DatePrecisionBadge } from "@/components/content/DatePrecisionBadge";
 import { EventCard } from "@/components/content/EventCard";
@@ -9,6 +9,7 @@ import { TopicBadge } from "@/components/content/TopicBadge";
 import { MiniMapLazy } from "@/components/map/MiniMapLazy";
 import { Badge } from "@/components/ui/Badge";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { getLessonForEvent } from "@/lib/lessons";
 import type { EventDetail } from "@/lib/queries/event-detail";
 import type { TimelineEvent } from "@/lib/queries/events";
 import { formatLifespan, splitParagraphs } from "@/lib/utils/text";
@@ -36,6 +37,8 @@ function NotPublishedBadge() {
 /** Nội dung trang chi tiết sự kiện (UC05) — dùng chung cho trang công khai và xem trước ở màn hình duyệt. */
 export function EventDetailView({ event, previous, next, sameTopic = [], preview = false }: EventDetailViewProps) {
   const paragraphs = splitParagraphs(event.content);
+  // Bài học tương tác chỉ dành cho trang công khai (không hiện ở màn hình xem trước của kiểm duyệt viên).
+  const lesson = preview ? undefined : getLessonForEvent(event.slug);
   const mapLocations = event.locations.flatMap((location) =>
     location.latitude !== null && location.longitude !== null
       ? [
@@ -81,6 +84,18 @@ export function EventDetailView({ event, previous, next, sameTopic = [], preview
           <DatePrecisionBadge precision={event.datePrecision} />
         </p>
         <p className="mt-4 text-lg text-muted-foreground">{event.summary}</p>
+        {lesson && (
+          <Link
+            href={`/bai-hoc/${lesson.slug}`}
+            className="mt-6 inline-flex items-center gap-3 rounded-card border-2 border-accent bg-surface px-5 py-3 font-semibold text-accent shadow-card transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+          >
+            <PlayCircle className="h-6 w-6" aria-hidden="true" />
+            <span>
+              Xem bài học tương tác
+              <span className="block text-sm font-normal">Bản đồ diễn biến, ảnh tư liệu, video và thẻ ghi nhớ</span>
+            </span>
+          </Link>
+        )}
       </header>
 
       <div className={preview ? "mt-8 flex flex-col gap-10" : "mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]"}>
