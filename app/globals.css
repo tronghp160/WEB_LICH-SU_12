@@ -1,26 +1,61 @@
 @import "tailwindcss";
 
+/* Hệ màu "trang tư liệu lịch sử hiện đại" (Mục 6, KE_HOACH_DU_AN.md):
+   nền giấy ngà, chữ nâu than, nhấn đỏ son + vàng đồng. Dark mode tự động
+   theo prefers-color-scheme (chưa có nút chuyển tay ở Phase 3). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f3ea;
+  --foreground: #2b2622;
+  --surface: #ffffff;
+  --surface-foreground: #2b2622;
+  --border: #e4dcc8;
+  --muted: #efe8d8;
+  --muted-foreground: #6b6255;
+  --accent: #b3261e;
+  --accent-foreground: #ffffff;
+  --gold: #b08d57;
+  --gold-foreground: #2b2622;
+  --radius-card: 0.75rem;
+  --shadow-card: 0 1px 2px rgba(43, 38, 34, 0.06), 0 2px 8px rgba(43, 38, 34, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1c1815;
+    --foreground: #f1ead9;
+    --surface: #24201b;
+    --surface-foreground: #f1ead9;
+    --border: #3a332b;
+    --muted: #2a2520;
+    --muted-foreground: #b8af9c;
+    --accent: #e0473e;
+    --accent-foreground: #1c1815;
+    --gold: #c9a36d;
+    --gold-foreground: #1c1815;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --radius-card: var(--radius-card);
+  --shadow-card: var(--shadow-card);
+  --font-serif: var(--font-lora);
+  --font-sans: var(--font-be-vietnam-pro);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
