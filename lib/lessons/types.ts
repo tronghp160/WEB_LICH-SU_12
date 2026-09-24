@@ -67,6 +67,8 @@ export type Lesson = {
   quote?: { text: string; author: string };
   figures: LessonFigure[];
   flashcards: LessonFlashcard[];
+  /** Phim 3D dựng trong trình duyệt (xem components/cinema3d). */
+  cinema?: { href: string; title: string; description: string; posterSrc: string; posterAlt: string };
   /** Ảnh "ngày nay" tại di tích. */
   today: LessonImage[];
   /** Các con số/chi tiết cần đối chiếu với SGK bản in trước khi dùng chính thức. */

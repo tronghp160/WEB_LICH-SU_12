@@ -81,3 +81,34 @@ Nội dung được viết lại bằng lời của nhóm, không chép nguyên 
    - Chiến dịch Biên giới 1950.
 4. **Tùy chọn (Phase 15)**: địa hình 3D lòng chảo Điện Biên Phủ, ảnh 360° tại đồi A1. Chỉ tải khi người dùng bấm xem.
 5. **Triển khai Vercel (Phase 14)** để demo online. Cập nhật báo cáo: phạm vi mới (video, hoạt hình, thẻ ghi nhớ), Use Case "Học bài tương tác", `docs/test-report.md`.
+
+---
+
+## Phim 3D "Đồi A1, đêm 6/5/1954"
+
+Trang riêng: `/phim-3d/doi-a1`; cũng nhúng trong bài học Điện Biên Phủ (mục "Phim 3D"). Thời lượng 1 phút 50 giây.
+
+### Người xem thấy gì
+- 8 chương: toàn cảnh Mường Thanh về đêm → đồi A1 → **đường hầm và khối bộc phá nhìn xuyên đất** (có nhãn chú thích) → chiến hào chờ giờ G (20 giờ 30) → **vụ nổ** (chớp trắng, cầu lửa, cột khói, mảnh văng, sóng xung kích, hố bom) → bộ đội xung phong (khoảng 75 người, đạn, lựu đạn, pháo yểm trợ, cháy) → giáp lá cà (địch bị hất ngã, rút lui hoặc giơ tay đầu hàng) → **rạng sáng**, cắm cờ trên đỉnh A1.
+- Camera điện ảnh 11 cú máy (cầm tay rung nhẹ, rung mạnh khi nổ); nút **Camera tự do** cho phép kéo chuột xoay và cuộn để phóng to.
+- **Âm thanh** tổng hợp tại chỗ: gió, dế, nhịp tim dồn dập, tiếng nổ, súng, kèn xung phong, trống hành quân, chim buổi sáng. Tiếng nổ/súng phát theo vị trí (lệch trái/phải theo camera, nhỏ dần theo khoảng cách) và **đến trễ theo tốc độ âm thanh**: thấy chớp trước, nghe sau. Sau vụ nổ lớn tiếng bị bóp nghẹt, ù tai rồi hồi lại.
+- **Thuyết minh tiếng Việt** bằng giọng đọc của trình duyệt (nếu máy có giọng tiếng Việt) và **phụ đề**; có lời thuyết minh dạng văn bản bên dưới.
+- Điều khiển: phát/tạm dừng, thanh tua có vạch chương, tắt tiếng, bật/tắt thuyết minh, camera, toàn màn hình. Phím: Cách/K, ←/→ (±5 s), M, C, F.
+
+### Cách làm (không thêm gì ngoài Three.js)
+- **Địa hình thật**: ảnh độ cao Terrarium (AWS Open Data) quanh đồi A1, đã tải sẵn thành `public/cinema/dbp-dem-a1.png` (512×512, ~4,4 m/điểm). Dữ liệu SRTM 30 m không phân giải nổi một quả đồi cao ~30 m, nên **đồi A1, chiến hào, công sự là công trình dựng theo mô tả** trên nền địa hình thật; sông núi xung quanh và vị trí sở chỉ huy De Castries theo OpenStreetMap.
+- **Không dùng mô hình 3D hay file âm thanh bên ngoài**: người lính (13 khối có xương giả lập: chạy, cúi, bắn, ném, ngã, giơ tay, cắm cờ), hầm, bao cát, rào thép gai, cây, bầu trời sao, dãy núi đều tạo bằng mã. Nhờ vậy không có vấn đề bản quyền mô hình.
+- **Tất định theo thời gian**: mọi thứ (vị trí lính, đạn, khói, lửa, camera) là hàm thuần của thời điểm `t` (`lib/cinema/*`, có 39 unit test) nên tua tới bất kỳ giây nào cũng ra đúng hình, không cần mô phỏng liên tục.
+- **Tải lười**: Three.js (~190 KB) và địa hình (~320 KB) chỉ tải khi bấm "Xem phim 3D"; trang bài học vẫn Lighthouse mobile 79 / desktop 99 (trợ năng 100). Có tự hạ chất lượng (giảm độ phân giải, tắt bóng đổ và bloom) nếu máy yếu; không có WebGL thì báo rõ; tôn trọng "giảm chuyển động" (tắt rung máy và chớp trắng).
+
+### Giới hạn cần nói thẳng khi demo
+- Đây là **đồ họa 3D dạng khối (low-poly)** chạy trong trình duyệt, không phải phim điện ảnh quay hay dựng bằng phần mềm chuyên dụng. Người lính là hình khối cách điệu, không có khuôn mặt hay quân phục chi tiết.
+- Số lượng nhân vật, động tác, vị trí công sự được giản lược; trang đã ghi chú "minh họa" ngay dưới phim.
+- Các chi tiết cần đối chiếu tài liệu chính thống: đường hầm ~45 m, khối bộc phá ~1 tấn, mốc 20 giờ 30 phút ngày 6/5, "rạng sáng 7/5" làm chủ A1 (có trong danh sách "Ghi chú biên soạn" của bài học).
+- Muốn tăng độ chân thực nữa cần tài nguyên ngoài: mô hình nhân vật/vũ khí có bản quyền rõ ràng hoặc video do AI tạo (ghi rõ nguồn) chèn vào các cảnh.
+
+### Kịch bản demo thêm (1 phút)
+1. Vào bài học → cuộn tới "Phim 3D: Đồi A1" (hoặc mở `/phim-3d/doi-a1`), bấm **Xem phim 3D**, bật loa.
+2. Để chạy tới **giờ G**: chỉ cho khán giả đường hầm xuyên đất, rồi vụ nổ.
+3. Tạm dừng lúc xung phong, bật **Camera tự do** kéo chuột xoay quanh chiến trường; bấm Toàn màn hình.
+4. Tua tới rạng sáng để xem lá cờ.

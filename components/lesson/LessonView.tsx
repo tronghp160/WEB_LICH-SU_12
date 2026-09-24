@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowDown, ArrowRight, BookOpen, Quote } from "lucide-react";
 import { BattleReenactment } from "@/components/battle/BattleReenactment";
+import { CinemaPlayer } from "@/components/cinema3d/CinemaPlayer";
 import { CountUp } from "@/components/lesson/CountUp";
 import { FlipCard } from "@/components/lesson/FlipCard";
 import { Reveal } from "@/components/lesson/Reveal";
@@ -145,6 +146,15 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
             {lesson.battle.disclaimer}
           </p>
         </section>
+
+        {/* 4b. Phim 3D dựng trong trình duyệt */}
+        {lesson.cinema && (
+          <section aria-labelledby="phim-3d">
+            <SectionHeading id="phim-3d" eyebrow="Xem như một bộ phim" title={`Phim 3D: ${lesson.cinema.title}`} />
+            <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">{lesson.cinema.description}</p>
+            <CinemaPlayer posterSrc={lesson.cinema.posterSrc} posterAlt={lesson.cinema.posterAlt} />
+          </section>
+        )}
 
         {/* 5. Video */}
         {mainVideo && (

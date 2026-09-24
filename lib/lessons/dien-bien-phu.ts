@@ -47,6 +47,14 @@ export const dienBienPhuLesson: Lesson = {
     { date: "21/7/1954", text: "Ký Hiệp định Giơnevơ về Đông Dương" },
   ],
   battle: dienBienPhu1954,
+  cinema: {
+    href: "/phim-3d/doi-a1",
+    title: "Đồi A1, đêm 6/5/1954",
+    description:
+      "Xem trận đánh đồi A1 diễn ra như một thước phim 3D trên địa hình lòng chảo thật: đường hầm bộc phá, vụ nổ, bộ đội xung phong, rạng sáng cắm cờ. Có âm thanh, thuyết minh tiếng Việt và phụ đề.",
+    posterSrc: "/lessons/dien-bien-phu/ho-boc-pha-a1.webp",
+    posterAlt: "Hố bộc phá trên đồi A1 ngày nay",
+  },
   videos: [
     {
       youtubeId: "qvE5Zd9kHPY",
@@ -170,5 +178,6 @@ export const dienBienPhuLesson: Lesson = {
     "Khối bộc phá ở đồi A1 \"gần 1 tấn\".",
     "Cách viết \"Giơnevơ\" hay \"Genève\" theo đúng bộ sách.",
     "Câu thơ Tố Hữu và tên bài thơ.",
+    "Phim 3D đồi A1: đường hầm ~45 m, khối bộc phá ~1 tấn, mốc 20 giờ 30 phút ngày 6/5, và \"rạng sáng 7/5\" làm chủ A1; vị trí công sự và số lượng nhân vật là minh họa.",
   ],
 };

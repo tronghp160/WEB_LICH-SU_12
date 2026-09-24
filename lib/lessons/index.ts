@@ -22,7 +22,7 @@ export const interactiveEntries: InteractiveEntry[] = [
     href: `/bai-hoc/${lesson.slug}`,
     title: lesson.title,
     dateText: lesson.dateText,
-    description: "Bản đồ diễn biến 7 bước, ảnh tư liệu, video và thẻ ghi nhớ.",
+    description: "Bản đồ diễn biến 7 bước, phim 3D đồi A1, ảnh tư liệu, video và thẻ ghi nhớ.",
     image: lesson.hero.src,
   })),
   {
