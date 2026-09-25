@@ -48,6 +48,12 @@ export const dienBienPhuLesson: Lesson = {
   ],
   battle: dienBienPhu1954,
   mapFilm: "dien-bien-phu",
+  models3d: {
+    soLieu: ["sa-ban-chien-thang"],
+    nhanVat: ["tuong-vo-nguyen-giap", "tuong-de-castries", "tuong-phan-dinh-giot", "tuong-to-vinh-dien"],
+    hienVat: ["luu-phao-105", "xe-dap-tho", "chien-si", "may-bay-c47"],
+    diTich: ["ham-de-castries", "duong-ham-a1", "chien-hao-a1"],
+  },
   cinema: {
     href: "/phim-3d/doi-a1",
     title: "Đồi A1, đêm 6/5/1954",
