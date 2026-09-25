@@ -601,3 +601,132 @@ span.battle-legend-siege {
     transition: transform 0.6s ease;
   }
 }
+
+/* Bản đồ 3D (components/mapfilm): nhãn HTML gắn trên địa hình và chú giải. Cứ điểm khác nhau cả về viền (liền / nhấp nháy / có sao), không chỉ màu. */
+.mapfilm-sp,
+.mapfilm-label {
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--font-sans, system-ui), system-ui, sans-serif;
+  line-height: 1.2;
+  transition: opacity 0.2s linear;
+}
+
+.mapfilm-sp {
+  padding: 1px 6px;
+  border: 2px solid #ffffff;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #1d5fa8;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+  transform: translateY(-26px);
+}
+
+.mapfilm-sp--attacked {
+  background: #b34a12;
+  animation: mapfilm-blink 0.9s ease-in-out infinite alternate;
+}
+
+.mapfilm-sp--captured {
+  background: #c62828;
+}
+
+.mapfilm-sp--captured::before {
+  content: "★ ";
+  color: #ffd54a;
+}
+
+.mapfilm-label {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #ffffff;
+  background: rgba(15, 18, 26, 0.78);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+
+.mapfilm-label--place {
+  font-family: var(--font-serif, Georgia), Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff3d6;
+  background: rgba(58, 38, 20, 0.7);
+}
+
+.mapfilm-label--enemy {
+  font-weight: 700;
+  background: #1d5fa8;
+  border: 2px solid #ffffff;
+}
+
+@keyframes mapfilm-blink {
+  from {
+    box-shadow: 0 0 0 0 rgba(255, 138, 61, 0.9);
+  }
+  to {
+    box-shadow: 0 0 0 6px rgba(255, 138, 61, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapfilm-sp--attacked {
+    animation: none;
+    border-style: dashed;
+  }
+}
+
+.mapfilm-legend {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--surface);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.mapfilm-legend--held {
+  background: #1d5fa8;
+}
+
+.mapfilm-legend--attacked {
+  background: #b34a12;
+  border-style: dashed;
+}
+
+.mapfilm-legend--captured {
+  background: #c62828;
+}
+
+.mapfilm-legend--arrow {
+  width: 22px;
+  height: 6px;
+  border: 0;
+  border-radius: 3px;
+  background: #d32f2f;
+  box-shadow: none;
+}
+
+.mapfilm-legend--siege {
+  width: 22px;
+  height: 0;
+  border: 0;
+  border-top: 3px dashed #d32f2f;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Nút ghi nguồn của MapLibre: chữ nhỏ, không lấn thanh điều khiển */
+[data-testid="mapfilm-stage"] .maplibregl-ctrl-bottom-right {
+  bottom: 4.6rem;
+}
+
+[data-testid="mapfilm-stage"] .maplibregl-marker {
+  pointer-events: none;
+}
+
+.mapfilm-sp,
+.mapfilm-label {
+  display: inline-block;
+}

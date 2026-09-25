@@ -112,3 +112,42 @@ Trang riêng: `/phim-3d/doi-a1`; cũng nhúng trong bài học Điện Biên Ph�
 2. Để chạy tới **giờ G**: chỉ cho khán giả đường hầm xuyên đất, rồi vụ nổ.
 3. Tạm dừng lúc xung phong, bật **Camera tự do** kéo chuột xoay quanh chiến trường; bấm Toàn màn hình.
 4. Tua tới rạng sáng để xem lá cờ.
+
+---
+
+## Bản đồ 3D "như phim" — Chiến dịch Điện Biên Phủ
+
+Trong bài học, mục "Diễn biến trên bản đồ" có nút **Bản đồ 2D / Bản đồ 3D như phim** (mặc định 2D để trang nhẹ). Trang trình chiếu riêng: `/ban-do-3d/dien-bien-phu`.
+
+Đây **không phải video dựng sẵn**. Chiến dịch diễn ra ngay trên một bản đồ địa hình 3D thật: bấm giai đoạn nào thì camera bay, nghiêng, xoay tới đó; quân tiến theo mũi tên, pháo bắn, cứ điểm nổ và đổi cờ; có thuyết minh và phụ đề. Trong lúc cảnh đang chạy, người xem vẫn kéo, xoay, phóng to bản đồ được (camera tự do); bấm **Về góc máy phim** để camera phim bay về.
+
+![Cảnh 2: tập đoàn cứ điểm](screenshots/ban-do-3d-tap-doan-cu-diem.png)
+![Cảnh 5, nền cổ điển: đánh các điểm cao phía đông](screenshots/ban-do-3d-dot-2-co-dien.png)
+![Cảnh 6: khối bộc phá A1 nổ](screenshots/ban-do-3d-bo-pha-a1.png)
+
+### Bảy cảnh (mỗi bước của bản đồ 2D là một cảnh, 36–44 giây)
+1. **Kế hoạch Nava**: toàn cảnh Đông Dương, các hướng tiến công Đông – Xuân vẽ dần, 5 nơi Pháp phải phân tán quân (nhãn xanh), có Hoàng Sa, Trường Sa (Việt Nam).
+2. **Tập đoàn cứ điểm**: camera bay một mạch từ Đông Dương xuống lòng chảo; máy bay thả dù; cứ điểm mọc lên theo 3 phân khu.
+3. **Kéo pháo, vây chặt**: đoàn pháo bò theo đường kéo pháo qua núi, đoàn dân công, sở chỉ huy Mường Phăng, vòng vây ngoài.
+4. **Đợt 1** (đêm): pháo ta bắn (đạn bay theo đường cong), Him Lam cháy, bộ đội xung phong, cờ Pháp hạ – cờ ta kéo lên; rồi Độc Lập, Bản Kéo.
+5. **Đợt 2**: hào vây giữa, đánh E1, D1, C1; A1 và sân bay giằng co; máy bay tiếp tế thả dù rơi lệch.
+6. **Đợt 3**: đêm 6/5 camera hạ sát A1, **khối bộc phá nổ** (có nút mở phim 3D Đồi A1); trời sáng, các mũi siết vào hầm De Castries; đêm 7/5 Hồng Cúm.
+7. **Toàn thắng**: cờ trên nóc hầm, camera bay vòng quanh lòng chảo rồi lùi ra.
+
+Hết mỗi cảnh, bản đồ dừng chờ và hiện nút **Giai đoạn tiếp**; bật **Liên tục** để chạy một mạch cả 7 cảnh. Phím: Cách/K (phát/dừng), N/P (giai đoạn sau/trước), Shift + ←/→ (tua 5 giây), M (tiếng), C (về góc máy phim), F (toàn màn hình).
+
+### Cách làm
+- **MapLibre GL** (thư viện mã nguồn mở, thêm mới) vẽ bản đồ và địa hình 3D; **Three.js** (đã có) vẽ quân cờ, pháo, cứ điểm, cờ, máy bay, dù, nổ và khói **trong cùng ngữ cảnh WebGL** của bản đồ (lớp tùy biến), nên vật thể bám đúng địa hình và xoay cùng bản đồ. Cả hai **chỉ tải khi người xem chọn 3D**; lần tải đầu của trang bài học không đổi.
+- Nền: địa hình Terrain Tiles (Mapzen, AWS Open Data; SRTM), phóng đại độ cao ×1,5; **vệ tinh** Esri World Imagery hoặc **cổ điển** (tô màu theo độ cao kiểu bản đồ SGK, biên giới Natural Earth — `public/mapfilm/indochina-borders.geojson`). Nút đổi nền không dựng lại bản đồ.
+- Dữ liệu dùng chung với bản đồ 2D (`lib/battles/dien-bien-phu-1954.ts`): tọa độ cứ điểm, mũi tên, vùng, đơn vị. Kịch bản 3D (`lib/mapfilm/dien-bien-phu.ts`) chỉ thêm góc máy, phụ đề và hành động (hàng quân, pháo, nổ, máy bay, nhãn). **Cuối mỗi cảnh, bản đồ 3D khớp đúng trạng thái của bước 2D** (có unit test).
+- **Tất định**: mọi thứ là hàm thuần của (cảnh, thời điểm) — `lib/mapfilm/evaluate.ts` — nên tua, lùi, nhảy giai đoạn đều ra đúng hình. Camera bay theo đường cong van Wijk (như flyTo) nhưng tính theo thời gian (`lib/mapfilm/camera.ts`).
+- Quân cờ **phóng to như trên sa bàn** (tự đổi cỡ theo mức phóng) vì ở tầm nhìn cả lòng chảo, người lính đúng tỉ lệ sẽ không nhìn thấy.
+- Âm thanh tổng hợp tại chỗ (`components/mapfilm/audio.ts`): pháo rời nòng, nổ, bộc phá, động cơ máy bay, kèn xung phong, hợp âm chào cờ; to nhỏ và lệch trái/phải theo vị trí so với tâm khung nhìn. Thuyết minh dùng lại giọng đọc của phim A1.
+- Worker của MapLibre được chép vào `public/vendor/` bằng `scripts/copy-maplibre-worker.mjs` (tự chạy trước `dev`/`build`, thư mục này không commit).
+- Máy yếu tự hạ chất lượng (độ phân giải, số hạt khói lửa); không có WebGL 2 thì báo rõ và có nút về bản đồ 2D; "giảm chuyển động" thì camera đứng yên ở góc máy cuối của cảnh, không rung.
+- Kiểm thử: `tests/unit/mapfilm.test.ts` (20 ca), `tests/e2e/mapfilm.spec.ts` (8 ca; ô bản đồ được thay bằng ảnh tạo tại chỗ nên không cần mạng). Gỡ lỗi: `?debug=1` bật `window.__mapfilm`.
+- Lighthouse trang bài học sau khi thêm (máy phát triển): mobile 76–78, desktop 98, trợ năng 100. Mức cũ 79–80 nằm trong biên độ dao động; phần 3D không nằm trong lần tải đầu (đã kiểm tra các chunk JS).
+
+### Giới hạn cần nói rõ khi demo
+- **Cần Internet** để tải địa hình và ảnh vệ tinh. Ảnh vệ tinh Esri có điều khoản riêng; nếu công khai trên Vercel nên cân nhắc đổi sang EOX Sentinel-2 cloudless (CC BY 4.0) — chỉ đổi một URL trong `components/mapfilm/map-base.ts`.
+- Quân, pháo, cứ điểm không theo tỉ lệ; thời gian trong cảnh được nén; chỉ vẽ 10 cứ điểm tiêu biểu (lời thuyết minh nói 49). Các hướng tiến công Đông – Xuân và 5 nơi Pháp tập trung quân ở cảnh 1 là **gần đúng** (có trong `toVerify` của kịch bản).

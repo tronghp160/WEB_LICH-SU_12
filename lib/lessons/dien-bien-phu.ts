@@ -47,6 +47,7 @@ export const dienBienPhuLesson: Lesson = {
     { date: "21/7/1954", text: "Ký Hiệp định Giơnevơ về Đông Dương" },
   ],
   battle: dienBienPhu1954,
+  mapFilm: "dien-bien-phu",
   cinema: {
     href: "/phim-3d/doi-a1",
     title: "Đồi A1, đêm 6/5/1954",

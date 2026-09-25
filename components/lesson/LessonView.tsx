@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { ArrowDown, ArrowRight, BookOpen, Quote } from "lucide-react";
-import { BattleReenactment } from "@/components/battle/BattleReenactment";
 import { CinemaPlayer } from "@/components/cinema3d/CinemaPlayer";
 import { CountUp } from "@/components/lesson/CountUp";
 import { FlipCard } from "@/components/lesson/FlipCard";
 import { Reveal } from "@/components/lesson/Reveal";
 import { ScrollProgress } from "@/components/lesson/ScrollProgress";
 import { VideoEmbed } from "@/components/lesson/VideoEmbed";
+import { BattleMapSection } from "@/components/mapfilm/BattleMapSection";
 import { Badge } from "@/components/ui/Badge";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { LinkButton } from "@/components/ui/Button";
@@ -139,8 +139,15 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
           <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
             Bấm <strong className="text-foreground">Phát</strong> để bản đồ tự chạy qua 7 bước, hoặc chọn từng bước ở cột bên phải. Bản đồ sẽ bay từ toàn cảnh
             Đông Dương vào lòng chảo Mường Thanh; cứ điểm nào bị tiêu diệt sẽ đổi màu.
+            {lesson.mapFilm && (
+              <>
+                {" "}
+                Chọn <strong className="text-foreground">Bản đồ 3D như phim</strong> để xem chiến dịch diễn ra trên địa hình 3D: pháo bắn, bộ đội xung phong, cứ
+                điểm nổ tung và đổi cờ, có thuyết minh.
+              </>
+            )}
           </p>
-          <BattleReenactment scenario={lesson.battle} />
+          <BattleMapSection scenario={lesson.battle} mapFilm={lesson.mapFilm} />
           <p className="mt-4 max-w-3xl rounded-card border border-border bg-muted p-4 text-sm text-foreground" role="note">
             <strong>Lưu ý: </strong>
             {lesson.battle.disclaimer}

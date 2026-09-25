@@ -61,6 +61,8 @@ export type Lesson = {
   };
   keyDates: LessonKeyDate[];
   battle: BattleScenario;
+  /** Slug của "phim trên bản đồ 3D" (lib/mapfilm) dựng từ cùng kịch bản bản đồ; có thì bài học hiện nút 2D/3D. */
+  mapFilm?: string;
   videos: LessonVideo[];
   results: LessonStat[];
   significance: { title: string; text: string }[];
