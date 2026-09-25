@@ -1,0 +1,316 @@
+import { dienBienPhu1954, MUONG_PHANG, SP, TUAN_GIAO_ROAD, VALLEY } from "@/lib/battles/dien-bien-phu-1954";
+import type { LatLng } from "@/lib/battles/types";
+import type { MapCamKey, MapFilmScript } from "@/lib/mapfilm/types";
+
+// Phim trên bản đồ 3D — Chiến dịch Điện Biên Phủ. Mỗi cảnh ứng với một bước của bản đồ 2D (lib/battles/dien-bien-phu-1954.ts),
+// dùng chung tọa độ cứ điểm, mũi tên và vùng. Thời điểm trong cảnh là "thời gian phim", không theo tỉ lệ thời gian thật.
+// Các hướng tiến công Đông – Xuân và 5 nơi Pháp tập trung quân ở cảnh 1 là MINH HỌA, vị trí gần đúng.
+
+const PHAO_1: LatLng = [21.412, 103.046];
+const PHAO_2: LatLng = [21.372, 103.047];
+const GUNS = [PHAO_1, PHAO_2];
+
+const INDOCHINA_END: MapCamKey = { t: 36, center: [20.2, 104.2], zoom: 6.1, pitch: 45, bearing: 0 };
+
+export const dienBienPhuMapFilm: MapFilmScript = {
+  slug: "dien-bien-phu",
+  title: "Chiến dịch Điện Biên Phủ trên bản đồ 3D",
+  scenario: dienBienPhu1954,
+  poster: { src: "/lessons/dien-bien-phu/phao-binh.webp", alt: "Bộ đội kéo pháo vào trận địa Điện Biên Phủ" },
+  lesson: { href: "/bai-hoc/chien-dich-dien-bien-phu", title: "Chiến dịch Điện Biên Phủ" },
+  origin: VALLEY.center,
+  toVerify: [
+    "Năm nơi Pháp phải phân tán quân (Đồng bằng Bắc Bộ, Điện Biên Phủ, Xê-nô, Luông Pha-băng, Plây-cu) và hướng các cuộc tiến công Đông – Xuân 1953–1954 (cảnh 1, vị trí gần đúng).",
+    "Thứ tự và thời điểm đánh các cứ điểm trong từng đợt được nén lại cho dễ theo dõi, không theo giờ thật.",
+  ],
+  scenes: [
+    // 1. Bối cảnh: kế hoạch Nava, toàn cảnh Đông Dương
+    {
+      stepId: "boi-canh",
+      duration: 36,
+      chapter: { title: "Kế hoạch Nava", clock: "Thu – đông 1953" },
+      camera: [
+        { t: 0, center: [16.6, 106.8], zoom: 4.3, pitch: 0, bearing: 0 },
+        { t: 10, center: [18.3, 105.0], zoom: 4.9, pitch: 30, bearing: -8 },
+        { t: 21, center: [16.8, 105.6], zoom: 4.8, pitch: 35, bearing: 4 },
+        { t: 30, center: [19.6, 104.2], zoom: 5.6, pitch: 42, bearing: 0 },
+        INDOCHINA_END,
+      ],
+      subtitles: [
+        { t0: 1, t1: 9.5, text: "Năm 1953, Pháp cử tướng Nava sang Đông Dương với kế hoạch giành thắng lợi quân sự quyết định trong khoảng 18 tháng, có Mỹ viện trợ." },
+        { t0: 10.5, t1: 19.5, text: "Đông – Xuân 1953–1954, ta mở nhiều cuộc tiến công ở Lai Châu, Trung Lào, Hạ Lào, Tây Nguyên và Thượng Lào." },
+        { t0: 20.5, t1: 27.5, text: "Quân Pháp buộc phải phân tán lực lượng ra nhiều nơi để đối phó." },
+        { t0: 28.5, t1: 35.8, text: "Điện Biên Phủ nằm giữa Tây Bắc và Thượng Lào, nên Nava quyết định xây dựng nơi đây thành tập đoàn cứ điểm mạnh." },
+      ],
+      factAt: 26,
+      extraArrows: [
+        { id: "dx-lai-chau", kind: "attack", t0: 11, t1: 15, path: [[21.5, 103.65], [21.78, 103.38], [22.02, 103.18]] },
+        { id: "dx-trung-lao", kind: "attack", t0: 12, t1: 16, path: [[18.4, 105.65], [17.95, 105.2], [17.45, 104.85]] },
+        { id: "dx-ha-lao", kind: "attack", t0: 13, t1: 17, path: [[15.95, 107.6], [15.35, 107.2], [14.85, 106.85]] },
+        { id: "dx-tay-nguyen", kind: "attack", t0: 14, t1: 18, path: [[15.25, 108.65], [14.8, 108.3], [14.4, 108.0]] },
+        { id: "dx-thuong-lao", kind: "attack", t0: 15, t1: 19, path: [[21.25, 102.95], [20.85, 102.72], [20.45, 102.5]] },
+      ],
+      actions: [
+        { type: "label", id: "ha-noi", at: [21.03, 105.85], text: "Hà Nội", t0: 1, t1: 21, tone: "place" },
+        { type: "label", id: "hoang-sa", at: [16.5, 112.0], text: "Quần đảo Hoàng Sa (Việt Nam)", t0: 1, t1: 30, tone: "place" },
+        { type: "label", id: "truong-sa", at: [10.0, 114.3], text: "Quần đảo Trường Sa (Việt Nam)", t0: 1, t1: 30, tone: "place" },
+        { type: "label", id: "l-lai-chau", at: [22.1, 103.1], text: "Lai Châu", t0: 14, t1: 21, tone: "place" },
+        { type: "label", id: "l-trung-lao", at: [17.35, 104.7], text: "Trung Lào", t0: 15, t1: 21, tone: "place" },
+        { type: "label", id: "l-ha-lao", at: [14.7, 106.7], text: "Hạ Lào", t0: 16, t1: 21, tone: "place" },
+        { type: "label", id: "l-tay-nguyen", at: [14.3, 108.1], text: "Tây Nguyên", t0: 17, t1: 21, tone: "place" },
+        { type: "label", id: "l-thuong-lao", at: [20.35, 102.4], text: "Thượng Lào", t0: 18, t1: 21, tone: "place" },
+        { type: "label", id: "p-note", at: [18.2, 110.2], text: "Pháp phải phân tán quân ra 5 nơi", t0: 21.5, t1: 34 },
+        { type: "label", id: "p-bac-bo", at: [20.75, 106.3], text: "Đồng bằng Bắc Bộ", t0: 21.5, t1: 34, tone: "enemy" },
+        { type: "label", id: "p-seno", at: [16.67, 105.0], text: "Xê-nô", t0: 22.5, t1: 34, tone: "enemy" },
+        { type: "label", id: "p-luong-pha-bang", at: [19.88, 102.13], text: "Luông Pha-băng", t0: 23.5, t1: 34, tone: "enemy" },
+        { type: "label", id: "p-play-cu", at: [13.98, 108.0], text: "Plây-cu", t0: 24.5, t1: 34, tone: "enemy" },
+      ],
+    },
+
+    // 2. Pháp xây dựng tập đoàn cứ điểm: bay từ Đông Dương xuống lòng chảo
+    {
+      stepId: "tap-doan-cu-diem",
+      duration: 36,
+      chapter: { title: "Tập đoàn cứ điểm Điện Biên Phủ", clock: "20/11/1953 – 3/1954" },
+      camera: [
+        { ...INDOCHINA_END, t: 0 },
+        { t: 8, center: [21.378, 103.006], zoom: 12.2, pitch: 58, bearing: -25 },
+        { t: 20, center: [21.39, 103.008], zoom: 12.9, pitch: 62, bearing: 15, ease: "linear" },
+        { t: 30, center: [21.384, 103.012], zoom: 12.7, pitch: 60, bearing: 45 },
+        { t: 36, center: [21.382, 103.012], zoom: 12.5, pitch: 58, bearing: 50 },
+      ],
+      subtitles: [
+        { t0: 1, t1: 7.5, text: "Ngày 20/11/1953, quân Pháp nhảy dù xuống chiếm lòng chảo Mường Thanh, rồi liên tục tăng quân." },
+        { t0: 8.5, t1: 17.5, text: "Đầu năm 1954, nơi đây thành tập đoàn cứ điểm mạnh nhất Đông Dương: 49 cứ điểm chia thành ba phân khu Bắc, Trung tâm và Nam." },
+        { t0: 18.5, t1: 26.5, text: "Phân khu Trung tâm ở Mường Thanh có sở chỉ huy, sân bay và các trận địa pháo, được máy bay tiếp tế hằng ngày." },
+        { t0: 27.5, t1: 35.8, text: "Lực lượng địch lúc cao nhất khoảng 16.200 quân. Pháp và Mỹ gọi đây là \"pháo đài bất khả xâm phạm\"." },
+      ],
+      factAt: 22,
+      extraArrows: [{ id: "dh-nhay-du", kind: "enemy", t0: 0.5, t1: 5, path: [[21.03, 105.85], [21.6, 104.6], [21.4, 103.05]] }],
+      actions: [
+        { type: "plane", id: "c47-1", path: [[21.47, 102.93], [21.39, 103.01], [21.31, 103.09]], t0: 5, t1: 17, altitude: 700, drops: [8.5, 9.2, 9.9, 10.6] },
+        { type: "plane", id: "c47-2", path: [[21.5, 102.96], [21.4, 103.02], [21.32, 103.1]], t0: 6.5, t1: 18.5, altitude: 800, drops: [10, 10.7, 11.4] },
+        { type: "reveal", ids: ["docLap", "banKeo"], t0: 9, t1: 10.5 },
+        { type: "reveal", ids: ["himLam", "sanBay", "e1", "d1", "c1", "a1", "hamChiHuy"], t0: 11, t1: 16 },
+        { type: "reveal", ids: ["hongCum"], t0: 16.5, t1: 16.5 },
+        { type: "zone", id: "pk-bac", t0: 9, t1: 11 },
+        { type: "zone", id: "pk-trung-tam", t0: 11, t1: 13 },
+        { type: "zone", id: "pk-nam", t0: 16.5, t1: 18.5 },
+        { type: "label", id: "l-pk-bac", at: [21.425, 103.0], text: "Phân khu Bắc", t0: 10, t1: 26, tone: "place" },
+        { type: "label", id: "l-pk-tt", at: [21.376, 102.996], text: "Phân khu Trung tâm", t0: 12, t1: 30, tone: "place" },
+        { type: "label", id: "l-pk-nam", at: [21.328, 103.0], text: "Phân khu Nam (Hồng Cúm)", t0: 17, t1: 30, tone: "place" },
+        { type: "plane", id: "c47-3", path: [[21.43, 102.9], [21.405, 102.985], [21.3944, 103.0026]], t0: 21, t1: 29, altitude: 180 },
+        { type: "label", id: "l-san-bay", at: [21.3944, 103.0026], text: "Sân bay Mường Thanh — nguồn tiếp tế chính", t0: 21, t1: 31 },
+      ],
+    },
+
+    // 3. Ta chuẩn bị: kéo pháo, mở đường, vây chặt
+    {
+      stepId: "chuan-bi",
+      duration: 38,
+      chapter: { title: "Kéo pháo, vây chặt lòng chảo", clock: "12/1953 – 3/1954" },
+      camera: [
+        { t: 0, center: [21.382, 103.012], zoom: 12.5, pitch: 58, bearing: 50 },
+        { t: 6, center: [21.455, 103.095], zoom: 12.4, pitch: 64, bearing: 215 },
+        { t: 18, center: [21.428, 103.058], zoom: 12.9, pitch: 66, bearing: 232, ease: "linear" },
+        { t: 28, center: [21.41, 103.07], zoom: 11.7, pitch: 55, bearing: 250 },
+        { t: 38, center: [21.405, 103.055], zoom: 11.5, pitch: 50, bearing: 262 },
+      ],
+      subtitles: [
+        { t0: 1, t1: 8.5, text: "Ngày 6/12/1953, Bộ Chính trị quyết định mở chiến dịch Điện Biên Phủ; Đại tướng Võ Nguyên Giáp làm Chỉ huy trưởng." },
+        { t0: 9.5, t1: 18.5, text: "Bộ đội kéo pháo bằng tay qua núi cao, vực sâu, đưa pháo vào trận địa trên các sườn núi bao quanh lòng chảo." },
+        { t0: 19.5, t1: 27.5, text: "Hàng chục vạn dân công dùng xe đạp thồ, ngựa thồ, thuyền bè đưa lương thực, đạn dược ra mặt trận." },
+        { t0: 28.5, t1: 37.8, text: "Ngày 26/1/1954, ta chuyển phương châm từ \"đánh nhanh, giải quyết nhanh\" sang \"đánh chắc, tiến chắc\", siết chặt vòng vây." },
+      ],
+      unitMove: [20, 30],
+      factAt: 14,
+      actions: [
+        { type: "arrow", arrow: "keo-phao-1", t0: 3, t1: 12 },
+        { type: "arrow", arrow: "keo-phao-2", t0: 6, t1: 15 },
+        { type: "march", id: "keo-1", kind: "artillery", side: "vn", path: { arrow: "keo-phao-1" }, t0: 5, t1: 20, count: 4, fadeAtEnd: true },
+        { type: "march", id: "keo-2", kind: "artillery", side: "vn", path: { arrow: "keo-phao-2" }, t0: 8, t1: 22, count: 3, fadeAtEnd: true },
+        { type: "march", id: "dan-cong", kind: "porter", side: "vn", path: [TUAN_GIAO_ROAD, [21.47, 103.125], [21.455, 103.132]], t0: 17, t1: 32, count: 9, fadeAtEnd: true },
+        { type: "zone", id: "vay-ngoai", t0: 28, t1: 33 },
+        { type: "label", id: "l-keo-phao", at: [21.445, 103.075], text: "Đường kéo pháo", t0: 6, t1: 20 },
+        { type: "label", id: "l-muong-phang", at: MUONG_PHANG, text: "Sở chỉ huy chiến dịch — Mường Phăng", t0: 22, t1: 38, tone: "place" },
+        { type: "label", id: "l-dan-cong", at: [21.47, 103.115], text: "Đoàn dân công tiếp tế", t0: 20, t1: 30 },
+      ],
+    },
+
+    // 4. Đợt 1: Him Lam, Độc Lập, Bản Kéo
+    {
+      stepId: "dot-1",
+      duration: 40,
+      chapter: { title: "Đợt 1: tiêu diệt phân khu Bắc", clock: "13/3 – 17/3/1954" },
+      night: [
+        { t: 0, value: 0.25 },
+        { t: 6, value: 0.55 },
+        { t: 30, value: 0.55 },
+        { t: 40, value: 0.2 },
+      ],
+      camera: [
+        { t: 0, center: [21.405, 103.055], zoom: 11.5, pitch: 50, bearing: 262 },
+        { t: 5, center: [21.409, 103.03], zoom: 13.8, pitch: 62, bearing: 232 },
+        { t: 16, center: [21.407, 103.026], zoom: 14.1, pitch: 64, bearing: 250, ease: "linear" },
+        { t: 24, center: [21.417, 103.012], zoom: 13.9, pitch: 62, bearing: 318 },
+        { t: 32, center: [21.411, 103.0], zoom: 13.7, pitch: 60, bearing: 20 },
+        { t: 40, center: [21.402, 103.01], zoom: 13.0, pitch: 55, bearing: 10 },
+      ],
+      subtitles: [
+        { t0: 1.5, t1: 8.5, text: "17 giờ ngày 13/3/1954, pháo binh ta bắn dồn dập vào cụm cứ điểm Him Lam, mở màn chiến dịch." },
+        { t0: 9.5, t1: 16.5, text: "Bộ binh xung phong theo nhiều hướng. Đến đêm, Him Lam bị tiêu diệt." },
+        { t0: 17.5, t1: 25.5, text: "Tiếp đó ta đánh chiếm đồi Độc Lập; quân địch ở Bản Kéo hoảng sợ, phải ra hàng." },
+        { t0: 27, t1: 39.5, text: "Toàn bộ phân khu Bắc bị xóa sổ, cánh cửa phía bắc vào trung tâm Mường Thanh được mở ra." },
+      ],
+      unitMove: [9, 32],
+      factAt: 12,
+      actions: [
+        { type: "barrage", from: GUNS, target: SP.himLam, t0: 2.5, t1: 10, rounds: 16, spread: 140, seed: 41 },
+        { type: "strongpoint", id: "himLam", t: 5, status: "attacked" },
+        { type: "arrow", arrow: "d1-him-lam", t0: 7, t1: 13 },
+        { type: "march", id: "xp-him-lam", kind: "infantry", side: "vn", path: { arrow: "d1-him-lam" }, t0: 8, t1: 14.5, count: 5 },
+        { type: "blast", at: SP.himLam, t: 13.8, kind: "grenade", scale: 1.5 },
+        { type: "strongpoint", id: "himLam", t: 15, status: "captured" },
+        { type: "label", id: "l-phan-dinh-giot", at: SP.himLam, text: "Phan Đình Giót lấp lỗ châu mai", t0: 12.5, t1: 19 },
+        { type: "barrage", from: [PHAO_1], target: SP.docLap, t0: 17, t1: 22, rounds: 10, spread: 120, seed: 42 },
+        { type: "strongpoint", id: "docLap", t: 18.5, status: "attacked" },
+        { type: "arrow", arrow: "d1-doc-lap", t0: 19, t1: 24 },
+        { type: "march", id: "xp-doc-lap", kind: "infantry", side: "vn", path: { arrow: "d1-doc-lap" }, t0: 20, t1: 25.5, count: 4 },
+        { type: "strongpoint", id: "docLap", t: 26, status: "captured" },
+        { type: "arrow", arrow: "d1-ban-keo", t0: 27, t1: 31 },
+        { type: "march", id: "xp-ban-keo", kind: "infantry", side: "vn", path: { arrow: "d1-ban-keo" }, t0: 27.5, t1: 32, count: 4 },
+        { type: "strongpoint", id: "banKeo", t: 32.5, status: "captured" },
+        { type: "label", id: "l-ban-keo-hang", at: SP.banKeo, text: "Địch ở Bản Kéo ra hàng", t0: 32.5, t1: 39 },
+      ],
+    },
+
+    // 5. Đợt 2: các điểm cao phía đông
+    {
+      stepId: "dot-2",
+      duration: 42,
+      chapter: { title: "Đợt 2: đánh chiếm các điểm cao phía đông", clock: "30/3 – 26/4/1954" },
+      night: [{ t: 0, value: 0.2 }],
+      camera: [
+        { t: 0, center: [21.402, 103.01], zoom: 13.0, pitch: 55, bearing: 10 },
+        { t: 5, center: [21.393, 103.033], zoom: 14.0, pitch: 63, bearing: 262 },
+        { t: 15, center: [21.391, 103.027], zoom: 14.3, pitch: 64, bearing: 252, ease: "linear" },
+        { t: 25, center: [21.384, 103.024], zoom: 14.5, pitch: 66, bearing: 282 },
+        { t: 33, center: [21.392, 103.008], zoom: 13.9, pitch: 60, bearing: 300 },
+        { t: 42, center: [21.388, 103.012], zoom: 13.4, pitch: 56, bearing: 290 },
+      ],
+      subtitles: [
+        { t0: 1, t1: 8, text: "Hệ thống hào giao thông của ta đào sát vào phân khu Trung tâm, siết chặt vòng vây." },
+        { t0: 9, t1: 17.5, text: "Ta đồng loạt tiến công các cứ điểm trên dãy đồi phía đông: E1, D1, C1, A1. Hầu hết các điểm cao bị ta chiếm." },
+        { t0: 18.5, t1: 26.5, text: "Riêng đồi A1 giằng co quyết liệt, hai bên giành nhau từng tấc đất." },
+        { t0: 27.5, t1: 34.5, text: "Sân bay Mường Thanh bị khống chế, việc tiếp tế bằng đường hàng không của địch ngày càng khó khăn." },
+        { t0: 35.5, t1: 41.8, text: "Nhiều kiện hàng thả dù rơi lệch vào trận địa của ta." },
+      ],
+      unitMove: [3, 20],
+      factAt: 6,
+      actions: [
+        { type: "zone", id: "vay-giua", t0: 1, t1: 6 },
+        { type: "barrage", from: GUNS, target: SP.e1, t0: 4, t1: 8.5, rounds: 8, spread: 90, seed: 51 },
+        { type: "arrow", arrow: "d2-e1", t0: 6, t1: 10.5 },
+        { type: "march", id: "xp-e1", kind: "infantry", side: "vn", path: { arrow: "d2-e1" }, t0: 7, t1: 11.5, count: 3 },
+        { type: "strongpoint", id: "e1", t: 12, status: "captured" },
+        { type: "barrage", from: GUNS, target: SP.d1, t0: 9.5, t1: 13.5, rounds: 8, spread: 90, seed: 52 },
+        { type: "arrow", arrow: "d2-d1", t0: 11, t1: 15 },
+        { type: "march", id: "xp-d1", kind: "infantry", side: "vn", path: { arrow: "d2-d1" }, t0: 11.5, t1: 15.5, count: 3 },
+        { type: "strongpoint", id: "d1", t: 16, status: "captured" },
+        { type: "barrage", from: GUNS, target: SP.c1, t0: 14, t1: 18, rounds: 8, spread: 80, seed: 53 },
+        { type: "arrow", arrow: "d2-c1", t0: 15, t1: 19 },
+        { type: "march", id: "xp-c1", kind: "infantry", side: "vn", path: { arrow: "d2-c1" }, t0: 15.5, t1: 20, count: 3 },
+        { type: "strongpoint", id: "c1", t: 20.5, status: "captured" },
+        { type: "barrage", from: GUNS, target: SP.a1, t0: 18, t1: 26, rounds: 14, spread: 80, seed: 54 },
+        { type: "arrow", arrow: "d2-a1", t0: 19.5, t1: 24.5 },
+        { type: "march", id: "xp-a1", kind: "infantry", side: "vn", path: { arrow: "d2-a1" }, t0: 20, t1: 25, count: 4 },
+        { type: "strongpoint", id: "a1", t: 23, status: "attacked" },
+        { type: "label", id: "l-a1", at: SP.a1, text: "Đồi A1: giằng co quyết liệt", t0: 23, t1: 32 },
+        { type: "barrage", from: GUNS, target: SP.sanBay, t0: 25, t1: 30, rounds: 10, spread: 220, seed: 55 },
+        { type: "strongpoint", id: "sanBay", t: 27.5, status: "attacked" },
+        { type: "plane", id: "c47-tiep-te", path: [[21.388, 102.93], [21.39, 103.0], [21.392, 103.09]], t0: 29, t1: 40, altitude: 650, drops: [33, 33.8, 34.6] },
+      ],
+    },
+
+    // 6. Đợt 3: A1 nổ tung, tổng công kích, bắt sống De Castries
+    {
+      stepId: "dot-3",
+      duration: 44,
+      chapter: { title: "Đợt 3: tổng công kích", clock: "1/5 – 7/5/1954" },
+      night: [
+        { t: 0, value: 0.2 },
+        { t: 4, value: 0.85 },
+        { t: 17, value: 0.85 },
+        { t: 21, value: 0.1 },
+        { t: 34, value: 0.1 },
+        { t: 39, value: 0.7 },
+      ],
+      camera: [
+        { t: 0, center: [21.388, 103.012], zoom: 13.4, pitch: 56, bearing: 290 },
+        { t: 6, center: [21.3834, 103.0168], zoom: 15.3, pitch: 68, bearing: 285 },
+        { t: 11, center: [21.3833, 103.0165], zoom: 15.1, pitch: 66, bearing: 292, ease: "linear" },
+        { t: 17, center: [21.3838, 103.0145], zoom: 14.4, pitch: 62, bearing: 280 },
+        { t: 24, center: [21.386, 103.009], zoom: 13.9, pitch: 60, bearing: 248 },
+        { t: 31, center: [21.385, 103.0107], zoom: 15.2, pitch: 66, bearing: 222 },
+        { t: 38, center: [21.345, 103.01], zoom: 13.3, pitch: 56, bearing: 200 },
+        { t: 44, center: [21.365, 103.012], zoom: 12.8, pitch: 52, bearing: 192 },
+      ],
+      subtitles: [
+        { t0: 1, t1: 8, text: "Ngày 1/5/1954, ta mở đợt tiến công cuối cùng vào phân khu Trung tâm và phân khu Nam." },
+        { t0: 8.5, t1: 15.5, text: "20 giờ 30 ngày 6/5, khối bộc phá gần 1 tấn đặt trong đường hầm dưới đồi A1 phát nổ. Ta làm chủ đồi A1." },
+        { t0: 17, t1: 25.5, text: "Chiều 7/5, quân ta từ nhiều hướng đánh thẳng vào sở chỉ huy của tập đoàn cứ điểm." },
+        { t0: 26.5, t1: 34, text: "17 giờ 30, tướng De Castries cùng toàn bộ Bộ tham mưu bị bắt sống. Lá cờ \"Quyết chiến, Quyết thắng\" tung bay trên nóc hầm." },
+        { t0: 35, t1: 43.5, text: "Đêm 7/5, quân địch ở phân khu Nam (Hồng Cúm) cũng bị tiêu diệt." },
+      ],
+      unitMove: [18, 30],
+      factAt: 30,
+      actions: [
+        { type: "blast", at: SP.a1, t: 10, kind: "blast", scale: 1.4 },
+        { type: "label", id: "l-bo-pha", at: SP.a1, text: "20 giờ 30, 6/5: khối bộc phá nổ", t0: 10.5, t1: 17 },
+        { type: "strongpoint", id: "a1", t: 13.5, status: "captured" },
+        { type: "barrage", from: GUNS, target: SP.hamChiHuy, t0: 18, t1: 27, rounds: 14, spread: 160, seed: 61 },
+        { type: "strongpoint", id: "sanBay", t: 22, status: "captured" },
+        { type: "arrow", arrow: "d3-dong", t0: 19, t1: 25 },
+        { type: "arrow", arrow: "d3-tay", t0: 20, t1: 26 },
+        { type: "march", id: "xp-dong", kind: "infantry", side: "vn", path: { arrow: "d3-dong" }, t0: 20, t1: 27, count: 4 },
+        { type: "march", id: "xp-tay", kind: "infantry", side: "vn", path: { arrow: "d3-tay" }, t0: 21, t1: 28, count: 4 },
+        { type: "strongpoint", id: "hamChiHuy", t: 29, status: "captured" },
+        { type: "label", id: "l-de-castries", at: SP.hamChiHuy, text: "17 giờ 30, 7/5: bắt sống De Castries", t0: 29.5, t1: 37 },
+        { type: "arrow", arrow: "d3-nam", t0: 32, t1: 37 },
+        { type: "march", id: "xp-nam", kind: "infantry", side: "vn", path: { arrow: "d3-nam" }, t0: 32.5, t1: 38, count: 4 },
+        { type: "barrage", from: [PHAO_2], target: SP.hongCum, t0: 33, t1: 38, rounds: 8, spread: 150, seed: 62 },
+        { type: "strongpoint", id: "hongCum", t: 39, status: "captured" },
+      ],
+    },
+
+    // 7. Toàn thắng
+    {
+      stepId: "ket-qua",
+      duration: 36,
+      chapter: { title: "Toàn thắng", clock: "7/5/1954" },
+      night: [
+        { t: 0, value: 0.6 },
+        { t: 5, value: 0 },
+      ],
+      camera: [
+        { t: 0, center: [21.365, 103.012], zoom: 12.8, pitch: 52, bearing: 192 },
+        { t: 5, center: [21.385, 103.0107], zoom: 15.6, pitch: 66, bearing: 212 },
+        { t: 12, center: [21.3852, 103.0108], zoom: 14.6, pitch: 64, bearing: 300, ease: "linear" },
+        { t: 20, center: [21.384, 103.012], zoom: 13.2, pitch: 60, bearing: 30, ease: "linear" },
+        { t: 28, center: [21.382, 103.012], zoom: 12.6, pitch: 55, bearing: 120, ease: "linear" },
+        { t: 36, center: [21.38, 103.02], zoom: 11.4, pitch: 45, bearing: 180 },
+      ],
+      subtitles: [
+        { t0: 1, t1: 8.5, text: "Sau 56 ngày đêm chiến đấu, ta tiêu diệt toàn bộ tập đoàn cứ điểm Điện Biên Phủ." },
+        { t0: 9.5, t1: 16.5, text: "16.200 quân địch bị loại khỏi vòng chiến đấu, 62 máy bay bị bắn rơi và phá hủy." },
+        { t0: 17.5, t1: 26.5, text: "Chiến thắng đập tan hoàn toàn kế hoạch Nava, giáng đòn quyết định vào ý chí xâm lược của thực dân Pháp." },
+        { t0: 27.5, t1: 35.8, text: "Thắng lợi tạo điều kiện thuận lợi cho cuộc đấu tranh ngoại giao tại Hội nghị Giơnevơ." },
+      ],
+      factAt: 36,
+      actions: [
+        { type: "label", id: "l-quyet-thang", at: SP.hamChiHuy, text: "\"Quyết chiến, Quyết thắng\"", t0: 3, t1: 13 },
+        { type: "label", id: "l-so-lieu", at: [21.37, 103.0], text: "56 ngày đêm · 16.200 quân địch bị loại · 62 máy bay", t0: 14, t1: 34 },
+      ],
+    },
+  ],
+};

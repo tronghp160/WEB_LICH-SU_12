@@ -21,7 +21,7 @@ const hidden = (position: LatLng): UnitState => ({ position, visible: false, sta
 const at = (position: LatLng): UnitState => ({ position, visible: true, status: "active" });
 
 // Cứ điểm (theo OSM, trừ Bản Kéo và Hồng Cúm).
-const SP = {
+export const SP = {
   himLam: [21.4047, 103.0235],
   docLap: [21.4213, 103.0066],
   banKeo: [21.4085, 102.9965],
@@ -34,11 +34,11 @@ const SP = {
   hongCum: [21.3355, 103.0068],
 } satisfies Record<string, LatLng>;
 
-const MUONG_PHANG: LatLng = [21.4487, 103.135];
+export const MUONG_PHANG: LatLng = [21.4487, 103.135];
 /** Hướng đường kéo pháo từ phía Tuần Giáo vào (điểm xuất phát minh họa). */
-const TUAN_GIAO_ROAD: LatLng = [21.475, 103.11];
+export const TUAN_GIAO_ROAD: LatLng = [21.475, 103.11];
 
-const VALLEY: { center: LatLng; zoom: number } = { center: [21.382, 103.012], zoom: 12.5 };
+export const VALLEY: { center: LatLng; zoom: number } = { center: [21.382, 103.012], zoom: 12.5 };
 
 const zones: ZoneDefinition[] = [
   { id: "pk-bac", kind: "sector", label: "Phân khu Bắc", path: ellipse([21.4155, 103.0015], 0.0105, 0.0125) },
