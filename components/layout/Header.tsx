@@ -8,10 +8,16 @@ import { cn } from "@/lib/utils/cn";
 
 const NAV_ITEMS = [
   { label: "Trang chủ", href: "/" },
+  { label: "Bài học", href: "/bai-hoc" },
   { label: "Dòng thời gian", href: "/dong-thoi-gian" },
   { label: "Bản đồ", href: "/ban-do" },
   { label: "Tra cứu", href: "/tra-cuu" },
 ];
+
+/** Mục đang mở: trùng đường dẫn hoặc là trang con của nó (trừ trang chủ). */
+function isNavItemActive(pathname: string, href: string): boolean {
+  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -27,7 +33,7 @@ export function Header() {
         <nav aria-label="Điều hướng chính" className="hidden md:block">
           <ul className="flex items-center gap-6">
             {NAV_ITEMS.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = isNavItemActive(pathname, item.href);
               return (
                 <li key={item.href}>
                   <Link
@@ -66,7 +72,7 @@ export function Header() {
         >
           <ul className="flex flex-col px-4 py-2">
             {NAV_ITEMS.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = isNavItemActive(pathname, item.href);
               return (
                 <li key={item.href}>
                   <Link

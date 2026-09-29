@@ -90,6 +90,43 @@ Hai điểm về dữ liệu lộ ra khi xem trang chủ thật — chưa sửa 
    where slug = 'tong-tien-cong-va-noi-day-tet-mau-than-1968';
    ```
 
+## 6b. Ghi chú nội bộ đã gỡ khỏi trang công khai (29/09/2026)
+
+Trước đây các ghi chú "TODO: kiểm chứng" nằm thẳng trong cột hiển thị cho học sinh
+(`sources.citation`, `event_sources.source_note`, `historical_locations.accuracy_note`).
+Migration `20260929000000_public_text_cleanup.sql` đã gỡ chúng; **việc cần kiểm chứng vẫn còn nguyên**:
+
+| Chỗ | Việc còn phải làm |
+|---|---|
+| Nguồn SGK (`sources.citation`, `published_year = 2024`) | Xác nhận năm xuất bản/tái bản của ấn bản đang dùng |
+| `event_sources.source_note` (10 sự kiện) | Bổ sung "Bài X, trang Y" cho từng sự kiện |
+| `dien-bien-phu`, `geneve-thuy-si`, `paris-phap`, `ha-noi-khu-vuc-trung-tam`, `pac-bo-cao-bang` | Đối chiếu tọa độ (xem bảng mục 2) |
+
+Từ nay trang quản trị **chặn gửi duyệt** nếu phần hiển thị công khai còn chữ `TODO`/`FIXME`
+(`lib/admin/readiness.ts`). Ghi chú kiểm chứng hãy để ở file này hoặc ở ô "Ghi chú kiểm duyệt".
+
+### Tên hành chính sau sắp xếp 1/7/2025 (đã cập nhật, nên kiểm lại)
+
+Tra cứu ngày 29/09/2026 trên báo và cổng thông tin. Nên đối chiếu lại với nghị quyết sắp xếp chính thức:
+
+| Địa điểm | Đã ghi | Nguồn tra |
+|---|---|---|
+| Dinh Độc Lập | 135 Nam Kỳ Khởi Nghĩa, phường Bến Thành, TP. Hồ Chí Minh | Dân trí, 06/07/2025 |
+| Bến Nhà Rồng | Số 1 Nguyễn Tất Thành, phường Xóm Chiếu (trước đây thuộc Quận 4) | trang du lịch, Wikipedia |
+| Sài Gòn (tâm khu vực) | "khu vực Quận 1 cũ; từ 7/2025 không còn cấp quận" | — |
+| Điện Biên Phủ | khu trung tâm nay thuộc các phường Điện Biên Phủ và Mường Thanh, tỉnh Điện Biên | Thư viện Pháp luật |
+| Pác Bó | xã Trường Hà, tỉnh Cao Bằng (trước đây thuộc huyện Hà Quảng) | Bảo tàng Hồ Chí Minh, Wikipedia — **chưa chắc xã Trường Hà có giữ tên sau sáp nhập xã, cần kiểm lại** |
+
+### Ảnh cắm cờ trên nóc hầm De Castries (1954)
+
+- **Giấy phép:** Commons gắn nhãn `PD-Vietnam` với lý do "công bố hơn 75 năm", nhưng ảnh công bố năm 1954
+  nên đến 2026 mới ~72 năm (Luật SHTT: tác phẩm nhiếp ảnh bảo hộ 75 năm kể từ khi công bố lần đầu).
+  Đã sửa câu ghi công cho trung thực; **nên hỏi thầy cô/bộ phận pháp chế** trước khi công khai rộng,
+  hoặc thay bằng ảnh có giấy phép rõ ràng.
+- **Bối cảnh:** báo Nhân Dân (bài "Dien Bien Phu resounds in foreign films", trích nhật ký Roman Karmen) và
+  Wikipedia (mục Roman Karmen) cho biết cảnh cắm cờ trên nóc hầm được đoàn làm phim của Karmen quay dựng lại
+  sau chiến dịch. Chú thích ảnh ở trang sự kiện và bài học đã ghi rõ "cảnh dựng lại".
+
 ## 7. Việc cần làm tiếp
 
 1. Đối chiếu toàn bộ bảng trên với SGK Lịch sử 12 đang dùng.

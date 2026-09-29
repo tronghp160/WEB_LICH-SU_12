@@ -17,8 +17,11 @@ export const dienBienPhuLesson: Lesson = {
   hero: {
     src: `${PHOTO}/cam-co-ham-de-castries.webp`,
     alt: "Chiến sĩ Quân đội nhân dân Việt Nam cắm cờ trên nóc hầm chỉ huy của Pháp ở Điện Biên Phủ",
-    caption: "Lá cờ \"Quyết chiến, Quyết thắng\" trên nóc hầm De Castries, chiều 7/5/1954.",
-    credit: "Quân đội nhân dân Việt Nam, phạm vi công cộng",
+    // Cảnh quay dựng lại: theo báo Nhân Dân (trích nhật ký Roman Karmen), các cảnh tấn công hầm De Castries được quay sau chiến dịch.
+    caption:
+      "Lá cờ \"Quyết chiến, Quyết thắng\" trên nóc hầm De Castries. Cảnh dựng lại: đoàn làm phim của Roman Karmen (Liên Xô) quay lại sau khi chiến dịch kết thúc (7/5/1954).",
+    // Commons gắn PD-Vietnam nhưng ảnh 1954 tới 2026 mới ~72 năm (< 75 năm bảo hộ) — không ghi "phạm vi công cộng" như sự thật đã chắc.
+    credit: "Quân đội nhân dân Việt Nam, qua Wikimedia Commons (Commons ghi phạm vi công cộng tại Việt Nam; nhãn này đang được xem lại)",
     sourceUrl: `${COMMONS}Victory_in_Battle_of_Dien_Bien_Phu.jpg`,
   },
   heroStats: [

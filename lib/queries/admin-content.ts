@@ -257,14 +257,20 @@ export async function getReadinessSnapshot(
   if (kind === "chu-de") {
     const topic = await getTopicForEdit(id);
     return topic
-      ? { status: topic.workflow_status, snapshot: { kind, description: topic.description } }
+      ? {
+          status: topic.workflow_status,
+          snapshot: { kind, description: topic.description, publicTexts: [topic.name, topic.description] },
+        }
       : null;
   }
 
   if (kind === "nhan-vat") {
     const figure = await getFigureForEdit(id);
     return figure
-      ? { status: figure.workflow_status, snapshot: { kind, biography: figure.biography } }
+      ? {
+          status: figure.workflow_status,
+          snapshot: { kind, biography: figure.biography, publicTexts: [figure.name, figure.other_names, figure.biography] },
+        }
       : null;
   }
 
@@ -279,6 +285,7 @@ export async function getReadinessSnapshot(
             longitude: location.longitude,
             accuracyLevel: location.accuracy_level,
             description: location.description,
+            publicTexts: [location.name, location.historical_name, location.description, location.accuracy_note],
           },
         }
       : null;
@@ -316,6 +323,16 @@ export async function getReadinessSnapshot(
       figureCount: event.event_figures.length,
       unpublishedLinkedCount: unpublished,
       mediaMissingAltCount: event.media_assets.filter((item) => !item.alt_text || item.alt_text.trim() === "").length,
+      publicTexts: [
+        event.title,
+        event.date_text,
+        event.summary,
+        event.content,
+        ...event.event_figures.map((link) => link.relationship),
+        ...event.event_locations.map((link) => link.location_role),
+        ...event.event_sources.flatMap((link) => [link.source_note, link.confidence_note]),
+        ...event.media_assets.flatMap((item) => [item.caption, item.alt_text]),
+      ],
     },
   };
 }

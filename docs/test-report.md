@@ -2,7 +2,8 @@
 
 > Phase 13 (mục 8, `KE_HOACH_DU_AN.md`). Mọi kiểm thử chạy trên **database Supabase thật** của dự án bằng các tài khoản thử
 > `@test.local`; dữ liệu thử có tiền tố `zz-kiem-thu` / `ZZ KIỂM THỬ` và được dọn sạch sau mỗi lần chạy (đã kiểm tra: 0 dòng còn sót).
-> Ngày lập: 24/09/2026.
+> Ngày lập: 24/09/2026. Cập nhật số liệu unit test: 29/09/2026 (sau khi thêm bài học tương tác, phim 3D, bản đồ 3D, mô hình 3D
+> và luật chặn "TODO" khi gửi duyệt). Các nhóm kiểm thử khác giữ nguyên kết quả ngày 24/09.
 
 ## 0. Môi trường và cách chạy lại
 
@@ -25,7 +26,7 @@
 
 | Nhóm kiểm thử | Số ca | Đạt | Ghi chú |
 |---|---:|---:|---|
-| Unit test (Vitest) | 181 | 181 | 16 file |
+| Unit test (Vitest) | 286 | 286 | 21 file (chạy lại 29/09/2026) |
 | Ràng buộc CSDL — hợp lệ và không hợp lệ (mục 8.1) | 41 | 41 | gồm C1–C13 của kế hoạch |
 | Ma trận phân quyền RLS (mục 8.2) | 70 ô (14 thao tác × 5 vai trò) | 70 | + kiểm tra hành vi `updated_at` (C12) |
 | RLS chi tiết — `sources` (link + nguồn) | 13 | 13 | sau migration 000003 |
@@ -33,7 +34,7 @@
 | E2E Playwright (mục 8.4) | 29 | 29 | E1–E9 + 7 ca UC13 (tạo tài khoản); xem lưu ý về mạng ở mục 5 |
 | Phi chức năng (mục 8.5) | — | — | xem mục 5: đạt trợ năng; 1 điểm hiệu năng chưa đạt mục tiêu trong kịch bản mạng chậm |
 
-## 2. Unit test (Vitest) — 181 test, 16 file
+## 2. Unit test (Vitest) — 286 test, 21 file
 
 | File | Số test | Nội dung |
 |---|---:|---|
@@ -48,11 +49,16 @@
 | `content-kinds.test.ts` | 9 | quyền sửa/gửi duyệt theo vai trò và trạng thái (phản chiếu RLS) |
 | `content-validation.test.ts` | 32 | Zod sự kiện/nhân vật/địa điểm/nguồn/media, phản chiếu 4 CHECK của `historical_events`, chặn `javascript:` |
 | `db-errors.test.ts` | 10 | dịch lỗi Postgres sang tiếng Việt (23505/23514/42501/P0001…), không lộ chi tiết nội bộ |
-| `readiness.test.ts` | 8 | điều kiện gửi duyệt (bắt buộc / khuyến nghị) |
+| `readiness.test.ts` | 11 | điều kiện gửi duyệt (bắt buộc / khuyến nghị), chặn ghi chú nội bộ "TODO" lọt ra trang công khai |
 | `review.test.ts` | 18 | luật chuyển trạng thái kiểm duyệt khớp policy RLS, lý do bắt buộc |
 | `staff-rules.test.ts` | 12 | không tự khóa mình, không khóa admin cuối cùng, Zod tạo nhân sự |
 | `admin-content-rules.test.ts` | 8 | ưu tiên ẩn hơn xóa |
 | `operations.test.ts` | 8 | tóm tắt vận hành: lỗi kiểm tra ⇒ "chưa xác định", không kết luận bình thường |
+| `lesson-data.test.ts` | 12 | kịch bản bản đồ Điện Biên Phủ (7 bước đúng thứ tự SGK, tọa độ trong lòng chảo, cứ điểm đã diệt không "sống lại"); ảnh bài học có alt, ghi công/giấy phép, link gốc, file ≤ 250 KB; video YouTube hợp lệ |
+| `battle-animation.test.ts` | 20 | hoạt cảnh bản đồ diễn biến: hàm làm mượt, nội suy tọa độ, khung hình giữa hai bước |
+| `cinema.test.ts` | 39 | phim 3D đồi A1: số ngẫu nhiên tất định, giải mã địa hình thật, đồi A1 và chiến hào đúng độ cao/độ sâu, dòng thời gian cảnh |
+| `mapfilm.test.ts` | 20 | bản đồ 3D "như phim": phép chiếu Mercator, camera liên tục không nhảy, mỗi bước 2D có đúng một cảnh 3D |
+| `models3d.test.ts` | 11 | mô hình 3D: id/chú thích/camera hợp lệ, mô hình `glb` phải ghi tác giả và giấy phép, tượng nhân vật ghi rõ là cách điệu |
 
 > Kế hoạch (8.3) có ghi "hàm format ngày theo `date_precision`": dự án hiển thị trực tiếp `date_text` do biên tập viên nhập
 > và gắn nhãn `date_precision`, nên không có hàm này để kiểm thử. Đã kiểm thử phần tương đương: nhãn độ chính xác (`labels.test.ts`).

@@ -43,15 +43,15 @@ insert into public.curriculum_topics (name, slug, description, sort_order, workf
 -- 2.1. Nguồn chính: SGK
 insert into public.sources (title, author_org, publisher, published_year, source_type, citation) values
 ('Sách giáo khoa Lịch sử 12', 'Bộ Giáo dục và Đào tạo', 'Nhà xuất bản Giáo dục Việt Nam', 2024, 'book',
- 'Sách giáo khoa Lịch sử 12, bộ Kết nối tri thức với cuộc sống, NXB Giáo dục Việt Nam, 2024 — TODO: kiểm chứng đúng năm xuất bản/tái bản của ấn bản đang dùng.');
+ 'Sách giáo khoa Lịch sử 12, bộ Kết nối tri thức với cuộc sống, NXB Giáo dục Việt Nam, 2024.');
 
 -- 2.2. Nguồn ảnh tư liệu (Wikimedia Commons, đã xác minh giấy phép)
 insert into public.sources (title, author_org, publisher, url, source_type, citation, accessed_at) values
 ('Ảnh tư liệu: Bộ đội cắm cờ chiến thắng tại Điện Biên Phủ (1954)',
- 'Quân đội nhân dân Việt Nam (qua Wikimedia Commons)', 'Wikimedia Commons',
+ 'Quân đội nhân dân Việt Nam, hệ thống Bảo tàng Quân đội (qua Wikimedia Commons)', 'Wikimedia Commons',
  'https://commons.wikimedia.org/wiki/File:Victory_in_Battle_of_Dien_Bien_Phu.jpg',
  'web',
- 'Wikimedia Commons, "Victory in Battle of Dien Bien Phu.jpg", tác giả: Quân đội nhân dân Việt Nam, public domain tại Việt Nam (ảnh công bố hơn 75 năm), truy cập https://commons.wikimedia.org/wiki/File:Victory_in_Battle_of_Dien_Bien_Phu.jpg',
+ 'Wikimedia Commons, "Victory in Battle of Dien Bien Phu.jpg", tác giả: Quân đội nhân dân Việt Nam, nguồn: hệ thống Bảo tàng Quân đội nhân dân Việt Nam. Commons gắn nhãn phạm vi công cộng tại Việt Nam (PD-Vietnam); lưu ý: ảnh công bố năm 1954, tính đến 2026 chưa đủ 75 năm bảo hộ theo Luật Sở hữu trí tuệ nên nhãn này cần được xem xét lại. Sử dụng cho mục đích giáo dục phi lợi nhuận, có ghi nguồn. Truy cập https://commons.wikimedia.org/wiki/File:Victory_in_Battle_of_Dien_Bien_Phu.jpg',
  '2026-09-24'),
 ('Ảnh tư liệu: Chủ tịch Hồ Chí Minh đọc Tuyên ngôn Độc lập tại Quảng trường Ba Đình (2/9/1945)',
  'Front pour l''indépendance du Việt-Nam (qua Wikimedia Commons, © VARCHIV)', 'Wikimedia Commons',
@@ -114,19 +114,19 @@ insert into public.historical_locations (name, historical_name, slug, descriptio
  'Tọa độ trung tâm khu vực Quảng trường Ba Đình hiện nay.',
  'published'),
 ('Điện Biên Phủ', null, 'dien-bien-phu',
- 'Lòng chảo Điện Biên Phủ (nay là TP. Điện Biên Phủ, tỉnh Điện Biên), nơi diễn ra chiến dịch quyết định năm 1954.',
+ 'Lòng chảo Điện Biên Phủ (trước đây là TP. Điện Biên Phủ; từ 7/2025 khu trung tâm nay thuộc các phường Điện Biên Phủ và Mường Thanh, tỉnh Điện Biên), nơi diễn ra chiến dịch quyết định năm 1954.',
  21.386000, 103.023000, 'region',
- 'Tọa độ trung tâm khu vực lòng chảo Điện Biên Phủ (thành phố hiện nay); trận địa thực tế trải rộng trên nhiều cứ điểm xung quanh — TODO: kiểm chứng.',
+ 'Tọa độ trung tâm khu vực lòng chảo Điện Biên Phủ (thành phố hiện nay); trận địa thực tế trải rộng trên nhiều cứ điểm xung quanh.',
  'published'),
 ('Genève (Thụy Sĩ)', null, 'geneve-thuy-si',
  'Thành phố nơi diễn ra Hội nghị Genève về Đông Dương năm 1954.',
  46.204400, 6.143200, 'region',
- 'Tọa độ trung tâm thành phố Genève; địa điểm họp cụ thể chưa được xác định chính xác trong dữ liệu này — TODO: kiểm chứng.',
+ 'Tọa độ trung tâm thành phố Genève; địa điểm họp cụ thể chưa được xác định chính xác trong dữ liệu này.',
  'published'),
 ('Sài Gòn', 'Sài Gòn', 'sai-gon',
  'Trung tâm chính trị của chính quyền Sài Gòn, một trong các mục tiêu chính của cuộc Tổng tiến công và nổi dậy Tết Mậu Thân 1968.',
  10.776900, 106.700900, 'region',
- 'Tọa độ trung tâm khu vực Sài Gòn (nay là Quận 1, TP. Hồ Chí Minh).',
+ 'Tọa độ trung tâm khu vực Sài Gòn (khu vực Quận 1 cũ, TP. Hồ Chí Minh; từ 7/2025 không còn cấp quận).',
  'published'),
 ('Huế', null, 'hue',
  'Một trong những mặt trận trọng điểm của cuộc Tổng tiến công và nổi dậy Tết Mậu Thân 1968.',
@@ -136,27 +136,27 @@ insert into public.historical_locations (name, historical_name, slug, descriptio
 ('Paris (Pháp)', null, 'paris-phap',
  'Thành phố nơi diễn ra đàm phán và ký kết Hiệp định Paris về Việt Nam năm 1973.',
  48.856600, 2.352200, 'region',
- 'Tọa độ trung tâm thành phố Paris; địa điểm họp cụ thể (Trung tâm Hội nghị Quốc tế, Avenue Kléber) chưa được xác định chính xác trong dữ liệu này — TODO: kiểm chứng.',
+ 'Tọa độ trung tâm thành phố Paris; địa điểm họp cụ thể (Trung tâm Hội nghị Quốc tế, Avenue Kléber) chưa được xác định chính xác trong dữ liệu này.',
  'published'),
 ('Dinh Độc Lập', 'Dinh Độc Lập / Dinh Thống Nhất', 'dinh-doc-lap',
  'Nơi xe tăng Quân Giải phóng tiến vào trưa 30/4/1975, đánh dấu thời khắc kết thúc Chiến dịch Hồ Chí Minh.',
  10.777200, 106.695300, 'exact',
- 'Tọa độ trung tâm công trình Dinh Độc Lập (nay là Dinh Thống Nhất), TP. Hồ Chí Minh.',
+ 'Tọa độ trung tâm công trình Dinh Độc Lập (nay là Dinh Thống Nhất), 135 Nam Kỳ Khởi Nghĩa, phường Bến Thành, TP. Hồ Chí Minh.',
  'published'),
 ('Hà Nội (khu vực trung tâm)', null, 'ha-noi-khu-vuc-trung-tam',
  'Khu vực trung tâm Hà Nội, nơi diễn ra Đại hội đại biểu toàn quốc lần thứ VI của Đảng (12/1986).',
  21.028500, 105.854200, 'region',
- 'Địa điểm cụ thể tổ chức Đại hội VI (Hội trường Ba Đình cũ) hiện không còn; dùng tọa độ trung tâm Hà Nội để đại diện khu vực — TODO: kiểm chứng.',
+ 'Địa điểm cụ thể tổ chức Đại hội VI (Hội trường Ba Đình cũ) hiện không còn; dùng tọa độ trung tâm Hà Nội để đại diện khu vực.',
  'published'),
 ('Bến Nhà Rồng', 'Bến Nhà Rồng', 'ben-nha-rong',
  'Nơi người thanh niên Nguyễn Tất Thành xuống tàu Amiral Latouche-Tréville ra đi tìm đường cứu nước ngày 5/6/1911.',
  10.768600, 106.707100, 'exact',
- 'Tọa độ khu vực Bến Nhà Rồng (nay là Bảo tàng Hồ Chí Minh - Chi nhánh TP. Hồ Chí Minh).',
+ 'Tọa độ khu vực Bến Nhà Rồng (nay là Bảo tàng Hồ Chí Minh - Chi nhánh TP. Hồ Chí Minh), số 1 Nguyễn Tất Thành, phường Xóm Chiếu (trước đây thuộc Quận 4), TP. Hồ Chí Minh.',
  'published'),
 ('Pác Bó', null, 'pac-bo-cao-bang',
- 'Địa danh thuộc xã Trường Hà, huyện Hà Quảng, tỉnh Cao Bằng, nơi lãnh tụ Nguyễn Ái Quốc về nước trực tiếp lãnh đạo cách mạng năm 1941.',
+ 'Địa danh thuộc xã Trường Hà, tỉnh Cao Bằng (trước đây thuộc huyện Hà Quảng), nơi lãnh tụ Nguyễn Ái Quốc về nước trực tiếp lãnh đạo cách mạng năm 1941.',
  22.907500, 106.222500, 'approximate',
- 'Tọa độ khu di tích Pác Bó; cần đối chiếu bản đồ/SGK để tăng độ chính xác — TODO: kiểm chứng.',
+ 'Tọa độ khu di tích Pác Bó (tọa độ gần đúng).',
  'published');
 
 -- ============================================================
@@ -243,7 +243,7 @@ values
   'Nguyễn Ái Quốc về nước lãnh đạo cách mạng', 'nguyen-ai-quoc-ve-nuoc-lanh-dao-cach-mang',
   1941, 1941, '1941-01-28', '1941-01-28', '28/1/1941', 'exact',
   'Ngày 28/1/1941, lãnh tụ Nguyễn Ái Quốc về nước sau 30 năm bôn ba tìm đường cứu nước, trực tiếp lãnh đạo phong trào cách mạng tại Pác Bó (Cao Bằng), chuẩn bị cho Cách mạng tháng Tám.',
-  'Sau 30 năm hoạt động ở nước ngoài, lãnh tụ Nguyễn Ái Quốc về nước, sống và làm việc tại hang Pác Bó (xã Trường Hà, huyện Hà Quảng, tỉnh Cao Bằng), trực tiếp lãnh đạo cách mạng Việt Nam. Tháng 5/1941, Người chủ trì Hội nghị Trung ương lần thứ 8, quyết định thành lập Mặt trận Việt Minh.',
+  'Sau 30 năm hoạt động ở nước ngoài, lãnh tụ Nguyễn Ái Quốc về nước, sống và làm việc tại hang Pác Bó (xã Trường Hà, tỉnh Cao Bằng (trước đây thuộc huyện Hà Quảng)), trực tiếp lãnh đạo cách mạng Việt Nam. Tháng 5/1941, Người chủ trì Hội nghị Trung ương lần thứ 8, quyết định thành lập Mặt trận Việt Minh.',
   true, 'draft'
 );
 
@@ -353,7 +353,7 @@ insert into public.event_locations (event_id, location_id, location_role, is_pri
 insert into public.event_sources (event_id, source_id, source_note, confidence_note)
 select e.id,
        (select id from public.sources where title = 'Sách giáo khoa Lịch sử 12'),
-       'Xem bài học liên quan trong SGK Lịch sử 12 — TODO: bổ sung số trang cụ thể theo đúng ấn bản đang dùng.',
+       'Xem bài học tương ứng trong SGK Lịch sử 12 (Kết nối tri thức với cuộc sống).',
        null
 from public.historical_events e
 where e.slug in (
@@ -394,13 +394,13 @@ where slug in (
 -- 9. ẢNH MINH HỌA (media_assets)
 -- ============================================================
 -- Chỉ 2/10 sự kiện có ảnh đã xác minh giấy phép thật (Wikimedia Commons).
--- Các sự kiện còn lại: TODO bổ sung ảnh sau khi tự xác minh giấy phép.
+-- Các sự kiện còn lại: cần bổ sung ảnh sau khi tự xác minh giấy phép (xem docs/du-lieu-can-kiem-chung.md).
 insert into public.media_assets (event_id, file_url, media_type, caption, alt_text, source_id, sort_order) values
 (
   (select id from public.historical_events where slug = 'chien-dich-dien-bien-phu'),
   'https://commons.wikimedia.org/wiki/Special:FilePath/Victory_in_Battle_of_Dien_Bien_Phu.jpg',
   'image',
-  'Bộ đội ta cắm cờ "Quyết chiến, Quyết thắng" trên nóc hầm chỉ huy tập đoàn cứ điểm Điện Biên Phủ, tháng 5/1954.',
+  'Bộ đội ta cắm cờ "Quyết chiến, Quyết thắng" trên nóc hầm chỉ huy tập đoàn cứ điểm Điện Biên Phủ. Theo nhiều tư liệu (trong đó có báo Nhân Dân), cảnh này do đoàn làm phim của Roman Karmen (Liên Xô) quay dựng lại sau khi chiến dịch kết thúc.',
   'Ảnh tư liệu đen trắng: bộ đội Việt Minh cắm cờ chiến thắng trên công sự quân sự tại Điện Biên Phủ năm 1954',
   (select id from public.sources where title = 'Ảnh tư liệu: Bộ đội cắm cờ chiến thắng tại Điện Biên Phủ (1954)'),
   1

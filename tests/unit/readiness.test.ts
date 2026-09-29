@@ -62,3 +62,31 @@ describe("evaluateReadiness — các loại khác", () => {
     expect(isReady(evaluateReadiness({ kind: "chu-de", description: null }))).toBe(true);
   });
 });
+
+describe("evaluateReadiness — ghi chú nội bộ TODO", () => {
+  it("chữ TODO trong phần công khai → chặn gửi duyệt, đếm đúng số đoạn", () => {
+    const result = evaluateReadiness({
+      ...fullEvent,
+      publicTexts: ["Tóm tắt", "Xem SGK — TODO: bổ sung số trang", null, "fixme sau"],
+    });
+    expect(isReady(result)).toBe(false);
+    expect(result.blocking[0]).toContain("2 đoạn");
+  });
+
+  it("áp dụng cho mọi loại nội dung", () => {
+    const location = evaluateReadiness({
+      kind: "dia-diem",
+      latitude: 21,
+      longitude: 105,
+      accuracyLevel: "exact",
+      description: "Mô tả",
+      publicTexts: ["Tọa độ — TODO: kiểm chứng."],
+    });
+    expect(isReady(location)).toBe(false);
+    expect(isReady(evaluateReadiness({ kind: "nhan-vat", biography: "x", publicTexts: ["TODO"] }))).toBe(false);
+  });
+
+  it("không bắt nhầm chữ có chứa 'todo' ở giữa từ", () => {
+    expect(isReady(evaluateReadiness({ ...fullEvent, publicTexts: ["Mastodon", "photodocument"] }))).toBe(true);
+  });
+});
