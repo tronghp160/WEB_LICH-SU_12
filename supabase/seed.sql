@@ -395,7 +395,9 @@ where slug in (
 -- ============================================================
 -- Chỉ 2/10 sự kiện có ảnh đã xác minh giấy phép thật (Wikimedia Commons).
 -- Các sự kiện còn lại: cần bổ sung ảnh sau khi tự xác minh giấy phép (xem docs/du-lieu-can-kiem-chung.md).
-insert into public.media_assets (event_id, file_url, media_type, caption, alt_text, source_id, sort_order) values
+-- Cột ghi công/trình bày có từ migration 20260929000001_media_library.sql (chạy trước seed).
+insert into public.media_assets (event_id, file_url, media_type, caption, alt_text, source_id, sort_order,
+  era, year_taken, photographer, license, license_url, source_page_url, is_reenactment, is_cover) values
 (
   (select id from public.historical_events where slug = 'chien-dich-dien-bien-phu'),
   'https://commons.wikimedia.org/wiki/Special:FilePath/Victory_in_Battle_of_Dien_Bien_Phu.jpg',
@@ -403,7 +405,10 @@ insert into public.media_assets (event_id, file_url, media_type, caption, alt_te
   'Bộ đội ta cắm cờ "Quyết chiến, Quyết thắng" trên nóc hầm chỉ huy tập đoàn cứ điểm Điện Biên Phủ. Theo nhiều tư liệu (trong đó có báo Nhân Dân), cảnh này do đoàn làm phim của Roman Karmen (Liên Xô) quay dựng lại sau khi chiến dịch kết thúc.',
   'Ảnh tư liệu đen trắng: bộ đội Việt Minh cắm cờ chiến thắng trên công sự quân sự tại Điện Biên Phủ năm 1954',
   (select id from public.sources where title = 'Ảnh tư liệu: Bộ đội cắm cờ chiến thắng tại Điện Biên Phủ (1954)'),
-  1
+  1,
+  'historical', 1954, 'Quân đội nhân dân Việt Nam',
+  'Commons ghi phạm vi công cộng tại Việt Nam (PD-Vietnam), nhãn đang được xem lại', null,
+  'https://commons.wikimedia.org/wiki/File:Victory_in_Battle_of_Dien_Bien_Phu.jpg', true, true
 ),
 (
   (select id from public.historical_events where slug = 'tuyen-ngon-doc-lap'),
@@ -412,7 +417,11 @@ insert into public.media_assets (event_id, file_url, media_type, caption, alt_te
   'Chủ tịch Hồ Chí Minh đọc bản Tuyên ngôn Độc lập tại Quảng trường Ba Đình, ngày 2/9/1945.',
   'Ảnh tư liệu đen trắng: Chủ tịch Hồ Chí Minh đứng trên lễ đài đọc Tuyên ngôn Độc lập trước đông đảo quần chúng tại Quảng trường Ba Đình',
   (select id from public.sources where title = 'Ảnh tư liệu: Chủ tịch Hồ Chí Minh đọc Tuyên ngôn Độc lập tại Quảng trường Ba Đình (2/9/1945)'),
-  1
+  1,
+  'historical', 1945, 'Front pour l''indépendance du Việt-Nam (© VARCHIV)', 'CC BY-SA 4.0',
+  'https://creativecommons.org/licenses/by-sa/4.0/',
+  'https://commons.wikimedia.org/wiki/File:Pr%C3%A9sident_Ho-chi-Minh_lit_la_Proclamation-d%27ind%C3%A9pendance_sur_la_place_Ba-dinh_le_2nd_Sep_1945.jpg',
+  false, true
 );
 
 commit;

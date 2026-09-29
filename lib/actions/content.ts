@@ -3,7 +3,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { canEditContent, canSubmitForReview, contentPaths, parseContentSegment, type ContentKind } from "@/lib/admin/content-kinds";
+import {
+  canEditContent,
+  canSubmitForReview,
+  CONTENT_TABLES,
+  contentPaths,
+  parseContentSegment,
+  type ContentKind,
+} from "@/lib/admin/content-kinds";
 import { evaluateReadiness, isReady } from "@/lib/admin/readiness";
 import { requireRole } from "@/lib/auth";
 import type { Database } from "@/lib/database.types";
@@ -16,11 +23,15 @@ import {
   eventSchema,
   figureSchema,
   locationSchema,
+  MEDIA_OWNER_KINDS,
+  mediaColumns,
+  mediaOwnerColumn,
   mediaSchema,
   mediaUpdateSchema,
   sourceSchema,
   topicSchema,
   type EventLinksInput,
+  type MediaOwnerKind,
 } from "@/lib/validation/content";
 import { dbErrorState, readFormValues, zodErrorState, type ActionState } from "@/lib/actions/state";
 
@@ -293,12 +304,25 @@ export async function deleteSourceAction(_previous: ActionState, formData: FormD
 
 // ---------- Media (UC08) ----------
 
-/** Chỉ cho sửa media khi sự kiện đang ở trạng thái mà vai trò hiện tại được phép chỉnh sửa. */
-async function assertEventEditable(db: Db, eventId: string, role: StaffRole): Promise<string | null> {
-  const { data, error } = await db.from("historical_events").select("workflow_status").eq("id", eventId).maybeSingle();
-  if (error) return dbErrorState(error, {}).message ?? "Không kiểm tra được sự kiện.";
-  if (!data) return "Sự kiện không tồn tại.";
+const MEDIA_OWNER_LABELS: Record<MediaOwnerKind, string> = {
+  "su-kien": "Sự kiện",
+  "nhan-vat": "Nhân vật",
+  "dia-diem": "Địa điểm",
+};
+
+/** Chỉ cho sửa ảnh khi nội dung sở hữu ảnh đang ở trạng thái mà vai trò hiện tại được phép chỉnh sửa. */
+async function assertMediaOwnerEditable(db: Db, kind: MediaOwnerKind, ownerId: string, role: StaffRole): Promise<string | null> {
+  const { data, error } = await db.from(CONTENT_TABLES[kind]).select("workflow_status").eq("id", ownerId).maybeSingle();
+  if (error) return dbErrorState(error, {}).message ?? "Không kiểm tra được nội dung gắn ảnh.";
+  if (!data) return `${MEDIA_OWNER_LABELS[kind]} không tồn tại.`;
   return canEditContent(role, data.workflow_status) ? null : NOT_EDITABLE_MESSAGE;
+}
+
+/** Mỗi nội dung chỉ có một ảnh bìa (unique index trong DB): bỏ cờ bìa của các ảnh khác trước khi đặt ảnh mới. */
+async function clearOtherCovers(db: Db, kind: MediaOwnerKind, ownerId: string, keepId?: string) {
+  let query = db.from("media_assets").update({ is_cover: false }).eq(mediaOwnerColumn(kind), ownerId).eq("is_cover", true);
+  if (keepId) query = query.neq("id", keepId);
+  return query;
 }
 
 export async function addMediaAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
@@ -306,24 +330,35 @@ export async function addMediaAction(_previous: ActionState, formData: FormData)
   const values = readFormValues(formData);
   const parsed = mediaSchema.safeParse(values);
   if (!parsed.success) return zodErrorState(parsed.error, values);
+  const { owner_kind: kind, owner_id: ownerId } = parsed.data;
 
   const supabase = await createClient();
-  const blocked = await assertEventEditable(supabase, parsed.data.event_id, staff.role);
+  const blocked = await assertMediaOwnerEditable(supabase, kind, ownerId, staff.role);
   if (blocked) return errorState(blocked, values);
 
+  const ownerColumn = mediaOwnerColumn(kind);
   const { count } = await supabase
     .from("media_assets")
     .select("id", { count: "exact", head: true })
-    .eq("event_id", parsed.data.event_id);
+    .eq(ownerColumn, ownerId);
+
+  if (parsed.data.is_cover) {
+    const { error } = await clearOtherCovers(supabase, kind, ownerId);
+    if (error) return dbErrorState(error, values);
+  }
 
   const { error } = await supabase.from("media_assets").insert({
-    ...parsed.data,
+    ...mediaColumns(parsed.data),
+    [ownerColumn]: ownerId,
+    file_url: parsed.data.file_url,
+    width: parsed.data.width,
+    height: parsed.data.height,
     media_type: "image",
     sort_order: (count ?? 0) + 1,
   });
   if (error) return dbErrorState(error, values);
 
-  revalidatePath(contentPaths.edit("su-kien", parsed.data.event_id));
+  revalidatePath(contentPaths.edit(kind, ownerId));
   return { status: "success", message: "Đã thêm ảnh.", values: {} };
 }
 
@@ -335,21 +370,27 @@ export async function updateMediaAction(_previous: ActionState, formData: FormDa
 
   const parsed = mediaUpdateSchema.safeParse(values);
   if (!parsed.success) return zodErrorState(parsed.error, values);
+  const { owner_kind: kind, owner_id: ownerId } = parsed.data;
 
   const supabase = await createClient();
-  const blocked = await assertEventEditable(supabase, parsed.data.event_id, staff.role);
+  const blocked = await assertMediaOwnerEditable(supabase, kind, ownerId, staff.role);
   if (blocked) return errorState(blocked, values);
+
+  if (parsed.data.is_cover) {
+    const { error } = await clearOtherCovers(supabase, kind, ownerId, mediaId);
+    if (error) return dbErrorState(error, values);
+  }
 
   const { data, error } = await supabase
     .from("media_assets")
-    .update({ alt_text: parsed.data.alt_text, caption: parsed.data.caption, source_id: parsed.data.source_id })
+    .update(mediaColumns(parsed.data))
     .eq("id", mediaId)
-    .eq("event_id", parsed.data.event_id)
+    .eq(mediaOwnerColumn(kind), ownerId)
     .select("id");
   if (error) return dbErrorState(error, values);
   if (!data || data.length === 0) return errorState("Không tìm thấy ảnh cần sửa.", values);
 
-  revalidatePath(contentPaths.edit("su-kien", parsed.data.event_id));
+  revalidatePath(contentPaths.edit(kind, ownerId));
   return { status: "success", message: "Đã cập nhật ảnh.", values };
 }
 
@@ -357,18 +398,21 @@ export async function deleteMediaAction(_previous: ActionState, formData: FormDa
   const staff = await requireRole(EDIT_ROLES);
   const values = readFormValues(formData);
   const mediaId = values.media_id?.trim() ?? "";
-  const eventId = values.event_id?.trim() ?? "";
-  if (!isUuid(mediaId) || !isUuid(eventId)) return errorState("Mã ảnh không hợp lệ.", values);
+  const ownerId = values.owner_id?.trim() ?? "";
+  const kind = (MEDIA_OWNER_KINDS as readonly string[]).includes(values.owner_kind ?? "")
+    ? (values.owner_kind as MediaOwnerKind)
+    : null;
+  if (!kind || !isUuid(mediaId) || !isUuid(ownerId)) return errorState("Mã ảnh không hợp lệ.", values);
 
   const supabase = await createClient();
-  const blocked = await assertEventEditable(supabase, eventId, staff.role);
+  const blocked = await assertMediaOwnerEditable(supabase, kind, ownerId, staff.role);
   if (blocked) return errorState(blocked, values);
 
   const { data, error } = await supabase
     .from("media_assets")
     .delete()
     .eq("id", mediaId)
-    .eq("event_id", eventId)
+    .eq(mediaOwnerColumn(kind), ownerId)
     .select("file_url");
   if (error) return dbErrorState(error, values);
   if (!data || data.length === 0) return errorState("Không tìm thấy ảnh cần xóa.", values);
@@ -379,7 +423,7 @@ export async function deleteMediaAction(_previous: ActionState, formData: FormDa
     await supabase.storage.from("media").remove([decodeURIComponent(match[1])]);
   }
 
-  revalidatePath(contentPaths.edit("su-kien", eventId));
+  revalidatePath(contentPaths.edit(kind, ownerId));
   return { status: "success", message: "Đã xóa ảnh.", values: {} };
 }
 

@@ -10,10 +10,21 @@ export type ReadinessResult = {
   warnings: string[];
 };
 
-/** Các đoạn chữ sẽ hiện ở trang công khai (tiêu đề, mô tả, ghi chú nguồn, chú thích ảnh…). */
-type PublicTexts = { publicTexts?: readonly (string | null | undefined)[] };
+/** Thống kê ảnh của nội dung (sự kiện, nhân vật, địa điểm). */
+export type MediaStats = {
+  count: number;
+  missingAlt: number;
+  missingLicense: number;
+};
 
-export type ReadinessSnapshot = PublicTexts &
+type CommonChecks = {
+  /** Các đoạn chữ sẽ hiện ở trang công khai (tiêu đề, mô tả, ghi chú nguồn, chú thích ảnh…). */
+  publicTexts?: readonly (string | null | undefined)[];
+  /** Không truyền = loại nội dung không có ảnh (chủ đề). */
+  media?: MediaStats;
+};
+
+export type ReadinessSnapshot = CommonChecks &
   (
   | { kind: "chu-de"; description: string | null }
   | { kind: "nhan-vat"; biography: string | null }
@@ -33,7 +44,6 @@ export type ReadinessSnapshot = PublicTexts &
       figureCount: number;
       /** Số nhân vật/địa điểm gắn vào nhưng CHƯA published — sẽ không hiện ở trang công khai. */
       unpublishedLinkedCount: number;
-      mediaMissingAltCount: number;
     }
   );
 
@@ -55,13 +65,24 @@ export function evaluateReadiness(snapshot: ReadinessSnapshot): ReadinessResult 
     );
   }
 
+  const media = snapshot.media;
+  if (media) {
+    if (media.missingAlt > 0) {
+      blocking.push(`Còn ${media.missingAlt} ảnh chưa có chữ thay thế (alt text).`);
+    }
+    if (media.missingLicense > 0) {
+      blocking.push(`Còn ${media.missingLicense} ảnh chưa ghi giấy phép: chưa rõ bản quyền thì chưa đưa lên cho học sinh xem.`);
+    }
+    if (media.count === 0) {
+      // Nguyên tắc "ảnh thật đi trước": hiện là khuyến nghị, sẽ thành bắt buộc khi kho ảnh đã đủ.
+      warnings.push("Chưa có ảnh nào: học sinh sẽ chỉ thấy chữ. Nên thêm ít nhất một ảnh thật (ảnh tư liệu hoặc ảnh ngày nay).");
+    }
+  }
+
   switch (snapshot.kind) {
     case "su-kien":
       if (snapshot.sourceCount === 0) {
         blocking.push("Sự kiện phải có ít nhất 1 nguồn tham khảo.");
-      }
-      if (snapshot.mediaMissingAltCount > 0) {
-        blocking.push(`Còn ${snapshot.mediaMissingAltCount} ảnh chưa có chữ thay thế (alt text).`);
       }
       if (!snapshot.hasPrimaryLocation) {
         warnings.push("Chưa chọn địa điểm chính: sự kiện sẽ không có vị trí trên bản đồ.");

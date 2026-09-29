@@ -46,6 +46,40 @@ export const sourceTypeLabels = {
   other: "Khác",
 } as const;
 
+export const mediaEraLabels = {
+  historical: "Ảnh tư liệu",
+  today: "Ảnh ngày nay",
+  illustration: "Tranh / ảnh minh họa",
+} as const;
+
+/**
+ * `media_assets.era` là text có CHECK. Giá trị lạ được coi là "illustration": thà gắn nhãn minh họa
+ * còn hơn trình bày nhầm một ảnh không rõ loại như ảnh tư liệu.
+ */
+export function parseMediaEra(value: string): MediaEra {
+  return Object.hasOwn(mediaEraLabels, value) ? (value as MediaEra) : "illustration";
+}
+
+/** Nhãn trung thực hiện trên ảnh, ví dụ ["Ảnh tư liệu 1954", "Cảnh dựng lại"]. */
+export function mediaHonestyLabels(item: {
+  era: string;
+  year_taken: number | null;
+  is_reenactment: boolean;
+  is_colorized: boolean;
+}): string[] {
+  const era = parseMediaEra(item.era);
+  const labels: string[] = [
+    era === "historical" && item.year_taken
+      ? `${mediaEraLabels.historical} ${item.year_taken}`
+      : era === "today" && item.year_taken
+        ? `${mediaEraLabels.today} (${item.year_taken})`
+        : mediaEraLabels[era],
+  ];
+  if (item.is_reenactment) labels.push("Cảnh dựng lại");
+  if (item.is_colorized) labels.push("Ảnh tô màu");
+  return labels;
+}
+
 /**
  * `date_precision` trong DB là text có CHECK (không phải enum) nên kiểu sinh ra
  * chỉ là `string`. Hàm này thu hẹp về DatePrecision; giá trị lạ (không thể xảy
@@ -77,3 +111,4 @@ export type AccountStatus = keyof typeof accountStatusLabels;
 export type DatePrecision = keyof typeof datePrecisionLabels;
 export type AccuracyLevel = keyof typeof accuracyLevelLabels;
 export type SourceType = keyof typeof sourceTypeLabels;
+export type MediaEra = keyof typeof mediaEraLabels;

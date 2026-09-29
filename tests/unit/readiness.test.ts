@@ -8,7 +8,7 @@ const fullEvent = {
   hasPrimaryLocation: true,
   figureCount: 2,
   unpublishedLinkedCount: 0,
-  mediaMissingAltCount: 0,
+  media: { count: 1, missingAlt: 0, missingLicense: 0 },
 };
 
 describe("evaluateReadiness — sự kiện", () => {
@@ -25,9 +25,21 @@ describe("evaluateReadiness — sự kiện", () => {
   });
 
   it("ảnh thiếu alt text → chặn", () => {
-    const result = evaluateReadiness({ ...fullEvent, mediaMissingAltCount: 2 });
+    const result = evaluateReadiness({ ...fullEvent, media: { count: 3, missingAlt: 2, missingLicense: 0 } });
     expect(result.blocking[0]).toContain("2 ảnh");
     expect(isReady(result)).toBe(false);
+  });
+
+  it("ảnh thiếu giấy phép → chặn", () => {
+    const result = evaluateReadiness({ ...fullEvent, media: { count: 2, missingAlt: 0, missingLicense: 1 } });
+    expect(result.blocking.join(" ")).toContain("giấy phép");
+    expect(isReady(result)).toBe(false);
+  });
+
+  it("chưa có ảnh nào → cảnh báo (chưa chặn)", () => {
+    const result = evaluateReadiness({ ...fullEvent, media: { count: 0, missingAlt: 0, missingLicense: 0 } });
+    expect(isReady(result)).toBe(true);
+    expect(result.warnings.join(" ")).toContain("Chưa có ảnh");
   });
 
   it("thiếu địa điểm chính chỉ là cảnh báo (khuyến nghị), không chặn", () => {
@@ -53,6 +65,20 @@ describe("evaluateReadiness — các loại khác", () => {
   it("có tọa độ nhưng độ chính xác chưa xác định → cảnh báo", () => {
     const result = evaluateReadiness({ kind: "dia-diem", latitude: 21, longitude: 105, accuracyLevel: "unknown", description: "Mô tả" });
     expect(result.warnings.join(" ")).toContain("Chưa xác định");
+  });
+
+  it("ảnh của nhân vật và địa điểm cũng phải có alt và giấy phép", () => {
+    const figure = evaluateReadiness({ kind: "nhan-vat", biography: "x", media: { count: 1, missingAlt: 0, missingLicense: 1 } });
+    expect(isReady(figure)).toBe(false);
+    const location = evaluateReadiness({
+      kind: "dia-diem",
+      latitude: 21,
+      longitude: 105,
+      accuracyLevel: "exact",
+      description: "Mô tả",
+      media: { count: 1, missingAlt: 1, missingLicense: 0 },
+    });
+    expect(isReady(location)).toBe(false);
   });
 
   it("nhân vật và chủ đề: chỉ cảnh báo thiếu mô tả/tiểu sử", () => {

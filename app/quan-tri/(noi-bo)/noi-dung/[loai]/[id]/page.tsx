@@ -98,7 +98,7 @@ async function EditSource({ id, staff, noticeCode }: { id: string; staff: Staff;
   );
 }
 
-/** Sửa chủ đề / sự kiện / nhân vật / địa điểm: form, ảnh (sự kiện), và khung gửi duyệt. */
+/** Sửa chủ đề / sự kiện / nhân vật / địa điểm: form, ảnh, và khung gửi duyệt. */
 async function EditWorkflowContent({
   kind,
   id,
@@ -154,7 +154,7 @@ async function EditWorkflowContent({
 
       {record.form}
 
-      {kind === "su-kien" && record.media && (
+      {record.media && (
         <section aria-labelledby="anh-tu-lieu" className="flex max-w-3xl flex-col gap-4">
           <h2 id="anh-tu-lieu" className="font-serif text-xl font-bold text-foreground">
             Ảnh và tư liệu
@@ -206,24 +206,40 @@ async function EditWorkflowContent({
     }
 
     if (recordKind === "nhan-vat") {
-      const figure = await getFigureForEdit(recordId);
+      const [figure, options] = await Promise.all([getFigureForEdit(recordId), getFormOptions()]);
       if (!figure) return null;
       return {
         status: figure.workflow_status,
         title: figure.name,
         reviewNote: figure.review_note,
         form: <FigureForm id={recordId} initial={figure} readOnly={isReadOnly(figure.workflow_status)} />,
+        media: (
+          <MediaManager
+            owner={{ kind: "nhan-vat", id: recordId }}
+            media={sortMedia(figure.media_assets)}
+            sources={options.sources}
+            readOnly={isReadOnly(figure.workflow_status)}
+          />
+        ),
       };
     }
 
     if (recordKind === "dia-diem") {
-      const location = await getLocationForEdit(recordId);
+      const [location, options] = await Promise.all([getLocationForEdit(recordId), getFormOptions()]);
       if (!location) return null;
       return {
         status: location.workflow_status,
         title: location.name,
         reviewNote: location.review_note,
         form: <LocationForm id={recordId} initial={location} readOnly={isReadOnly(location.workflow_status)} />,
+        media: (
+          <MediaManager
+            owner={{ kind: "dia-diem", id: recordId }}
+            media={sortMedia(location.media_assets)}
+            sources={options.sources}
+            readOnly={isReadOnly(location.workflow_status)}
+          />
+        ),
       };
     }
 
@@ -260,12 +276,17 @@ async function EditWorkflowContent({
       ),
       media: (
         <MediaManager
-          eventId={recordId}
-          media={[...event.media_assets].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))}
+          owner={{ kind: "su-kien", id: recordId }}
+          media={sortMedia(event.media_assets)}
           sources={options.sources}
           readOnly={readOnlyEvent}
         />
       ),
     };
   }
+}
+
+/** Ảnh theo thứ tự hiển thị đã lưu. */
+function sortMedia<T extends { sort_order: number | null }>(media: T[]): T[] {
+  return [...media].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 }

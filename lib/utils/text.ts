@@ -48,3 +48,22 @@ export function resizeCommonsImage(url: string, width: number): string {
   }
   return url;
 }
+
+/** Các cỡ ảnh do `scripts/import-commons-image.mjs` tạo sẵn: `<tên>-400.webp`, `-1200.webp`, `-2000.webp`. */
+export const IMAGE_VARIANT_WIDTHS = [400, 1200, 2000] as const;
+const VARIANT_PATTERN = /-(400|1200|2000)\.webp$/;
+
+/**
+ * Nguồn ảnh vừa với chiều rộng hiển thị `width` (px CSS):
+ *  - ảnh tự lưu có đủ 3 cỡ → `src` là cỡ nhỏ nhất đủ nét + `srcSet` để trình duyệt tự chọn theo màn hình;
+ *  - ảnh Commons → bản thu nhỏ của Commons;
+ *  - ảnh khác → giữ nguyên.
+ */
+export function responsiveImage(url: string, width: number): { src: string; srcSet?: string } {
+  if (VARIANT_PATTERN.test(url)) {
+    const at = (size: number) => url.replace(VARIANT_PATTERN, `-${size}.webp`);
+    const fit = IMAGE_VARIANT_WIDTHS.find((size) => size >= width) ?? 2000;
+    return { src: at(fit), srcSet: IMAGE_VARIANT_WIDTHS.map((size) => `${at(size)} ${size}w`).join(", ") };
+  }
+  return { src: resizeCommonsImage(url, width) };
+}

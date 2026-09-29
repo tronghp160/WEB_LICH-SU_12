@@ -64,7 +64,22 @@ Chạy **theo đúng thứ tự tên file**, mỗi file **một lần**, trong S
 for f in supabase/migrations/*.sql; do npx supabase db query --db-url "$DATABASE_URL" --file "$f"; done
 # 2. Dữ liệu mẫu: 7 chủ đề, 10 sự kiện, 9 nhân vật, 11 địa điểm, nguồn và ảnh
 npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed.sql
+# 3. Kho ảnh (ảnh sự kiện, chân dung, ảnh di tích ngày nay; tệp ảnh nằm trong bucket `media`)
+npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-media.sql
 ```
+
+> `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands
+> into a prepared statement"*, hãy dán nội dung file vào **SQL Editor** của Supabase Dashboard để chạy.
+
+### Thêm ảnh từ Wikimedia Commons
+
+```bash
+node scripts/import-commons-image.mjs --file "File:Tên ảnh.jpg" --owner su-kien:<slug> \
+  --alt "Mô tả ảnh" --caption "Chú thích" --era historical --cover
+```
+
+Script đọc tác giả và giấy phép từ Commons (từ chối giấy phép NC/ND/fair use, cảnh báo ảnh Việt Nam chưa đủ
+75 năm), nén webp 400/1200/2000 px, tải lên bucket `media` rồi **in ra câu SQL** để bạn kiểm tra trước khi chạy.
 
 Tài khoản nhân sự đầu tiên: tạo user trong *Authentication → Users*, rồi thêm hồ sơ vai trò theo hướng dẫn trong
 `supabase/staff-test-accounts.sql`. Tài khoản `@test.local` trong file đó **chỉ để thử**. Xóa hoặc đổi mật khẩu trước khi công khai.

@@ -69,6 +69,13 @@ SGK/nguồn chính thức** — đề nghị đối chiếu lại, đặc biệt
 - `historical_figures.portrait_url` mới chỉ có cho `ho-chi-minh`; 8 nhân
   vật còn lại chưa có ảnh chân dung.
 
+> **Cập nhật 29/09/2026 (GĐ1 — kho ảnh, `supabase/seed-media.sql`):** 10/10 sự kiện đã có ảnh (16 ảnh), 6/8 nhân vật
+> có chân dung, 9 địa điểm có ảnh ngày nay; mọi ảnh ghi tác giả, giấy phép và trang gốc, lưu trong bucket `media`.
+> Còn thiếu chân dung **Lê Đức Thọ** và **Văn Tiến Dũng**: ảnh trên Commons hoặc chụp lại từ bàn thờ, hoặc chỉ là
+> phạm vi công cộng tại Hoa Kỳ (ảnh AP/LIFE) — nên xin phép Bảo tàng Lịch sử Quân sự / TTXVN hoặc dùng ảnh tự chụp.
+> Lưu ý thêm về luật: ảnh chưa công bố trong 25 năm kể từ khi chụp được bảo hộ 100 năm kể từ khi chụp, nên nhãn
+> PD-Vietnam trên Commons (thường tính theo năm chụp) có thể sai; GĐ1 chỉ dùng ảnh công bố trước 1951 hoặc có giấy phép mở.
+
 ## 6. Phát hiện khi xây trang chủ (Phase 4)
 
 Hai điểm về dữ liệu lộ ra khi xem trang chủ thật — chưa sửa vì cần bạn quyết định:

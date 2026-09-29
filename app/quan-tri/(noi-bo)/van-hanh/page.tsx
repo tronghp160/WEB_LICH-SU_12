@@ -188,6 +188,11 @@ export default async function OperationsPage() {
           result={report.integrity.mediaWithoutAltText}
         />
         <IntegrityCheck
+          title="Ảnh chưa ghi giấy phép"
+          description="Chưa rõ bản quyền thì chưa nên đưa ảnh lên cho học sinh xem; ghi tác giả, giấy phép và trang gốc."
+          result={report.integrity.mediaWithoutLicense}
+        />
+        <IntegrityCheck
           title="Sự kiện đã công bố thuộc chủ đề chưa công bố"
           description="Chủ đề chưa công bố sẽ bị ẩn khỏi trang công khai nên sự kiện mất nhãn chủ đề."
           result={report.integrity.publishedEventsInUnpublishedTopic}

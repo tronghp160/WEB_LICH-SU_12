@@ -380,36 +380,83 @@ export type Database = {
         ]
       }
       media_assets: {
+        // Migration 20260929000001: chủ ảnh là ĐÚNG MỘT trong event_id / figure_id / location_id.
         Row: {
           id: string
-          event_id: string
+          event_id: string | null
+          figure_id: string | null
+          location_id: string | null
           file_url: string
-          // "image" | "document" — CHECK constraint.
+          // "image" | "document" | "video" | "panorama" — CHECK constraint.
           media_type: string
           caption: string | null
           alt_text: string | null
           source_id: string | null
           sort_order: number | null
+          // "historical" | "today" | "illustration" — CHECK constraint.
+          era: string
+          year_taken: number | null
+          photographer: string | null
+          license: string | null
+          license_url: string | null
+          source_page_url: string | null
+          is_reenactment: boolean
+          is_colorized: boolean
+          is_cover: boolean
+          focal_point: string | null
+          pair_id: string | null
+          width: number | null
+          height: number | null
         }
         Insert: {
           id?: string
-          event_id: string
+          event_id?: string | null
+          figure_id?: string | null
+          location_id?: string | null
           file_url: string
           media_type: string
           caption?: string | null
           alt_text?: string | null
           source_id?: string | null
           sort_order?: number | null
+          era?: string
+          year_taken?: number | null
+          photographer?: string | null
+          license?: string | null
+          license_url?: string | null
+          source_page_url?: string | null
+          is_reenactment?: boolean
+          is_colorized?: boolean
+          is_cover?: boolean
+          focal_point?: string | null
+          pair_id?: string | null
+          width?: number | null
+          height?: number | null
         }
         Update: {
           id?: string
-          event_id?: string
+          event_id?: string | null
+          figure_id?: string | null
+          location_id?: string | null
           file_url?: string
           media_type?: string
           caption?: string | null
           alt_text?: string | null
           source_id?: string | null
           sort_order?: number | null
+          era?: string
+          year_taken?: number | null
+          photographer?: string | null
+          license?: string | null
+          license_url?: string | null
+          source_page_url?: string | null
+          is_reenactment?: boolean
+          is_colorized?: boolean
+          is_cover?: boolean
+          focal_point?: string | null
+          pair_id?: string | null
+          width?: number | null
+          height?: number | null
         }
         Relationships: [
           {
@@ -417,6 +464,20 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "historical_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_figure_id_fkey"
+            columns: ["figure_id"]
+            isOneToOne: false
+            referencedRelation: "historical_figures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "historical_locations"
             referencedColumns: ["id"]
           },
           {
@@ -433,6 +494,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      media_owner_status: {
+        Args: { p_event: string | null; p_figure: string | null; p_location: string | null }
+        Returns: string | null
+      }
+      source_locked_for_editor: {
+        Args: { p_source: string }
+        Returns: boolean
+      }
       current_staff_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["staff_role"]

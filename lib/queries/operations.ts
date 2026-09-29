@@ -23,6 +23,7 @@ export type OperationsReport = {
     publishedEventsWithoutPrimaryLocation: CheckResult<IntegrityIssue[]>;
     publishedLocationsWithoutCoordinates: CheckResult<IntegrityIssue[]>;
     mediaWithoutAltText: CheckResult<IntegrityIssue[]>;
+    mediaWithoutLicense: CheckResult<IntegrityIssue[]>;
     publishedEventsInUnpublishedTopic: CheckResult<IntegrityIssue[]>;
   };
   overall: OverallStatus;
@@ -125,16 +126,36 @@ export async function getOperationsReport(): Promise<OperationsReport> {
       .map((location) => ({ title: location.name, href: contentPaths.edit("dia-diem", location.id) }));
   });
 
-  const mediaWithoutAltText = await guard(async () => {
-    const { data, error } = await supabase.from("media_assets").select("id, alt_text, event_id, historical_events(title)");
+  // Ảnh thuộc sự kiện, nhân vật hoặc địa điểm (migration 20260929000001): chỉ về đúng trang sửa của chủ ảnh.
+  const mediaRows = await guard(async () => {
+    const { data, error } = await supabase
+      .from("media_assets")
+      .select(
+        "id, alt_text, license, event_id, figure_id, location_id, historical_events(title), historical_figures(name), historical_locations(name)",
+      );
     if (error) throw new Error(error.message);
-    return data
-      .filter((item) => !item.alt_text || item.alt_text.trim() === "")
-      .map((item) => {
-        const event = item.historical_events as { title: string } | null;
-        return { title: event?.title ?? "(sự kiện không xác định)", href: eventHref(item.event_id), detail: "Ảnh thiếu chữ thay thế (alt)" };
-      });
+    return data.map((item) => {
+      const event = item.historical_events as { title: string } | null;
+      const figure = item.historical_figures as { name: string } | null;
+      const location = item.historical_locations as { name: string } | null;
+      const owner = item.event_id
+        ? { title: event?.title, href: eventHref(item.event_id) }
+        : item.figure_id
+          ? { title: figure?.name, href: contentPaths.edit("nhan-vat", item.figure_id) }
+          : { title: location?.name, href: item.location_id ? contentPaths.edit("dia-diem", item.location_id) : contentPaths.hub };
+      return { ...item, ownerTitle: owner.title ?? "(nội dung không xác định)", ownerHref: owner.href };
+    });
   });
+  const blank = (text: string | null) => !text || text.trim() === "";
+  const mediaIssues = (missing: (item: { alt_text: string | null; license: string | null }) => boolean, detail: string) =>
+    mediaRows.status === "ok"
+      ? {
+          status: "ok" as const,
+          data: mediaRows.data.filter(missing).map((item) => ({ title: item.ownerTitle, href: item.ownerHref, detail })),
+        }
+      : mediaRows;
+  const mediaWithoutAltText = mediaIssues((item) => blank(item.alt_text), "Ảnh thiếu chữ thay thế (alt)");
+  const mediaWithoutLicense = mediaIssues((item) => blank(item.license), "Ảnh chưa ghi giấy phép");
 
   const publishedEventsInUnpublishedTopic = await guard(async () => {
     const { data, error } = await supabase
@@ -164,6 +185,7 @@ export async function getOperationsReport(): Promise<OperationsReport> {
     publishedEventsWithoutPrimaryLocation,
     publishedLocationsWithoutCoordinates,
     mediaWithoutAltText,
+    mediaWithoutLicense,
     publishedEventsInUnpublishedTopic,
   };
 
