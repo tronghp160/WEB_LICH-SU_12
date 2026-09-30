@@ -34,6 +34,15 @@ const HAM_DE_CASTRIES_NAY = {
   caption: "Hầm chỉ huy tập đoàn cứ điểm ngày nay (2022).",
   credit: "Ioe2015, CC BY 4.0",
   sourceUrl: `${COMMONS}H%E1%BA%A7m_ch%E1%BB%89_huy_t%E1%BA%ADp_%C4%91o%C3%A0n_c%E1%BB%A9_%C4%91i%E1%BB%83m_%C4%90i%E1%BB%87n_Bi%C3%AAn_Ph%E1%BB%A7_(2022).jpg`,
+  title: "Hầm De Castries",
+  width: 1200,
+  height: 900,
+  depthSrc: `${PHOTO}/ham-de-castries-nay-depth.webp`,
+  hotspots: [
+    { label: "Mái vòm thép", text: "Mái hầm bằng thép lượn sóng, phủ bao cát chống pháo. Chiều 7/5/1954, tướng De Castries bị bắt sống trong hầm này.", x: 40, y: 57 },
+    { label: "Bao cát", text: "Hàng bao cát xếp quanh hầm để chắn mảnh đạn.", x: 8, y: 62 },
+    { label: "Mái che bảo tồn", text: "Mái che dựng thêm ngày nay để bảo vệ di tích khỏi mưa nắng.", x: 25, y: 22 },
+  ],
 };
 
 export const dienBienPhuLesson: Lesson = {
@@ -94,6 +103,14 @@ export const dienBienPhuLesson: Lesson = {
     caption: "Toàn cảnh cánh đồng Mường Thanh — lòng chảo Điện Biên, chụp năm 1953.",
     credit: TTXVN_CREDIT,
     sourceUrl: commonsFile("Toàn cảnh cánh đồng Điện Biên.jpg"),
+    title: "Lòng chảo Điện Biên",
+    width: 854,
+    height: 588,
+    depthSrc: `${PHOTO}/canh-dong-dien-bien-depth.webp`,
+    hotspots: [
+      { label: "Sông Nậm Rốm", text: "Dòng sông uốn khúc chảy qua lòng chảo Mường Thanh.", x: 18, y: 62 },
+      { label: "Cánh đồng Mường Thanh", text: "Lòng chảo dài khoảng 18 km, rộng 6–8 km, nơi Pháp xây dựng tập đoàn cứ điểm.", x: 65, y: 60 },
+    ],
   },
   artifacts: [
     {
@@ -105,6 +122,16 @@ export const dienBienPhuLesson: Lesson = {
         caption: "Lựu pháo 105 mm dùng ở Điện Biên Phủ, trưng bày tại Bảo tàng Lịch sử Quân sự Việt Nam (Hà Nội), 2012.",
         credit: "Gary Todd, CC0",
         sourceUrl: commonsFile("105mm Howitzer Used at Dienbienphu, 1954 (9732175909).jpg"),
+        title: "Lựu pháo 105 mm",
+        width: 1400,
+        height: 933,
+        depthSrc: `${PHOTO}/luu-phao-105-bao-tang-depth.webp`,
+        hotspots: [
+          { label: "Nòng pháo", text: "Nòng cỡ 105 mm bắn đạn nổ theo đường cong vòng qua núi, rơi xuống các cứ điểm trong lòng chảo.", x: 12, y: 18 },
+          { label: "Lá chắn thép", text: "Tấm thép che cho kíp pháo khỏi mảnh đạn. Ở Điện Biên Phủ, pháo được đặt trong hầm, ngụy trang kín, chỉ đẩy ra khi bắn.", x: 55, y: 38 },
+          { label: "Bánh xe", text: "Hai bánh xe lớn. Trên đường kéo pháo qua núi, bộ đội dùng dây tời và sức người kéo từng mét.", x: 57, y: 72 },
+          { label: "Càng pháo", text: "Hai càng thép xòe ra, đầu cắm xuống đất để giữ pháo đứng vững khi bắn.", x: 88, y: 72 },
+        ],
       },
     },
     {
@@ -116,6 +143,16 @@ export const dienBienPhuLesson: Lesson = {
         caption: "Pháo cao xạ 37 mm trưng bày tại Bảo tàng Lịch sử Quân sự Việt Nam (Hà Nội), 2012.",
         credit: "Gary Todd, CC0",
         sourceUrl: commonsFile("37mm Anti-aircraft Gun (9735273026).jpg"),
+        title: "Pháo cao xạ 37 mm",
+        width: 1400,
+        height: 933,
+        depthSrc: `${PHOTO}/phao-cao-xa-37-depth.webp`,
+        hotspots: [
+          { label: "Nòng pháo", text: "Nòng dài, bắn nhanh lên trời để bắn máy bay địch bay thấp trên lòng chảo.", x: 22, y: 18 },
+          { label: "Chỗ ngồi pháo thủ", text: "Pháo thủ ngồi hai bên, quay tay quay để xoay pháo theo máy bay và nâng hạ nòng.", x: 73, y: 45 },
+          { label: "Bánh xe", text: "Pháo có bánh xe để kéo đi; khi vào trận địa thì hạ chân chống, đặt vững trên mặt đất.", x: 43, y: 75 },
+          { label: "Chân chống", text: "Các chân chống xòe ra bốn phía giữ pháo cân bằng khi xoay bắn.", x: 88, y: 78 },
+        ],
       },
     },
     {
@@ -127,6 +164,16 @@ export const dienBienPhuLesson: Lesson = {
         caption: "Dân công thồ lương thực ra mặt trận Điện Biên Phủ, 1954.",
         credit: TTXVN_CREDIT,
         sourceUrl: commonsFile("Dan cong tho luong thuc.jpg"),
+        title: "Xe đạp thồ",
+        width: 450,
+        height: 309,
+        depthSrc: `${PHOTO}/dan-cong-tho-depth.webp`,
+        hotspots: [
+          { label: "Đoàn xe thồ", text: "Dân công đi thành đoàn dài, nối nhau trên đường ra mặt trận.", x: 20, y: 25 },
+          { label: "Cành lá ngụy trang", text: "Hàng và xe được phủ cành lá để tránh máy bay địch phát hiện.", x: 65, y: 52 },
+          { label: "Bao hàng", text: "Gạo, muối, đạn… buộc chặt hai bên xe; mỗi chiếc chở được nhiều lần sức một người gánh.", x: 60, y: 72 },
+          { label: "Người dắt xe", text: "Người dân công dắt bộ bên cạnh, giữ thăng bằng cho chiếc xe nặng trên đường dốc.", x: 76, y: 40 },
+        ],
       },
     },
     {
@@ -138,6 +185,14 @@ export const dienBienPhuLesson: Lesson = {
         caption: "Công binh mở đường vào chiến dịch, 1953.",
         credit: TTXVN_CREDIT,
         sourceUrl: commonsFile("Công binh mở đường vào chiến dịch.jpg"),
+        title: "Mở đường",
+        width: 450,
+        height: 338,
+        depthSrc: `${PHOTO}/cong-binh-mo-duong-depth.webp`,
+        hotspots: [
+          { label: "Vách núi đá", text: "Đường vào chiến dịch phải xuyên qua núi đá, rừng rậm; nhiều đoạn phải phá đá, bạt núi bằng sức người.", x: 15, y: 30 },
+          { label: "Mũ nan", text: "Mũ nan đan bằng tre, nhẹ, dễ cắm lá ngụy trang — hình ảnh quen thuộc của bộ đội thời chống Pháp.", x: 66, y: 35 },
+        ],
       },
     },
     {
@@ -149,6 +204,14 @@ export const dienBienPhuLesson: Lesson = {
         caption: "Bộ đội ăn cơm trong chiến hào ở mặt trận Điện Biên Phủ, 1954.",
         credit: TTXVN_CREDIT,
         sourceUrl: commonsFile("Bộ đội sinh hoạt trong chiến hào.jpg"),
+        title: "Chiến hào",
+        width: 709,
+        height: 806,
+        depthSrc: `${PHOTO}/chien-si-an-com-depth.webp`,
+        hotspots: [
+          { label: "Mũ nan", text: "Mũ nan đan bằng tre, cắm thêm lá để ngụy trang khi di chuyển trong hào.", x: 72, y: 22 },
+          { label: "Vách chiến hào", text: "Hào đào sâu ngang người, đủ để di chuyển, ăn, ngủ mà không phải nhô lên mặt đất.", x: 85, y: 60 },
+        ],
       },
     },
     {
@@ -160,6 +223,15 @@ export const dienBienPhuLesson: Lesson = {
         caption: "Xe tăng M24 của Pháp bắn yểm trợ bộ binh ở Điện Biên Phủ, 1954.",
         credit: "Quân đội Hoa Kỳ (Donn A. Starry, \"Mounted Combat in Vietnam\"), phạm vi công cộng",
         sourceUrl: commonsFile("French M24s atr Dien Bien Phu.jpg"),
+        title: "Xe tăng M24",
+        width: 1048,
+        height: 727,
+        depthSrc: `${PHOTO}/xe-tang-m24-depth.webp`,
+        hotspots: [
+          { label: "Xe tăng M24", text: "Xe tăng hạng nhẹ của Pháp, được tháo rời chở bằng máy bay vào sân bay Mường Thanh rồi lắp lại.", x: 88, y: 45 },
+          { label: "Khói đạn bắn", text: "Khói trắng: xe tăng đang bắn yểm trợ cho bộ binh Pháp.", x: 30, y: 46 },
+          { label: "Núi bao quanh", text: "Đồi núi bao quanh lòng chảo — nơi ta đặt trận địa pháo nhìn xuống toàn bộ tập đoàn cứ điểm.", x: 65, y: 30 },
+        ],
       },
     },
   ],
@@ -308,6 +380,13 @@ export const dienBienPhuLesson: Lesson = {
       caption: "Bảo tàng Chiến thắng lịch sử Điện Biên Phủ, nơi trưng bày hiện vật của chiến dịch (ảnh 2022).",
       credit: "Ioe2015, CC BY-SA 4.0",
       sourceUrl: commonsFile("The Museum of Dien Bien Phu Victory (front, 2022).jpg"),
+      title: "Bảo tàng Chiến thắng",
+      width: 1400,
+      height: 1026,
+      depthSrc: `${PHOTO}/bao-tang-2022-depth.webp`,
+      hotspots: [
+        { label: "Tòa bảo tàng", text: "Bảo tàng Chiến thắng lịch sử Điện Biên Phủ trưng bày hiện vật, ảnh và bản đồ về chiến dịch.", x: 45, y: 55 },
+      ],
     },
     HAM_DE_CASTRIES_NAY,
     {
@@ -316,6 +395,14 @@ export const dienBienPhuLesson: Lesson = {
       caption: "Hố bộc phá trên đồi A1 — dấu tích vụ nổ đêm 6/5/1954.",
       credit: "Adam Jones, CC BY-SA 2.0",
       sourceUrl: `${COMMONS}Crater_Left_by_Vietminh_Dynamite_Blast_-_Hill_A1_(Eliane_2)_-_Dien_Bien_Phu_-_Vietnam_(48168795271).jpg`,
+      title: "Hố bộc phá A1",
+      width: 1000,
+      height: 750,
+      depthSrc: `${PHOTO}/ho-boc-pha-a1-depth.webp`,
+      hotspots: [
+        { label: "Miệng hố", text: "Hố sâu do khối bộc phá gần 1 tấn phát nổ đêm 6/5/1954 dưới lòng đồi A1.", x: 50, y: 45 },
+        { label: "Cọc rào", text: "Cọc rào khoanh vùng bảo vệ di tích ngày nay.", x: 30, y: 70 },
+      ],
     },
     {
       src: `${PHOTO}/chien-hao-a1.webp`,
@@ -323,6 +410,14 @@ export const dienBienPhuLesson: Lesson = {
       caption: "Chiến hào trên đồi A1 được bảo tồn.",
       credit: "Adam Jones, CC BY-SA 2.0",
       sourceUrl: `${COMMONS}French_Trenches_at_Hill_A1_(Eliane_2)_-_Dien_Bien_Phu_-_Vietnam_-_02_(48168793656).jpg`,
+      title: "Chiến hào A1",
+      width: 900,
+      height: 675,
+      depthSrc: `${PHOTO}/chien-hao-a1-depth.webp`,
+      hotspots: [
+        { label: "Lòng hào", text: "Chiến hào trên đồi A1 được giữ lại; hai bên giành giật từng đoạn hào suốt nhiều tuần.", x: 35, y: 70 },
+        { label: "Mặt đồi A1", text: "Đồi A1 — cứ điểm then chốt ở phía đông phân khu Trung tâm (Pháp gọi là Éliane 2).", x: 80, y: 55 },
+      ],
     },
     {
       src: `${PHOTO}/tuong-dai-d1.webp`,
@@ -330,6 +425,13 @@ export const dienBienPhuLesson: Lesson = {
       caption: "Phù điêu ở tượng đài Chiến thắng Điện Biên Phủ trên đồi D1.",
       credit: "Adam Jones, CC BY-SA 2.0",
       sourceUrl: `${COMMONS}Frieze_Showing_French_Surrender_in_May_1954_-_Hill_D1_(Victory_Monument)_-_Dien_Bien_Phu_-_Vietnam_(48168819157).jpg`,
+      title: "Phù điêu đồi D1",
+      width: 1000,
+      height: 750,
+      depthSrc: `${PHOTO}/tuong-dai-d1-depth.webp`,
+      hotspots: [
+        { label: "Lính Pháp giơ tay", text: "Phù điêu khắc cảnh quân Pháp giơ tay đầu hàng, ở tượng đài Chiến thắng trên đồi D1.", x: 45, y: 18 },
+      ],
     },
   ],
   toVerify: [

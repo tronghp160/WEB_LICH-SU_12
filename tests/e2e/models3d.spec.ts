@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { hasHorizontalOverflow } from "./support";
 
-// Mô hình 3D dựng bằng mã (Three.js) — nay chỉ còn ở trang riêng /mo-hinh-3d/[id]; bài học dùng ảnh thật. WebGL chạy bằng SwiftShader (phần mềm) nên chậm; test chỉ kiểm tra hành vi.
+// Mô hình 3D dựng bằng mã (Three.js) — nay chỉ còn ở trang riêng /mo-hinh-3d/[id]; bài học dùng "ảnh thật có chiều sâu" (photo3d.spec.ts). WebGL chạy bằng SwiftShader (phần mềm) nên chậm; test chỉ kiểm tra hành vi.
 
 test.use({
   launchOptions: { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] },
@@ -17,19 +17,7 @@ declare global {
   }
 }
 
-test.describe("Mô hình 3D (trang riêng) và ảnh thật trong bài học Điện Biên Phủ", () => {
-  test("bài học dùng ảnh chụp thật thay cho mô hình 3D (từ 30/9/2026)", async ({ page }) => {
-    await page.goto(LESSON);
-    await expect(page.getByTestId("model-stage")).toHaveCount(0);
-    const artifacts = page.locator('section[aria-labelledby="hien-vat"]');
-    await expect(artifacts.getByRole("heading", { name: "Nhìn tận mắt những gì làm nên chiến thắng" })).toBeVisible();
-    await expect(artifacts.locator("figure")).toHaveCount(6);
-    await expect(artifacts.getByText("Lựu pháo 105 mm", { exact: true })).toBeVisible();
-    await expect(page.getByText("Tượng bán thân 3D (cách điệu)")).toHaveCount(0);
-    await expect(page.getByText("Dựng lại di tích bằng 3D")).toHaveCount(0);
-    await expect(page.locator('section[aria-labelledby="ket-qua"] figure img')).toHaveAttribute("src", /canh-dong-dien-bien/);
-  });
-
+test.describe("Mô hình 3D (trang riêng)", () => {
   test("trang riêng của mô hình: nút Mô phỏng vụ nổ hoạt động, có chú thích và ghi chú minh họa", async ({ page }) => {
     await page.goto("/mo-hinh-3d/duong-ham-a1?debug=1");
     await expect(page.getByRole("heading", { name: "Đường hầm và hố bộc phá đồi A1", level: 1 })).toBeVisible();

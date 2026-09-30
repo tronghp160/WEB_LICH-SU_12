@@ -8,6 +8,22 @@ export type LessonImage = {
   credit: string;
   /** Trang gốc của ảnh (Wikimedia Commons...) để người xem kiểm tra giấy phép. */
   sourceUrl: string;
+  /** Tên ngắn (thẻ chọn trong thư viện ảnh 3D); không có thì lấy vế đầu của chú thích. */
+  title?: string;
+  /** Kích thước thật của file ảnh (px) — cần cho khung "ảnh 3D" giữ đúng tỉ lệ. */
+  width?: number;
+  height?: number;
+  /** Bản đồ độ sâu (ảnh xám, trắng = gần) để xem ảnh thật dạng 3D (components/photo3d). */
+  depthSrc?: string;
+  /** Điểm chú thích bấm được trên ảnh; x, y tính theo % khung ảnh. */
+  hotspots?: PhotoHotspot[];
+};
+
+export type PhotoHotspot = {
+  label: string;
+  text: string;
+  x: number;
+  y: number;
 };
 
 export type LessonStat = {

@@ -9,6 +9,7 @@ import { Reveal } from "@/components/lesson/Reveal";
 import { ScrollProgress } from "@/components/lesson/ScrollProgress";
 import { VideoEmbed } from "@/components/lesson/VideoEmbed";
 import { BattleMapSection } from "@/components/mapfilm/BattleMapSection";
+import { DepthPhotoGallery, type DepthPhotoItem } from "@/components/photo3d/DepthPhotoGallery";
 import { Badge } from "@/components/ui/Badge";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { LinkButton } from "@/components/ui/Button";
@@ -34,6 +35,12 @@ function Credit({ image }: { image: LessonImage }) {
       {image.credit}
     </a>
   );
+}
+
+/** Ảnh bài học → mục của thư viện ảnh 3D (tiêu đề ngắn lấy từ chú thích nếu không có). */
+function photoItem(image: LessonImage): DepthPhotoItem {
+  const id = image.src.split("/").pop()!.replace(/\.webp$/, "");
+  return { id, title: image.title ?? image.caption.split(/[—(,.]/)[0].trim(), image };
 }
 
 function initials(name: string): string {
@@ -211,20 +218,32 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
             ))}
           </ul>
           {lesson.resultsImage && (
-            <figure className="mt-8 overflow-hidden rounded-card border border-border bg-surface">
-              <SafeImage
-                src={lesson.resultsImage.src}
-                alt={lesson.resultsImage.alt}
-                className="max-h-[32rem] w-full object-cover"
-                fallbackClassName="aspect-[16/9]"
-              />
-              <figcaption className="p-3 text-sm text-surface-foreground">
-                {lesson.resultsImage.caption}{" "}
-                <span className="text-xs text-muted-foreground">
-                  (<Credit image={lesson.resultsImage} />)
-                </span>
-              </figcaption>
-            </figure>
+            <div className="mt-8">
+              {lesson.resultsImage.depthSrc ? (
+                <>
+                  <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Nhìn lòng chảo bằng ảnh 3D</h3>
+                  <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
+                    Ảnh chụp thật từ trên cao, dựng thành ảnh có chiều sâu: rê chuột (hoặc kéo trên điện thoại) để nghiêng nhìn, bấm các số để đọc chú thích.
+                  </p>
+                  <DepthPhotoGallery items={[photoItem(lesson.resultsImage)]} label="Ảnh 3D lòng chảo" />
+                </>
+              ) : (
+                <figure className="overflow-hidden rounded-card border border-border bg-surface">
+                  <SafeImage
+                    src={lesson.resultsImage.src}
+                    alt={lesson.resultsImage.alt}
+                    className="max-h-[32rem] w-full object-cover"
+                    fallbackClassName="aspect-[16/9]"
+                  />
+                  <figcaption className="p-3 text-sm text-surface-foreground">
+                    {lesson.resultsImage.caption}{" "}
+                    <span className="text-xs text-muted-foreground">
+                      (<Credit image={lesson.resultsImage} />)
+                    </span>
+                  </figcaption>
+                </figure>
+              )}
+            </div>
           )}
           <ul className="mt-8 grid gap-4 md:grid-cols-2">
             {lesson.significance.map((item, index) => (
@@ -303,24 +322,37 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         {lesson.artifacts && lesson.artifacts.length > 0 && (
           <section aria-labelledby="hien-vat">
             <SectionHeading id="hien-vat" eyebrow="Hiện vật và trang bị" title="Nhìn tận mắt những gì làm nên chiến thắng" />
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {lesson.artifacts.map((item, index) => (
-                <Reveal as="li" key={item.image.src} delay={(index % 3) * 100}>
-                  <figure className="lesson-zoom flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface">
-                    <div className="overflow-hidden">
-                      <SafeImage src={item.image.src} alt={item.image.alt} className="aspect-[4/3] w-full object-cover" fallbackClassName="aspect-[4/3]" />
-                    </div>
-                    <figcaption className="flex flex-1 flex-col gap-1 p-4">
-                      <span className="font-serif text-lg font-bold text-foreground">{item.title}</span>
-                      <span className="text-sm text-surface-foreground">{item.text}</span>
-                      <span className="mt-auto pt-2 text-xs text-muted-foreground">
-                        Ảnh: {item.image.caption} (<Credit image={item.image} />)
-                      </span>
-                    </figcaption>
-                  </figure>
-                </Reveal>
-              ))}
-            </ul>
+            {lesson.artifacts.every((item) => item.image.depthSrc) ? (
+              <>
+                <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
+                  Chọn từng hiện vật, bấm <strong className="text-foreground">Xem ảnh 3D</strong> rồi rê chuột hoặc kéo để nghiêng nhìn; bấm các số trên ảnh
+                  để biết từng bộ phận, từng chi tiết.
+                </p>
+                <DepthPhotoGallery
+                  items={lesson.artifacts.map((item) => ({ ...photoItem(item.image), title: item.title, text: item.text }))}
+                  label="Chọn hiện vật"
+                />
+              </>
+            ) : (
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {lesson.artifacts.map((item, index) => (
+                  <Reveal as="li" key={item.image.src} delay={(index % 3) * 100}>
+                    <figure className="lesson-zoom flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface">
+                      <div className="overflow-hidden">
+                        <SafeImage src={item.image.src} alt={item.image.alt} className="aspect-[4/3] w-full object-cover" fallbackClassName="aspect-[4/3]" />
+                      </div>
+                      <figcaption className="flex flex-1 flex-col gap-1 p-4">
+                        <span className="font-serif text-lg font-bold text-foreground">{item.title}</span>
+                        <span className="text-sm text-surface-foreground">{item.text}</span>
+                        <span className="mt-auto pt-2 text-xs text-muted-foreground">
+                          Ảnh: {item.image.caption} (<Credit image={item.image} />)
+                        </span>
+                      </figcaption>
+                    </figure>
+                  </Reveal>
+                ))}
+              </ul>
+            )}
           </section>
         )}
 
@@ -328,21 +360,33 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         {lesson.today.length > 0 && (
           <section aria-labelledby="ngay-nay">
             <SectionHeading id="ngay-nay" eyebrow="Di tích ngày nay" title={lesson.copy.todayTitle} />
+            {lesson.today.every((image) => image.depthSrc) ? (
+              <>
+                <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
+                  Ảnh chụp thật tại di tích, xem được dạng 3D: chọn di tích, bấm <strong className="text-foreground">Xem ảnh 3D</strong>, rê chuột hoặc kéo để
+                  nghiêng nhìn.
+                </p>
+                <DepthPhotoGallery items={lesson.today.map((image) => photoItem(image))} label="Chọn di tích" />
+              </>
+            ) : (
+              <>
             <h3 className="mb-3 font-serif text-lg font-bold text-foreground">Ảnh chụp di tích ngày nay</h3>
-            <ul className="grid gap-4 sm:grid-cols-2">
-              {lesson.today.map((image, index) => (
-                <Reveal as="li" key={image.src} delay={(index % 2) * 120}>
-                  <figure className="lesson-zoom overflow-hidden rounded-card border border-border bg-surface">
-                    <div className="overflow-hidden">
-                      <SafeImage src={image.src} alt={image.alt} className="aspect-[4/3] w-full object-cover" fallbackClassName="aspect-[4/3]" />
-                    </div>
-                    <figcaption className="p-3 text-sm text-surface-foreground">
-                      {image.caption} <span className="text-xs text-muted-foreground">(<Credit image={image} />)</span>
-                    </figcaption>
-                  </figure>
-                </Reveal>
-              ))}
-            </ul>
+              <ul className="grid gap-4 sm:grid-cols-2">
+                {lesson.today.map((image, index) => (
+                  <Reveal as="li" key={image.src} delay={(index % 2) * 120}>
+                    <figure className="lesson-zoom overflow-hidden rounded-card border border-border bg-surface">
+                      <div className="overflow-hidden">
+                        <SafeImage src={image.src} alt={image.alt} className="aspect-[4/3] w-full object-cover" fallbackClassName="aspect-[4/3]" />
+                      </div>
+                      <figcaption className="p-3 text-sm text-surface-foreground">
+                        {image.caption} <span className="text-xs text-muted-foreground">(<Credit image={image} />)</span>
+                      </figcaption>
+                    </figure>
+                  </Reveal>
+                ))}
+              </ul>
+              </>
+            )}
           </section>
         )}
 

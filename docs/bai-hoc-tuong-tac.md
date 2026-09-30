@@ -205,3 +205,15 @@ Trang: `/bai-hoc/cach-mang-thang-tam-1945`. Lối vào: trang chủ, trang `/bai
 - **Ảnh**: ảnh và văn bản gốc năm 1945 của Cục Văn thư và Lưu trữ nhà nước trên Wikimedia Commons (Quân lệnh số 1, diễn văn nhận sự thoái vị của Bảo Đại, bản Tuyên ngôn, mít tinh Thái Nguyên 20/8, Nhà hát Lớn 17/8), ảnh ngày nay ở Tân Trào, Nhà hát Lớn, Ba Đình, Ngọ Môn (CC BY/CC BY-SA). Tải và nén về `public/lessons/cach-mang-thang-tam/`.
 - **Video** (xác minh oEmbed 30/9/2026): `09MR7I0p7Ns` (VTV), `u7kjhRCfj2o` (Báo Quân đội nhân dân), `xRKUB3fUTJM` (VTV24 — toàn văn Tuyên ngôn).
 - Các chi tiết cần đối chiếu SGK nằm ở `toVerify` trong `lib/lessons/cach-mang-thang-tam.ts` (hiện ở mục "Ghi chú biên soạn" cuối trang).
+
+---
+
+## "Ảnh thật có chiều sâu" thay cho mô hình 3D dựng bằng mã (30/9/2026)
+
+Người dùng thấy mô hình 3D dựng bằng mã "như phim hoạt hình", muốn vẫn tương tác 3D nhưng là ảnh thật. Bài học Điện Biên Phủ nay dùng `components/photo3d` ở ba mục: ảnh lòng chảo (Kết quả), 6 hiện vật, 5 di tích ngày nay.
+
+- **Cách làm**: mỗi ảnh chụp thật có một bản đồ độ sâu (`<ảnh>-depth.webp`, ước lượng bằng Depth Anything V2 — `scripts/make-depth-maps.mjs`). Shader WebGL (không cần Three.js) lệch từng điểm ảnh theo độ sâu khi rê chuột/kéo → thị sai như nhìn vật thể 3D; khung nghiêng nhẹ theo phối cảnh, tự lắc nhẹ khi rảnh (tắt nếu "giảm chuyển động"), phóng 1,5–2,5×, toàn màn hình, phím mũi tên và +/−.
+- **Điểm chú thích** (`hotspots`, tọa độ % trong ảnh) đi theo đúng lớp sâu của chúng (`projectPoint`, có unit test khớp với shader).
+- Điểm ảnh 100% là ảnh chụp thật; chỉ chiều sâu là do máy ước lượng (ghi rõ dưới mỗi ảnh). Không xoay ra phía sau vật được như mô hình thật — muốn vậy cần mô hình quét 3D (photogrammetry) có giấy phép, hiện chưa tìm được cho các hiện vật Điện Biên Phủ.
+- Ảnh tĩnh hiện ngay (đọc được khi chưa có JS hoặc không có WebGL); WebGL chỉ dựng khi bấm "Xem ảnh 3D", mỗi thư viện một khung, tạm dừng vẽ khi cuộn khỏi màn hình.
+- Kiểm thử: `tests/unit/photo3d.test.ts`, mục ảnh 3D trong `tests/unit/lesson-data.test.ts`, `tests/e2e/photo3d.spec.ts`.

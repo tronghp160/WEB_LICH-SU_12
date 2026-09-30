@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import sharp from "sharp";
 import { describe, expect, it } from "vitest";
+import { depthPathFor } from "@/lib/photo3d/parallax";
 import { interpolateFrame } from "@/lib/battles/animation";
 import { cachMangThangTam1945 } from "@/lib/battles/cach-mang-thang-tam-1945";
 import { dienBienPhu1954 } from "@/lib/battles/dien-bien-phu-1954";
@@ -191,6 +193,26 @@ describe("dữ liệu bài học", () => {
           expect(fs.statSync(file).size, image.src).toBeLessThanOrEqual(250 * 1024);
         }
         for (const image of images) expect(image.sourceUrl).toMatch(/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
+      });
+
+      it("ảnh 3D: có bản đồ độ sâu, đúng kích thước file, điểm chú thích nằm trong khung", async () => {
+        const images = [lesson.hero, ...lesson.today, ...(lesson.artifacts ?? []).map((item) => item.image), ...(lesson.resultsImage ? [lesson.resultsImage] : [])];
+        for (const image of images.filter((item) => item.depthSrc)) {
+          expect(image.depthSrc).toBe(depthPathFor(image.src));
+          const depthFile = path.join(PUBLIC_DIR, image.depthSrc!);
+          expect(fs.existsSync(depthFile), image.depthSrc).toBe(true);
+          expect(fs.statSync(depthFile).size, image.depthSrc).toBeLessThanOrEqual(60 * 1024);
+          const meta = await sharp(path.join(PUBLIC_DIR, image.src)).metadata();
+          expect([image.width, image.height], image.src).toEqual([meta.width, meta.height]);
+          expect(image.title?.length, image.src).toBeGreaterThan(2);
+          for (const hotspot of image.hotspots ?? []) {
+            expect(hotspot.x, `${image.src}/${hotspot.label}`).toBeGreaterThanOrEqual(3);
+            expect(hotspot.x).toBeLessThanOrEqual(97);
+            expect(hotspot.y).toBeGreaterThanOrEqual(3);
+            expect(hotspot.y).toBeLessThanOrEqual(97);
+            expect(hotspot.text.length).toBeGreaterThan(15);
+          }
+        }
       });
 
       it("đủ các phần của bài: mục tiêu, mốc thời gian, ý nghĩa, nhân vật, thẻ ghi nhớ, danh sách cần đối chiếu", () => {
