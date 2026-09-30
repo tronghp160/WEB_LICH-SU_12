@@ -95,17 +95,10 @@ export type Lesson = {
   flashcards: LessonFlashcard[];
   /** Trắc nghiệm cuối bài (/trac-nghiem/bai-hoc/[slug]); chỉ dùng chi tiết đã có trong bài học. */
   quiz?: LessonQuizQuestion[];
-  /** Mô hình 3D (lib/models3d) theo từng mục của bài học: id của các `ModelSpec`. */
-  models3d?: {
-    /** Kết quả và ý nghĩa: sa bàn lòng chảo và các con số. */
-    soLieu: string[];
-    /** Nhân vật: tượng bán thân cách điệu. */
-    nhanVat: string[];
-    /** Hiện vật kháng chiến: pháo, xe đạp thồ, máy bay, chiến sĩ. */
-    hienVat: string[];
-    /** Di tích ngày nay: hầm, đường hầm bộc phá, chiến hào. */
-    diTich: string[];
-  };
+  /** Ảnh lớn ở phần Kết quả (ví dụ toàn cảnh chiến trường). */
+  resultsImage?: LessonImage;
+  /** Hiện vật và trang bị: ảnh chụp thật kèm lời giải thích. */
+  artifacts?: { title: string; text: string; image: LessonImage }[];
   /** Phim 3D dựng trong trình duyệt (xem components/cinema3d). */
   cinema?: { href: string; title: string; description: string; posterSrc: string; posterAlt: string };
   /** Ảnh "ngày nay" tại di tích. */

@@ -9,16 +9,13 @@ import { Reveal } from "@/components/lesson/Reveal";
 import { ScrollProgress } from "@/components/lesson/ScrollProgress";
 import { VideoEmbed } from "@/components/lesson/VideoEmbed";
 import { BattleMapSection } from "@/components/mapfilm/BattleMapSection";
-import { ModelGallery } from "@/components/model3d/ModelGallery";
 import { Badge } from "@/components/ui/Badge";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { LinkButton } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SafeImage } from "@/components/ui/SafeImage";
 import type { Lesson, LessonImage } from "@/lib/lessons/types";
-import { getModelSpec } from "@/lib/models3d/specs";
 import { quizPaths } from "@/lib/quiz/sets";
-import type { ModelSpec } from "@/lib/models3d/types";
 
 function SectionHeading({ id, eyebrow, title }: { id: string; eyebrow: string; title: string }) {
   return (
@@ -37,10 +34,6 @@ function Credit({ image }: { image: LessonImage }) {
       {image.credit}
     </a>
   );
-}
-
-function specsOf(ids: string[] | undefined): ModelSpec[] {
-  return (ids ?? []).map((id) => getModelSpec(id)).filter((spec): spec is ModelSpec => !!spec);
 }
 
 function initials(name: string): string {
@@ -217,15 +210,21 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
               </Reveal>
             ))}
           </ul>
-          {specsOf(lesson.models3d?.soLieu).length > 0 && (
-            <div className="mt-8">
-              <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Xem những con số trên sa bàn 3D</h3>
-              <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
-                Lòng chảo Điện Biên Phủ dựng từ độ cao thật. Các cứ điểm đổi từ cờ Pháp sang cờ đỏ sao vàng, rồi ba con số hiện thành hình khối: 56 ngày đêm,
-                16.200 quân địch, 62 máy bay. Kéo để xoay, cuộn để phóng to, bấm số trên mô hình để đọc giải thích.
-              </p>
-              <ModelGallery specs={specsOf(lesson.models3d?.soLieu)} label="Sa bàn 3D" />
-            </div>
+          {lesson.resultsImage && (
+            <figure className="mt-8 overflow-hidden rounded-card border border-border bg-surface">
+              <SafeImage
+                src={lesson.resultsImage.src}
+                alt={lesson.resultsImage.alt}
+                className="max-h-[32rem] w-full object-cover"
+                fallbackClassName="aspect-[16/9]"
+              />
+              <figcaption className="p-3 text-sm text-surface-foreground">
+                {lesson.resultsImage.caption}{" "}
+                <span className="text-xs text-muted-foreground">
+                  (<Credit image={lesson.resultsImage} />)
+                </span>
+              </figcaption>
+            </figure>
           )}
           <ul className="mt-8 grid gap-4 md:grid-cols-2">
             {lesson.significance.map((item, index) => (
@@ -298,26 +297,30 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
               </li>
             ))}
           </ul>
-          {specsOf(lesson.models3d?.nhanVat).length > 0 && (
-            <div className="mt-10">
-              <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Tượng bán thân 3D (cách điệu)</h3>
-              <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
-                Mỗi nhân vật được dựng thành tượng đồng đặt trên bệ đá có bảng tên. Khuôn mặt được giản lược, không phải chân dung; mũ và quân phục chỉ mang tính gợi ý.
-              </p>
-              <ModelGallery specs={specsOf(lesson.models3d?.nhanVat)} label="Chọn nhân vật" />
-            </div>
-          )}
         </section>
 
-        {/* 7b. Hiện vật kháng chiến */}
-        {specsOf(lesson.models3d?.hienVat).length > 0 && (
+        {/* 7b. Hiện vật và trang bị (ảnh chụp thật) */}
+        {lesson.artifacts && lesson.artifacts.length > 0 && (
           <section aria-labelledby="hien-vat">
             <SectionHeading id="hien-vat" eyebrow="Hiện vật và trang bị" title="Nhìn tận mắt những gì làm nên chiến thắng" />
-            <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
-              Xoay từng hiện vật 3D quanh mọi phía và bấm các con số trên mô hình để biết từng bộ phận dùng làm gì: khẩu pháo kéo qua núi, chiếc xe đạp thồ, người
-              chiến sĩ với trang bị và chiếc máy bay vận tải của địch.
-            </p>
-            <ModelGallery specs={specsOf(lesson.models3d?.hienVat)} label="Chọn hiện vật" />
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {lesson.artifacts.map((item, index) => (
+                <Reveal as="li" key={item.image.src} delay={(index % 3) * 100}>
+                  <figure className="lesson-zoom flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface">
+                    <div className="overflow-hidden">
+                      <SafeImage src={item.image.src} alt={item.image.alt} className="aspect-[4/3] w-full object-cover" fallbackClassName="aspect-[4/3]" />
+                    </div>
+                    <figcaption className="flex flex-1 flex-col gap-1 p-4">
+                      <span className="font-serif text-lg font-bold text-foreground">{item.title}</span>
+                      <span className="text-sm text-surface-foreground">{item.text}</span>
+                      <span className="mt-auto pt-2 text-xs text-muted-foreground">
+                        Ảnh: {item.image.caption} (<Credit image={item.image} />)
+                      </span>
+                    </figcaption>
+                  </figure>
+                </Reveal>
+              ))}
+            </ul>
           </section>
         )}
 
@@ -325,16 +328,6 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         {lesson.today.length > 0 && (
           <section aria-labelledby="ngay-nay">
             <SectionHeading id="ngay-nay" eyebrow="Di tích ngày nay" title={lesson.copy.todayTitle} />
-            {specsOf(lesson.models3d?.diTich).length > 0 && (
-              <div className="mb-10">
-                <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Dựng lại di tích bằng 3D</h3>
-                <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
-                  Hầm chỉ huy được cắt bổ để thấy bên trong; đường hầm dưới đồi A1 có nút mô phỏng vụ nổ; hệ thống chiến hào cho thấy bộ đội tiến sát cứ điểm.
-                  Ảnh chụp thật của các di tích nằm ngay bên dưới.
-                </p>
-                <ModelGallery specs={specsOf(lesson.models3d?.diTich)} label="Chọn di tích" />
-              </div>
-            )}
             <h3 className="mb-3 font-serif text-lg font-bold text-foreground">Ảnh chụp di tích ngày nay</h3>
             <ul className="grid gap-4 sm:grid-cols-2">
               {lesson.today.map((image, index) => (

@@ -7,6 +7,9 @@ import type { Lesson } from "@/lib/lessons/types";
 
 const PHOTO = "/lessons/dien-bien-phu";
 const COMMONS = "https://commons.wikimedia.org/wiki/File:";
+const commonsFile = (name: string) => `${COMMONS}${encodeURIComponent(name.replaceAll(" ", "_"))}`;
+// Ảnh TTXVN 1953–1954: Commons gắn PD-Vietnam nhưng tới 2026 mới ~72–73 năm (< 75 năm bảo hộ) — ghi rõ để xem lại.
+const TTXVN_CREDIT = "TTXVN, qua Wikimedia Commons (Commons ghi phạm vi công cộng tại Việt Nam; nhãn này đang được xem lại)";
 
 const DE_CASTRIES_PORTRAIT = {
   src: `${PHOTO}/de-castries.webp`,
@@ -84,12 +87,82 @@ export const dienBienPhuLesson: Lesson = {
   ],
   battle: dienBienPhu1954,
   mapFilm: "dien-bien-phu",
-  models3d: {
-    soLieu: ["sa-ban-chien-thang"],
-    nhanVat: ["tuong-vo-nguyen-giap", "tuong-de-castries", "tuong-phan-dinh-giot", "tuong-to-vinh-dien"],
-    hienVat: ["luu-phao-105", "xe-dap-tho", "chien-si", "may-bay-c47"],
-    diTich: ["ham-de-castries", "duong-ham-a1", "chien-hao-a1"],
+  // Mô hình 3D dựng bằng mã (sa bàn, tượng, hiện vật, di tích) đã thay bằng ảnh chụp thật theo yêu cầu (30/9/2026).
+  resultsImage: {
+    src: `${PHOTO}/canh-dong-dien-bien.webp`,
+    alt: "Ảnh chụp từ trên cao: lòng chảo Điện Biên rộng, dòng sông uốn khúc giữa những cánh đồng",
+    caption: "Toàn cảnh cánh đồng Mường Thanh — lòng chảo Điện Biên, chụp năm 1953.",
+    credit: TTXVN_CREDIT,
+    sourceUrl: commonsFile("Toàn cảnh cánh đồng Điện Biên.jpg"),
   },
+  artifacts: [
+    {
+      title: "Lựu pháo 105 mm",
+      text: "Pháo được tháo rời hoặc kéo bằng tay qua núi cao, vực sâu vào trận địa trên các sườn núi quanh lòng chảo, ngụy trang kín và chỉ đưa ra khi bắn. Chiếc lựu pháo trong ảnh từng dùng ở Điện Biên Phủ.",
+      image: {
+        src: `${PHOTO}/luu-phao-105-bao-tang.webp`,
+        alt: "Khẩu lựu pháo 105 mm sơn xanh, nòng dài, đặt trên bệ trưng bày trước một tòa nhà",
+        caption: "Lựu pháo 105 mm dùng ở Điện Biên Phủ, trưng bày tại Bảo tàng Lịch sử Quân sự Việt Nam (Hà Nội), 2012.",
+        credit: "Gary Todd, CC0",
+        sourceUrl: commonsFile("105mm Howitzer Used at Dienbienphu, 1954 (9732175909).jpg"),
+      },
+    },
+    {
+      title: "Pháo cao xạ 37 mm",
+      text: "Pháo cao xạ bắn máy bay địch, khống chế bầu trời lòng chảo. Khi sân bay bị khống chế, máy bay vận tải phải bay cao thả dù nên nhiều kiện hàng tiếp tế rơi lệch sang trận địa của ta.",
+      image: {
+        src: `${PHOTO}/phao-cao-xa-37.webp`,
+        alt: "Khẩu pháo cao xạ 37 mm sơn xanh với nòng chĩa lên trời, đặt trên bãi cỏ",
+        caption: "Pháo cao xạ 37 mm trưng bày tại Bảo tàng Lịch sử Quân sự Việt Nam (Hà Nội), 2012.",
+        credit: "Gary Todd, CC0",
+        sourceUrl: commonsFile("37mm Anti-aircraft Gun (9735273026).jpg"),
+      },
+    },
+    {
+      title: "Xe đạp thồ",
+      text: "Hàng chục vạn dân công dắt xe đạp thồ chở gạo, đạn qua đèo dốc, suối sâu ra mặt trận. Mỗi chiếc xe được gia cố thêm, có cần tre dài để lái và chở được nhiều lần sức một người gánh.",
+      image: {
+        src: `${PHOTO}/dan-cong-tho.webp`,
+        alt: "Ảnh đen trắng: dân công dắt những chiếc xe đạp chất đầy bao hàng trên con đường đất",
+        caption: "Dân công thồ lương thực ra mặt trận Điện Biên Phủ, 1954.",
+        credit: TTXVN_CREDIT,
+        sourceUrl: commonsFile("Dan cong tho luong thuc.jpg"),
+      },
+    },
+    {
+      title: "Mở đường vào chiến dịch",
+      text: "Bộ đội công binh và dân công phá đá, san dốc, mở những con đường mới xuyên rừng núi để kéo pháo và đưa hàng vào sát lòng chảo.",
+      image: {
+        src: `${PHOTO}/cong-binh-mo-duong.webp`,
+        alt: "Ảnh đen trắng: bộ đội đội mũ nan dùng cuốc, xẻng mở đường bên vách núi",
+        caption: "Công binh mở đường vào chiến dịch, 1953.",
+        credit: TTXVN_CREDIT,
+        sourceUrl: commonsFile("Công binh mở đường vào chiến dịch.jpg"),
+      },
+    },
+    {
+      title: "Bữa cơm trong chiến hào",
+      text: "Nhờ hệ thống hào dài hàng trăm ki-lô-mét, bộ đội ăn, ở, chiến đấu ngay trong hào, tránh được pháo và máy bay địch, tiến sát từng cứ điểm.",
+      image: {
+        src: `${PHOTO}/chien-si-an-com.webp`,
+        alt: "Ảnh đen trắng: các chiến sĩ đội mũ nan đứng ăn cơm trong lòng chiến hào hẹp",
+        caption: "Bộ đội ăn cơm trong chiến hào ở mặt trận Điện Biên Phủ, 1954.",
+        credit: TTXVN_CREDIT,
+        sourceUrl: commonsFile("Bộ đội sinh hoạt trong chiến hào.jpg"),
+      },
+    },
+    {
+      title: "Xe tăng M24 của Pháp",
+      text: "Pháp tháo rời xe tăng M24, chở bằng máy bay vào sân bay Mường Thanh rồi lắp lại. Xe tăng dùng để phản kích, bắn yểm trợ bộ binh; xác một số chiếc vẫn còn ở Điện Biên Phủ ngày nay.",
+      image: {
+        src: `${PHOTO}/xe-tang-m24.webp`,
+        alt: "Ảnh đen trắng: những chiếc xe tăng nhả khói trên cánh đồng cỏ cao, phía xa là đồi núi",
+        caption: "Xe tăng M24 của Pháp bắn yểm trợ bộ binh ở Điện Biên Phủ, 1954.",
+        credit: "Quân đội Hoa Kỳ (Donn A. Starry, \"Mounted Combat in Vietnam\"), phạm vi công cộng",
+        sourceUrl: commonsFile("French M24s atr Dien Bien Phu.jpg"),
+      },
+    },
+  ],
   // Mục "Phim 3D: Đồi A1" đã gỡ khỏi bài học theo yêu cầu (30/9/2026); phim vẫn xem được ở trang riêng /phim-3d/doi-a1.
   videos: [
     {
@@ -229,6 +302,13 @@ export const dienBienPhuLesson: Lesson = {
     },
   ],
   today: [
+    {
+      src: `${PHOTO}/bao-tang-2022.webp`,
+      alt: "Tòa nhà Bảo tàng Chiến thắng lịch sử Điện Biên Phủ hình nón cụt với khung đan chéo, phía trước là hoa vàng",
+      caption: "Bảo tàng Chiến thắng lịch sử Điện Biên Phủ, nơi trưng bày hiện vật của chiến dịch (ảnh 2022).",
+      credit: "Ioe2015, CC BY-SA 4.0",
+      sourceUrl: commonsFile("The Museum of Dien Bien Phu Victory (front, 2022).jpg"),
+    },
     HAM_DE_CASTRIES_NAY,
     {
       src: `${PHOTO}/ho-boc-pha-a1.webp`,

@@ -179,6 +179,8 @@ describe("dữ liệu bài học", () => {
           lesson.hero,
           ...lesson.today,
           ...lesson.figures.flatMap((figure) => (figure.image ? [figure.image] : [])),
+          ...(lesson.artifacts ?? []).map((item) => item.image),
+          ...(lesson.resultsImage ? [lesson.resultsImage] : []),
         ];
         const stepImages = lesson.battle.steps.flatMap((step) => (step.image ? [step.image] : []));
         for (const image of [...images, ...stepImages]) {
