@@ -127,9 +127,12 @@ test.describe("Bản đồ 3D Điện Biên Phủ", () => {
     await expect(page.getByTestId("mapfilm-recenter")).toBeHidden();
 
     const basemap = page.getByTestId("mapfilm-basemap");
-    await expect(basemap).toHaveAccessibleName("Đổi sang nền bản đồ cổ điển");
-    await basemap.click();
+    // Mặc định nền cổ điển; đổi sang vệ tinh thì có ghi chú "ảnh vệ tinh ngày nay".
     await expect(basemap).toHaveAccessibleName("Đổi sang nền ảnh vệ tinh");
+    await expect(page.getByTestId("mapfilm-satellite-note")).toBeHidden();
+    await basemap.click();
+    await expect(basemap).toHaveAccessibleName("Đổi sang nền bản đồ cổ điển");
+    await expect(page.getByTestId("mapfilm-satellite-note")).toBeVisible();
   });
 
   test("bàn phím: N sang giai đoạn sau, P về giai đoạn trước, phím cách tạm dừng/phát", async ({ page }) => {

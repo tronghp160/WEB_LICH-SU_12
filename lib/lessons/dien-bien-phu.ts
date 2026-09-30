@@ -16,6 +16,15 @@ const DE_CASTRIES_PORTRAIT = {
   sourceUrl: `${COMMONS}Dien_Bien_Phu001.jpg`,
 };
 
+// Bản 400 px của ảnh trong kho ảnh GĐ1. Chưa có ảnh thời 1954 với giấy phép rõ ràng nên dùng ảnh 2008.
+const VO_NGUYEN_GIAP_PORTRAIT = {
+  src: `${PHOTO}/vo-nguyen-giap.webp`,
+  alt: "Đại tướng Võ Nguyên Giáp lúc tuổi cao, mặc quân phục trắng gắn huân chương",
+  caption: "Đại tướng Võ Nguyên Giáp năm 2008.",
+  credit: "Ricardo Stuckert (PR/ABr/Brazil), CC BY 3.0 br",
+  sourceUrl: `${COMMONS}Vo_Nguyen_Giap_2008.jpg`,
+};
+
 const HAM_DE_CASTRIES_NAY = {
   src: `${PHOTO}/ham-de-castries-nay.webp`,
   alt: "Hầm chỉ huy của De Castries được bảo tồn, có mái vòm bằng thép",
@@ -134,6 +143,7 @@ export const dienBienPhuLesson: Lesson = {
       role: "Đại tướng, Chỉ huy trưởng chiến dịch",
       text: "Người đưa ra quyết định khó khăn nhất đời cầm quân: hoãn trận đánh đã chuẩn bị, chuyển từ \"đánh nhanh, giải quyết nhanh\" sang \"đánh chắc, tiến chắc\".",
       href: "/nhan-vat/vo-nguyen-giap",
+      image: VO_NGUYEN_GIAP_PORTRAIT,
     },
     {
       name: "Christian de Castries",
