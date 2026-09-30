@@ -1,4 +1,4 @@
-import { CalendarClock, Layers, ListChecks } from "lucide-react";
+import { CalendarClock, Layers, ListChecks, Stamp } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -77,6 +77,14 @@ export default async function QuizHubPage() {
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Mỗi lượt 10 câu, phần lớn có ảnh tư liệu. Trả lời xong mỗi câu em thấy ngay đáp án, lời giải thích và trang để đọc
           thêm. Không cần đăng nhập.
+        </p>
+        <p className="mt-3 flex items-center gap-2 text-sm text-foreground">
+          <Stamp className="h-4 w-4 text-accent" aria-hidden="true" />
+          Đạt từ 7/10 là được đóng dấu vào{" "}
+          <Link href="/ho-chieu" className="font-medium text-accent underline">
+            Hộ chiếu lịch sử
+          </Link>{" "}
+          của em.
         </p>
       </header>
 

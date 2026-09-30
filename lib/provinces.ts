@@ -1,0 +1,42 @@
+// 34 đơn vị hành chính cấp tỉnh từ 1/7/2025 (Nghị quyết 202/2025/QH15), dùng cho "Di tích gần em" (GĐ4.5) khi máy
+// không cho lấy vị trí (máy phòng tin học, trình duyệt chặn định vị). Tọa độ là trung tâm hành chính mới của tỉnh,
+// làm tròn ~1 km — chỉ để ước lượng khoảng cách, không dùng để chỉ đường.
+
+export type Province = { name: string; center: string; lat: number; lng: number };
+
+export const PROVINCES: readonly Province[] = [
+  { name: "Hà Nội", center: "Hà Nội", lat: 21.028, lng: 105.854 },
+  { name: "Huế", center: "Huế", lat: 16.463, lng: 107.59 },
+  { name: "Hải Phòng", center: "Hải Phòng", lat: 20.845, lng: 106.688 },
+  { name: "Đà Nẵng", center: "Đà Nẵng", lat: 16.054, lng: 108.202 },
+  { name: "TP. Hồ Chí Minh", center: "TP. Hồ Chí Minh", lat: 10.776, lng: 106.701 },
+  { name: "Cần Thơ", center: "Cần Thơ", lat: 10.034, lng: 105.788 },
+  { name: "An Giang", center: "Rạch Giá", lat: 10.012, lng: 105.081 },
+  { name: "Bắc Ninh", center: "Bắc Giang", lat: 21.273, lng: 106.194 },
+  { name: "Cà Mau", center: "Cà Mau", lat: 9.177, lng: 105.15 },
+  { name: "Cao Bằng", center: "Cao Bằng", lat: 22.666, lng: 106.26 },
+  { name: "Đắk Lắk", center: "Buôn Ma Thuột", lat: 12.667, lng: 108.038 },
+  { name: "Điện Biên", center: "Điện Biên Phủ", lat: 21.386, lng: 103.023 },
+  { name: "Đồng Nai", center: "Biên Hòa", lat: 10.957, lng: 106.843 },
+  { name: "Đồng Tháp", center: "Mỹ Tho", lat: 10.36, lng: 106.36 },
+  { name: "Gia Lai", center: "Quy Nhơn", lat: 13.776, lng: 109.223 },
+  { name: "Hà Tĩnh", center: "Hà Tĩnh", lat: 18.343, lng: 105.906 },
+  { name: "Hưng Yên", center: "Hưng Yên", lat: 20.646, lng: 106.051 },
+  { name: "Khánh Hòa", center: "Nha Trang", lat: 12.238, lng: 109.197 },
+  { name: "Lai Châu", center: "Lai Châu", lat: 22.396, lng: 103.458 },
+  { name: "Lâm Đồng", center: "Đà Lạt", lat: 11.94, lng: 108.458 },
+  { name: "Lạng Sơn", center: "Lạng Sơn", lat: 21.853, lng: 106.761 },
+  { name: "Lào Cai", center: "Yên Bái", lat: 21.722, lng: 104.911 },
+  { name: "Nghệ An", center: "Vinh", lat: 18.679, lng: 105.681 },
+  { name: "Ninh Bình", center: "Ninh Bình", lat: 20.25, lng: 105.975 },
+  { name: "Phú Thọ", center: "Việt Trì", lat: 21.322, lng: 105.402 },
+  { name: "Quảng Ngãi", center: "Quảng Ngãi", lat: 15.12, lng: 108.792 },
+  { name: "Quảng Ninh", center: "Hạ Long", lat: 20.951, lng: 107.08 },
+  { name: "Quảng Trị", center: "Đồng Hới", lat: 17.468, lng: 106.622 },
+  { name: "Sơn La", center: "Sơn La", lat: 21.327, lng: 103.914 },
+  { name: "Tây Ninh", center: "Tân An", lat: 10.535, lng: 106.413 },
+  { name: "Thái Nguyên", center: "Thái Nguyên", lat: 21.594, lng: 105.848 },
+  { name: "Thanh Hóa", center: "Thanh Hóa", lat: 19.807, lng: 105.776 },
+  { name: "Tuyên Quang", center: "Tuyên Quang", lat: 21.823, lng: 105.214 },
+  { name: "Vĩnh Long", center: "Vĩnh Long", lat: 10.254, lng: 105.972 },
+];

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { NotEnoughQuestions, QuizShell } from "@/components/quiz/QuizShell";
 import { YearGuessGame } from "@/components/quiz/YearGuessGame";
 import { getYearRounds } from "@/lib/queries/quiz";
-import { MIN_QUESTIONS, quizPaths, ROUND_SIZE } from "@/lib/quiz/sets";
+import { MIN_QUESTIONS, quizPaths, quizSetIds, ROUND_SIZE } from "@/lib/quiz/sets";
 
 export const metadata: Metadata = {
   title: "Nhìn ảnh đoán năm",
@@ -27,6 +27,7 @@ export default async function YearGamePage() {
           minYear={Math.min(DEFAULT_RANGE[0], ...years)}
           maxYear={Math.max(DEFAULT_RANGE[1], ...years)}
           backHref={quizPaths.hub}
+          setId={quizSetIds.yearGame}
         />
       )}
     </QuizShell>

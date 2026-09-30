@@ -3,8 +3,10 @@
 import { Check, RotateCcw, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { StampNotice } from "@/components/progress/StampNotice";
 import { QuizImageFigure } from "@/components/quiz/QuizImageFigure";
 import { Button, LinkButton } from "@/components/ui/Button";
+import { saveQuizResult } from "@/lib/hooks/useProgress";
 import { drawRound } from "@/lib/quiz/generate";
 import type { QuizQuestion } from "@/lib/quiz/types";
 import { cn } from "@/lib/utils/cn";
@@ -15,6 +17,8 @@ type QuizPlayerProps = {
   roundSize: number;
   backHref: string;
   backLabel: string;
+  /** Khóa lưu kết quả vào tiến độ học tập (quizSetIds); có thì cuối bài báo con dấu "Hộ chiếu lịch sử". */
+  setId?: string;
 };
 
 type Phase = "intro" | "play" | "done";
@@ -35,7 +39,7 @@ export function scoreMessage(correct: number, total: number): string {
  * không lệch hydrate), trả lời xong hiện ngay đúng/sai kèm giải thích và link ôn lại; cuối bài hiện điểm và gợi ý.
  * Bàn phím: phím 1–4 hoặc A–D để chọn, Enter để sang câu tiếp.
  */
-export function QuizPlayer({ title, pool, roundSize, backHref, backLabel }: QuizPlayerProps) {
+export function QuizPlayer({ title, pool, roundSize, backHref, backLabel, setId }: QuizPlayerProps) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [round, setRound] = useState<QuizQuestion[]>([]);
   const [index, setIndex] = useState(0);
@@ -65,9 +69,13 @@ export function QuizPlayer({ title, pool, roundSize, backHref, backLabel }: Quiz
   );
 
   const next = useCallback(() => {
-    if (index + 1 < round.length) setIndex(index + 1);
-    else setPhase("done");
-  }, [index, round.length]);
+    if (index + 1 < round.length) {
+      setIndex(index + 1);
+      return;
+    }
+    if (setId) saveQuizResult(setId, correctCount, round.length);
+    setPhase("done");
+  }, [index, round.length, setId, correctCount]);
 
   // Chuyển câu → đưa tiêu điểm lên câu hỏi (trình đọc màn hình đọc câu mới); trả lời xong → tiêu điểm vào nút "Tiếp".
   useEffect(() => {
@@ -123,6 +131,7 @@ export function QuizPlayer({ title, pool, roundSize, backHref, backLabel }: Quiz
             {correctCount}/{round.length}
           </p>
           <p className="text-muted-foreground">{scoreMessage(correctCount, round.length)}</p>
+          {setId && <StampNotice score={correctCount} total={round.length} />}
           <div className="mt-2 flex flex-wrap justify-center gap-3">
             <Button onClick={start}>
               <RotateCcw className="h-4 w-4" aria-hidden="true" />

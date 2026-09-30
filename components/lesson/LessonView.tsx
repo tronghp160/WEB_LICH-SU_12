@@ -3,6 +3,8 @@ import { ArrowDown, ArrowRight, BookOpen, Presentation, Quote } from "lucide-rea
 import { CinemaPlayer } from "@/components/cinema3d/CinemaPlayer";
 import { CountUp } from "@/components/lesson/CountUp";
 import { FlipCard } from "@/components/lesson/FlipCard";
+import { LessonStudiedMarker } from "@/components/progress/LessonStudiedMarker";
+import { PASSPORT_HREF } from "@/components/progress/StampNotice";
 import { Reveal } from "@/components/lesson/Reveal";
 import { ScrollProgress } from "@/components/lesson/ScrollProgress";
 import { VideoEmbed } from "@/components/lesson/VideoEmbed";
@@ -349,6 +351,7 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         <section aria-labelledby="ghi-nho">
           <SectionHeading id="ghi-nho" eyebrow="Tự ôn tập" title="Ghi nhớ nhanh" />
           <p className="-mt-3 mb-5 text-muted-foreground">Đọc câu hỏi, tự trả lời trong đầu, rồi bấm để lật thẻ xem đáp án.</p>
+          <LessonStudiedMarker slug={lesson.slug} />
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {lesson.flashcards.map((card, index) => (
               <li key={card.question}>
@@ -373,7 +376,12 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
           {lesson.quiz && lesson.quiz.length > 0 && (
             <div className="mt-6 flex flex-col items-start gap-3 rounded-card border border-border bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-foreground">
-                <strong>Kiểm tra nhanh:</strong> 10 câu trắc nghiệm có ảnh, chấm điểm ngay và gợi ý phần cần ôn lại.
+                <strong>Kiểm tra nhanh:</strong> 10 câu trắc nghiệm có ảnh, chấm điểm ngay và gợi ý phần cần ôn lại. Đạt từ
+                7/10 là em được đóng dấu vào{" "}
+                <Link href={PASSPORT_HREF} className="text-accent underline">
+                  Hộ chiếu lịch sử
+                </Link>
+                .
               </p>
               <LinkButton href={quizPaths.lesson(lesson.slug)} size="lg">
                 Làm trắc nghiệm

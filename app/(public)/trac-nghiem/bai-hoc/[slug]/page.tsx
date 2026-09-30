@@ -5,7 +5,7 @@ import { NotEnoughQuestions, QuizShell } from "@/components/quiz/QuizShell";
 import { QuizPlayer } from "@/components/quiz/QuizPlayer";
 import { getLesson } from "@/lib/lessons";
 import { getQuestionPool } from "@/lib/queries/quiz";
-import { MIN_QUESTIONS, questionsForLesson, ROUND_SIZE } from "@/lib/quiz/sets";
+import { MIN_QUESTIONS, questionsForLesson, quizSetIds, ROUND_SIZE } from "@/lib/quiz/sets";
 
 type LessonQuizPageProps = { params: Promise<{ slug: string }> };
 
@@ -44,7 +44,7 @@ export default async function LessonQuizPage({ params }: LessonQuizPageProps) {
       {pool.length < MIN_QUESTIONS ? (
         <NotEnoughQuestions />
       ) : (
-        <QuizPlayer title={title} pool={pool} roundSize={ROUND_SIZE} backHref={lessonHref} backLabel="Về bài học" />
+        <QuizPlayer title={title} pool={pool} roundSize={ROUND_SIZE} backHref={lessonHref} backLabel="Về bài học" setId={quizSetIds.lesson(lesson.slug)} />
       )}
     </QuizShell>
   );

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { NotEnoughQuestions, QuizShell } from "@/components/quiz/QuizShell";
 import { QuizPlayer } from "@/components/quiz/QuizPlayer";
 import { getQuestionPool } from "@/lib/queries/quiz";
-import { MIN_QUESTIONS, quizPaths, ROUND_SIZE } from "@/lib/quiz/sets";
+import { MIN_QUESTIONS, quizPaths, quizSetIds, ROUND_SIZE } from "@/lib/quiz/sets";
 
 export const metadata: Metadata = {
   title: "Trắc nghiệm tổng hợp",
@@ -17,7 +17,7 @@ export default async function QuizAllPage() {
       {pool.length < MIN_QUESTIONS ? (
         <NotEnoughQuestions />
       ) : (
-        <QuizPlayer title="Trắc nghiệm tổng hợp" pool={pool} roundSize={ROUND_SIZE} backHref={quizPaths.hub} backLabel="Chọn bộ khác" />
+        <QuizPlayer title="Trắc nghiệm tổng hợp" pool={pool} roundSize={ROUND_SIZE} backHref={quizPaths.hub} backLabel="Chọn bộ khác" setId={quizSetIds.all} />
       )}
     </QuizShell>
   );

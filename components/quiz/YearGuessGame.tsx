@@ -3,8 +3,10 @@
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { StampNotice } from "@/components/progress/StampNotice";
 import { QuizImageFigure } from "@/components/quiz/QuizImageFigure";
 import { Button, LinkButton } from "@/components/ui/Button";
+import { saveQuizResult } from "@/lib/hooks/useProgress";
 import { shuffle, yearGuessPoints } from "@/lib/quiz/generate";
 import type { YearRound } from "@/lib/quiz/types";
 
@@ -14,6 +16,8 @@ type YearGuessGameProps = {
   minYear: number;
   maxYear: number;
   backHref: string;
+  /** Khóa lưu kết quả vào tiến độ học tập (quizSetIds.yearGame). */
+  setId?: string;
 };
 
 type Phase = "intro" | "play" | "done";
@@ -32,7 +36,7 @@ function nearnessText(diff: number): string {
  * "Nhìn ảnh đoán năm" (GĐ4.2): hiện một ảnh tư liệu, kéo thanh năm để đoán năm sự kiện diễn ra.
  * Đúng năm 100 điểm, mỗi năm lệch trừ 5 điểm. Chú thích và năm chụp chỉ hiện sau khi chốt.
  */
-export function YearGuessGame({ rounds, roundSize, minYear, maxYear, backHref }: YearGuessGameProps) {
+export function YearGuessGame({ rounds, roundSize, minYear, maxYear, backHref, setId }: YearGuessGameProps) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [played, setPlayed] = useState<YearRound[]>([]);
   const [index, setIndex] = useState(0);
@@ -64,6 +68,7 @@ export function YearGuessGame({ rounds, roundSize, minYear, maxYear, backHref }:
       setIndex(index + 1);
       setGuess(START_GUESS);
     } else {
+      if (setId) saveQuizResult(setId, total, played.length * 100);
       setPhase("done");
     }
   }
@@ -101,6 +106,7 @@ export function YearGuessGame({ rounds, roundSize, minYear, maxYear, backHref }:
             {total}
             <span className="text-2xl text-muted-foreground">/{maxScore}</span>
           </p>
+          {setId && <StampNotice score={total} total={maxScore} />}
           <div className="mt-2 flex flex-wrap justify-center gap-3">
             <Button onClick={start}>
               <RotateCcw className="h-4 w-4" aria-hidden="true" />

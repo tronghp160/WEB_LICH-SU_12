@@ -5,7 +5,7 @@ import { NotEnoughQuestions, QuizShell } from "@/components/quiz/QuizShell";
 import { QuizPlayer } from "@/components/quiz/QuizPlayer";
 import { getQuestionPool } from "@/lib/queries/quiz";
 import { getTopicDetail } from "@/lib/queries/topics";
-import { MIN_QUESTIONS, questionsForTopic, quizPaths, ROUND_SIZE } from "@/lib/quiz/sets";
+import { MIN_QUESTIONS, questionsForTopic, quizPaths, quizSetIds, ROUND_SIZE } from "@/lib/quiz/sets";
 
 type TopicQuizPageProps = { params: Promise<{ slug: string }> };
 
@@ -43,7 +43,7 @@ export default async function TopicQuizPage({ params }: TopicQuizPageProps) {
       {pool.length < MIN_QUESTIONS ? (
         <NotEnoughQuestions />
       ) : (
-        <QuizPlayer title={title} pool={pool} roundSize={ROUND_SIZE} backHref={quizPaths.hub} backLabel="Chọn bộ khác" />
+        <QuizPlayer title={title} pool={pool} roundSize={ROUND_SIZE} backHref={quizPaths.hub} backLabel="Chọn bộ khác" setId={quizSetIds.topic(topic.slug)} />
       )}
     </QuizShell>
   );
