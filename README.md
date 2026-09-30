@@ -52,6 +52,7 @@ cp .env.example .env.local   # rồi điền giá trị thật
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | ✅ | Khóa công khai (đã có RLS bảo vệ) |
 | `SUPABASE_SECRET_KEY` | Cho trang Nhân sự | **Chỉ phía server**: tạo/khóa tài khoản nhân sự. Không bao giờ thêm tiền tố `NEXT_PUBLIC_` |
 | `DATABASE_URL` | Tùy chọn | Chạy migration/seed bằng Supabase CLI |
+| `NEXT_PUBLIC_SITE_URL` | Khi có tên miền | Địa chỉ web cho ảnh chia sẻ, `sitemap.xml`, `robots.txt` (trên Vercel tự lấy nếu bỏ trống) |
 
 Lấy các giá trị trong Supabase Dashboard → *Project Settings → API* (và *Connect* cho `DATABASE_URL`).
 

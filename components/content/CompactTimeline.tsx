@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { DatePrecisionBadge } from "@/components/content/DatePrecisionBadge";
+import { SafeImage } from "@/components/ui/SafeImage";
 import type { RelatedEvent } from "@/lib/queries/events";
+import { responsiveImage } from "@/lib/utils/text";
 import { groupEventsByYear } from "@/lib/utils/timeline";
 
 type CompactTimelineProps = {
@@ -34,8 +36,19 @@ export function CompactTimeline({ events, label }: CompactTimelineProps) {
               <li key={event.slug}>
                 <Link
                   href={`/su-kien/${event.slug}`}
-                  className="group block rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+                  className="group flex gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
                 >
+                  {event.cover && (
+                    <SafeImage
+                      {...responsiveImage(event.cover.url, 200)}
+                      sizes="96px"
+                      alt=""
+                      className="mt-1 aspect-[4/3] w-20 shrink-0 rounded-md bg-muted object-cover sm:w-24"
+                      style={event.cover.focalPoint ? { objectPosition: event.cover.focalPoint } : undefined}
+                      fallbackClassName="mt-1 aspect-[4/3] w-20 shrink-0 rounded-md sm:w-24"
+                    />
+                  )}
+                  <span className="block min-w-0">
                   <span className="font-serif text-lg font-semibold text-foreground group-hover:text-accent">
                     {event.title}
                   </span>
@@ -50,6 +63,7 @@ export function CompactTimeline({ events, label }: CompactTimelineProps) {
                   )}
                   <span className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                     {event.summary}
+                  </span>
                   </span>
                 </Link>
               </li>

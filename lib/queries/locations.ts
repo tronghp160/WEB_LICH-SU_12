@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cache } from "react";
 import type { Database } from "@/lib/database.types";
-import { toRelatedEvent, type RelatedEvent, type RelatedEventRow } from "@/lib/queries/events";
+import { PUBLIC_MEDIA_FIELDS, pickCardCover, toMediaItems, type CardCover, type CardMediaRow, type MediaItem, type MediaRow } from "@/lib/media";
+import { EVENT_CARD_MEDIA, toRelatedEvent, type RelatedEvent, type RelatedEventRow } from "@/lib/queries/events";
 import { createPublicClient } from "@/lib/supabase/public";
 import { parseAccuracyLevel, type AccuracyLevel, type WorkflowStatus } from "@/lib/utils/labels";
 
@@ -25,6 +26,8 @@ export type MapLocation = {
   accuracyLevel: AccuracyLevel;
   accuracyNote: string | null;
   events: MapLocationEvent[];
+  /** Ảnh thu nhỏ trong popup bản đồ (ảnh bìa của địa điểm). */
+  cover?: CardCover;
 };
 
 type EmbeddedEvent = {
@@ -45,7 +48,7 @@ export async function getMapLocations(): Promise<MapLocation[]> {
   const { data, error } = await supabase
     .from("historical_locations")
     .select(
-      "id, slug, name, historical_name, latitude, longitude, accuracy_level, accuracy_note, event_locations(is_primary, historical_events(slug, title, date_text, workflow_status, start_year, curriculum_topics(slug)))",
+      "id, slug, name, historical_name, latitude, longitude, accuracy_level, accuracy_note, event_locations(is_primary, historical_events(slug, title, date_text, workflow_status, start_year, curriculum_topics(slug))), media_assets(file_url, alt_text, media_type, is_cover, focal_point, sort_order)",
     )
     .eq("workflow_status", "published")
     .not("latitude", "is", null)
@@ -88,6 +91,7 @@ export async function getMapLocations(): Promise<MapLocation[]> {
         accuracyLevel: parseAccuracyLevel(location.accuracy_level),
         accuracyNote: location.accuracy_note,
         events,
+        cover: pickCardCover(location.media_assets as CardMediaRow[]),
       },
     ];
   });
@@ -103,6 +107,8 @@ export type LocationDetail = {
   longitude: number | null;
   accuracyLevel: AccuracyLevel;
   accuracyNote: string | null;
+  /** Ảnh địa điểm (ảnh ngày nay, ảnh xưa nếu có), có ghi công. */
+  media: MediaItem[];
   /** Sự kiện đã công bố diễn ra tại địa điểm, theo thời gian; `role` là vai trò của địa điểm trong sự kiện. */
   events: (RelatedEvent & { role: string | null; isPrimary: boolean })[];
 };
@@ -122,7 +128,8 @@ export async function loadLocationDetail(
     .from("historical_locations")
     .select(
       `slug, name, historical_name, description, latitude, longitude, accuracy_level, accuracy_note, workflow_status,
-       event_locations(location_role, is_primary, historical_events(slug, title, summary, date_text, date_precision, is_featured, start_year, workflow_status, curriculum_topics(name, slug)))`,
+       media_assets(${PUBLIC_MEDIA_FIELDS}),
+       event_locations(location_role, is_primary, historical_events(slug, title, summary, date_text, date_precision, is_featured, start_year, workflow_status, curriculum_topics(name, slug), ${EVENT_CARD_MEDIA}))`,
     );
   query = "id" in by ? query.eq("id", by.id) : query.eq("slug", by.slug);
   if (publishedOnly) query = query.eq("workflow_status", "published");
@@ -153,6 +160,7 @@ export async function loadLocationDetail(
     longitude: data.longitude,
     accuracyLevel: parseAccuracyLevel(data.accuracy_level),
     accuracyNote: data.accuracy_note,
+    media: toMediaItems(data.media_assets as MediaRow[]),
     events,
   };
 }

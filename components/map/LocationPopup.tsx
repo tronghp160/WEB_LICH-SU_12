@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { AccuracyBadge } from "@/components/content/AccuracyBadge";
+import { SafeImage } from "@/components/ui/SafeImage";
+import { responsiveImage } from "@/lib/utils/text";
 import type { MapLocation } from "@/lib/queries/locations";
 
 type LocationPopupProps = {
@@ -13,6 +15,16 @@ type LocationPopupProps = {
 export function LocationPopup({ location, onSearchAround }: LocationPopupProps) {
   return (
     <div className="flex min-w-52 max-w-64 flex-col gap-2 text-surface-foreground">
+      {location.cover && (
+        <SafeImage
+          {...responsiveImage(location.cover.url, 320)}
+          sizes="256px"
+          alt={location.cover.alt}
+          className="aspect-[16/9] w-full rounded-md bg-muted object-cover"
+          style={location.cover.focalPoint ? { objectPosition: location.cover.focalPoint } : undefined}
+          fallbackClassName="aspect-[16/9] w-full rounded-md"
+        />
+      )}
       <div>
         <p className="font-serif text-base font-semibold leading-snug">{location.name}</p>
         {location.historicalName && (

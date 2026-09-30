@@ -1,3 +1,4 @@
+import { pickCardCover, type CardCover, type CardMediaRow } from "@/lib/media";
 import { createPublicClient } from "@/lib/supabase/public";
 import { parseDatePrecision, type DatePrecision } from "@/lib/utils/labels";
 
@@ -11,7 +12,14 @@ export type EventSummary = {
   isFeatured: boolean;
   topicName?: string;
   topicSlug?: string;
+  /** Năm bắt đầu — thẻ không có ảnh sẽ hiện năm lớn thay cho ảnh. */
+  year?: number;
+  /** Ảnh bìa (hoặc ảnh đầu tiên) để hiện trên thẻ; không có ảnh → undefined. */
+  cover?: CardCover;
 };
+
+/** Ảnh nhúng cho thẻ sự kiện (RLS chỉ trả ảnh của sự kiện đã công bố). */
+export const EVENT_CARD_MEDIA = "media_assets(file_url, alt_text, media_type, is_cover, focal_point, sort_order, width, height)" as const;
 
 /**
  * Sự kiện nổi bật (`is_featured = true`) đã công bố, sắp theo thời gian:
@@ -23,7 +31,7 @@ export async function getFeaturedEvents(limit = 12): Promise<EventSummary[]> {
   const { data, error } = await supabase
     .from("historical_events")
     .select(
-      "slug, title, summary, date_text, date_precision, is_featured, curriculum_topics(name, slug)",
+      `slug, title, summary, date_text, date_precision, is_featured, start_year, curriculum_topics(name, slug), ${EVENT_CARD_MEDIA}`,
     )
     .eq("workflow_status", "published")
     .eq("is_featured", true)
@@ -47,6 +55,8 @@ type EventRow = {
   date_precision: string;
   is_featured: boolean | null;
   curriculum_topics: unknown;
+  start_year?: number;
+  media_assets?: CardMediaRow[];
 };
 
 export function toEventSummary(event: EventRow): EventSummary {
@@ -63,6 +73,8 @@ export function toEventSummary(event: EventRow): EventSummary {
     isFeatured: event.is_featured ?? false,
     topicName: topic?.name,
     topicSlug: topic?.slug,
+    year: event.start_year,
+    cover: event.media_assets ? pickCardCover(event.media_assets) : undefined,
   };
 }
 
@@ -93,7 +105,7 @@ export async function getTimelineEvents(): Promise<TimelineEvent[]> {
   const { data, error } = await supabase
     .from("historical_events")
     .select(
-      "slug, title, summary, date_text, date_precision, is_featured, start_year, curriculum_topics(name, slug), event_locations(is_primary, historical_locations(name, slug))",
+      `slug, title, summary, date_text, date_precision, is_featured, start_year, curriculum_topics(name, slug), event_locations(is_primary, historical_locations(name, slug)), ${EVENT_CARD_MEDIA}`,
     )
     .eq("workflow_status", "published")
     // Chỉ nhúng địa điểm chính (không dùng !inner nên sự kiện không có vẫn được trả về).

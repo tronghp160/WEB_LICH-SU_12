@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { pickCover } from "@/lib/media";
+import { shareImage } from "@/lib/site";
 import { notFound } from "next/navigation";
 import { FigureDetailView } from "@/components/content/detail/FigureDetailView";
 import { getFigureDetail } from "@/lib/queries/figures";
@@ -17,7 +19,12 @@ export async function generateMetadata({ params }: FigurePageProps): Promise<Met
   return {
     title: figure.name,
     description,
-    openGraph: { title: figure.name, description, type: "profile" },
+    openGraph: {
+      title: figure.name,
+      description,
+      type: "profile",
+      images: [shareImage("nhan-vat", figure.slug, figure.name, pickCover(figure.media) !== null)],
+    },
   };
 }
 

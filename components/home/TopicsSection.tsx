@@ -28,6 +28,7 @@ async function TopicList() {
             description={topic.description}
             eventCount={topic.eventCount}
             position={index + 1}
+            cover={topic.cover}
           />
         </li>
       ))}

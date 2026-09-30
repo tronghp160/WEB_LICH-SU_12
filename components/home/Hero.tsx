@@ -1,23 +1,67 @@
 import Form from "next/form";
+import Link from "next/link";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import type { HeroSlide } from "@/lib/queries/home";
+import { responsiveImage } from "@/lib/utils/text";
+import { cn } from "@/lib/utils/cn";
 
-/** Hero trang chủ: tên hệ thống, mô tả ngắn, ô tìm kiếm nhanh → /tra-cuu?q= (UC01). */
-export function Hero() {
+/**
+ * Hero trang chủ (UC01): ảnh tư liệu thật chạy trình chiếu phía sau (CSS, không cần JavaScript), khẩu hiệu
+ * và ô tìm kiếm nhanh → /tra-cuu?q=. Không có ảnh (lỗi tải/chưa công bố) thì về nền chữ như cũ.
+ * Người dùng bật "giảm chuyển động": chỉ hiện ảnh đầu tiên, đứng yên.
+ */
+export function Hero({ slides = [] }: { slides?: HeroSlide[] }) {
+  const hasImages = slides.length > 0;
+  // Trình chiếu CSS được viết cho đúng 4 ảnh (xem .hero-slide trong globals.css); ít hơn thì chỉ hiện ảnh đầu.
+  const animated = slides.length === 4;
+
   return (
-    <section className="hero-glow border-b border-border">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-gold-deep">
+    <section
+      className={cn(
+        "relative isolate overflow-hidden border-b border-border",
+        hasImages ? "bg-[#1b1714] text-white" : "hero-glow",
+      )}
+    >
+      {hasImages && (
+        <div aria-hidden="true" className="absolute inset-0 -z-10">
+          {slides.map((slide, index) => (
+            <div
+              key={slide.slug}
+              className={cn("absolute inset-0", animated ? "hero-slide" : index > 0 && "hidden")}
+              style={animated ? { animationDelay: `${index * 7}s` } : undefined}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- ảnh nền trang trí, đã có srcset nhiều cỡ */}
+              <img
+                {...responsiveImage(slide.image.url, 1600)}
+                sizes="100vw"
+                alt=""
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchPriority={index === 0 ? "high" : undefined}
+                className="hero-slide-img h-full w-full object-cover opacity-60"
+                style={slide.image.focalPoint ? { objectPosition: slide.image.focalPoint } : undefined}
+              />
+            </div>
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/20" />
+        </div>
+      )}
+
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+        <p className={cn("mb-3 text-sm font-semibold uppercase tracking-widest", hasImages ? "text-[#f3d9a4]" : "text-gold-deep")}>
           Lịch sử Việt Nam · Lớp 12
         </p>
-        <h1 className="max-w-3xl text-balance font-serif text-4xl font-bold leading-tight text-foreground sm:text-5xl">
-          Khám phá lịch sử qua{" "}
-          <span className="whitespace-nowrap text-accent">dòng thời gian</span> và{" "}
-          <span className="whitespace-nowrap text-accent">bản đồ</span> tương tác
+        <h1
+          className={cn(
+            "max-w-3xl text-balance font-serif text-4xl font-bold leading-tight sm:text-5xl",
+            hasImages ? "text-white" : "text-foreground",
+          )}
+        >
+          Mỗi bức ảnh là <span className={hasImages ? "text-[#f3d9a4]" : "text-accent"}>một câu chuyện có thật</span>
         </h1>
-        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          Xem sự kiện, nhân vật và địa điểm trong chương trình Lịch sử 12 theo thời gian và không
-          gian — mọi nội dung đều có nguồn tham khảo.
+        <p className={cn("mt-4 max-w-2xl text-lg", hasImages ? "text-white/85" : "text-muted-foreground")}>
+          Hãy nhìn tận mắt những khoảnh khắc làm nên Việt Nam, rồi đi theo dòng thời gian và bản đồ để hiểu vì sao
+          chúng xảy ra. Mọi nội dung đều có nguồn tham khảo.
         </p>
 
         <Form action="/tra-cuu" role="search" className="mt-8 max-w-2xl">
@@ -42,6 +86,28 @@ export function Hero() {
             <Button type="submit">Tìm kiếm</Button>
           </div>
         </Form>
+
+        {hasImages && (
+          <div className="mt-10">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-white/70">Ảnh trong khung hình</p>
+            <ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+              {slides.map((slide, index) => (
+                <li key={slide.slug}>
+                  <Link
+                    href={`/su-kien/${slide.slug}`}
+                    className={cn(
+                      "underline-offset-4 hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
+                      animated ? "hero-caption" : "text-white/85",
+                    )}
+                    style={animated ? { animationDelay: `${index * 7}s` } : undefined}
+                  >
+                    {slide.title} <span className="text-white/60">({slide.dateText})</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </section>
   );

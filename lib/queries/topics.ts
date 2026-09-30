@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cache } from "react";
 import type { Database } from "@/lib/database.types";
+import { pickCardCover, type CardCover, type CardMediaRow } from "@/lib/media";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { WorkflowStatus } from "@/lib/utils/labels";
 
@@ -11,6 +12,8 @@ export type PublishedTopic = {
   description: string | null;
   /** Số sự kiện ĐÃ CÔNG BỐ thuộc chủ đề này. */
   eventCount: number;
+  /** Ảnh đại diện: ảnh bìa của sự kiện sớm nhất (đã công bố) có ảnh trong chủ đề. */
+  cover?: CardCover;
 };
 
 /** Chủ đề đã công bố, sắp theo `sort_order`, kèm số sự kiện published (UC01). */
@@ -19,10 +22,13 @@ export async function getPublishedTopics(): Promise<PublishedTopic[]> {
 
   const { data, error } = await supabase
     .from("curriculum_topics")
-    .select("id, slug, name, description, historical_events(count)")
+    .select(
+      "id, slug, name, description, historical_events(count), covers:historical_events(start_year, media_assets(file_url, alt_text, media_type, is_cover, focal_point, sort_order))",
+    )
     .eq("workflow_status", "published")
     // Chỉ đếm sự kiện published (RLS đã lọc cho anon, đây là lớp phòng thủ thứ hai).
     .eq("historical_events.workflow_status", "published")
+    .eq("covers.workflow_status", "published")
     .order("sort_order", { ascending: true });
 
   if (error) {
@@ -35,7 +41,15 @@ export async function getPublishedTopics(): Promise<PublishedTopic[]> {
     name: topic.name,
     description: topic.description,
     eventCount: topic.historical_events[0]?.count ?? 0,
+    cover: topicCover(topic.covers as { start_year: number; media_assets: CardMediaRow[] }[]),
   }));
+}
+
+function topicCover(events: { start_year: number; media_assets: CardMediaRow[] }[]): CardCover | undefined {
+  return [...events]
+    .sort((a, b) => a.start_year - b.start_year)
+    .map((event) => pickCardCover(event.media_assets))
+    .find((cover) => cover !== undefined);
 }
 
 export type TopicDetail = Omit<PublishedTopic, "eventCount"> & { status: WorkflowStatus };

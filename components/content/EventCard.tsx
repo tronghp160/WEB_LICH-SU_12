@@ -4,7 +4,9 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { TopicBadge } from "@/components/content/TopicBadge";
 import { DatePrecisionBadge } from "@/components/content/DatePrecisionBadge";
+import { SafeImage } from "@/components/ui/SafeImage";
 import type { EventSummary } from "@/lib/queries/events";
+import { responsiveImage } from "@/lib/utils/text";
 
 export type EventCardProps = EventSummary & {
   /**
@@ -12,6 +14,8 @@ export type EventCardProps = EventSummary & {
    * khu vực vốn chỉ liệt kê sự kiện nổi bật, nơi badge này chỉ lặp thừa.
    */
   showFeaturedBadge?: boolean;
+  /** Ẩn ảnh đầu thẻ (khu vực đã có ảnh lớn khác hoặc cần danh sách gọn). */
+  hideImage?: boolean;
   /**
    * Hành động phụ dưới thẻ (ví dụ "Xem trên bản đồ"). Được nâng lên z-10 nên
    * bấm được độc lập với liên kết trải rộng của cả thẻ.
@@ -33,14 +37,39 @@ export function EventCard({
   isFeatured,
   topicName,
   topicSlug,
+  year,
+  cover,
   showFeaturedBadge = true,
+  hideImage = false,
   children,
 }: EventCardProps) {
   const showFeatured = showFeaturedBadge && isFeatured;
   const hasBadges = showFeatured || Boolean(topicName) || datePrecision !== "exact";
 
   return (
-    <Card className="relative flex h-full flex-col gap-2 p-4 transition-shadow hover:shadow-lg">
+    <Card className="group relative flex h-full flex-col gap-2 overflow-hidden p-4 transition-shadow hover:shadow-lg">
+      {!hideImage && (
+        // Ảnh đầu thẻ tràn viền (bù padding của Card); không có ảnh thì hiện năm lớn trên nền màu.
+        <div className="-mx-4 -mt-4 mb-2 aspect-[16/9] overflow-hidden bg-muted">
+          {cover ? (
+            <SafeImage
+              {...responsiveImage(cover.url, 480)}
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              alt={cover.alt}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              style={cover.focalPoint ? { objectPosition: cover.focalPoint } : undefined}
+              fallbackClassName="h-full w-full"
+            />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="flex h-full w-full items-end bg-gradient-to-br from-gold/25 via-muted to-accent/15 p-4"
+            >
+              <span className="font-serif text-5xl font-bold text-gold-deep/80">{year ?? ""}</span>
+            </div>
+          )}
+        </div>
+      )}
       {hasBadges && (
         // Một dòng, không xuống hàng: badge chủ đề dài tự rút gọn "…", các nhãn
         // còn lại (shrink-0) luôn hiện đủ.

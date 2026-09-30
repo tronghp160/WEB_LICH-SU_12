@@ -1,4 +1,5 @@
 import { FileText } from "lucide-react";
+import { LightboxTrigger } from "@/components/content/Lightbox";
 import { MediaCredit, MediaLabels } from "@/components/content/MediaCredit";
 import { SafeImage } from "@/components/ui/SafeImage";
 import type { MediaItem } from "@/lib/media";
@@ -21,16 +22,18 @@ export function MediaGallery({ media }: MediaGalleryProps) {
         <li key={item.id} className="overflow-hidden rounded-card border border-border bg-surface">
           {item.type === "image" ? (
             <figure>
-              <SafeImage
-                {...responsiveImage(item.url, 600)}
-                sizes="(min-width: 640px) 50vw, 100vw"
-                width={item.width ?? undefined}
-                height={item.height ?? undefined}
-                alt={item.altText ?? item.caption ?? ""}
-                className="aspect-[4/3] w-full bg-muted object-cover"
-                style={item.focalPoint ? { objectPosition: item.focalPoint } : undefined}
-                fallbackClassName="aspect-[4/3] w-full"
-              />
+              <LightboxTrigger mediaId={item.id} label={item.caption ?? item.altText ?? ""}>
+                <SafeImage
+                  {...responsiveImage(item.url, 600)}
+                  sizes="(min-width: 640px) 50vw, 100vw"
+                  width={item.width ?? undefined}
+                  height={item.height ?? undefined}
+                  alt={item.altText ?? item.caption ?? ""}
+                  className="aspect-[4/3] w-full bg-muted object-cover"
+                  style={item.focalPoint ? { objectPosition: item.focalPoint } : undefined}
+                  fallbackClassName="aspect-[4/3] w-full"
+                />
+              </LightboxTrigger>
               <figcaption className="flex flex-col gap-1.5 p-3 text-sm">
                 <MediaLabels item={item} />
                 {item.caption && <span className="text-surface-foreground">{item.caption}</span>}

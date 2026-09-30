@@ -1,8 +1,14 @@
+import { Navigation } from "lucide-react";
 import { AccuracyBadge } from "@/components/content/AccuracyBadge";
+import { BeforeAfterSlider } from "@/components/content/BeforeAfterSlider";
+import { DetailCover } from "@/components/content/DetailCover";
+import { LightboxProvider } from "@/components/content/Lightbox";
+import { MediaGallery } from "@/components/content/MediaGallery";
 import { CompactTimeline } from "@/components/content/CompactTimeline";
 import { MiniMapLazy } from "@/components/map/MiniMapLazy";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { arrangeMedia, googleMapsLink } from "@/lib/media";
 import type { LocationDetail } from "@/lib/queries/locations";
 import { splitParagraphs } from "@/lib/utils/text";
 
@@ -16,8 +22,11 @@ type LocationDetailViewProps = {
 export function LocationDetailView({ location, preview = false }: LocationDetailViewProps) {
   const paragraphs = splitParagraphs(location.description);
   const hasCoordinates = location.latitude !== null && location.longitude !== null;
+  const { cover, pairs, gallery } = arrangeMedia(location.media);
+  const maps = hasCoordinates ? googleMapsLink(location.latitude!, location.longitude!, location.accuracyLevel) : null;
 
   return (
+    <LightboxProvider items={location.media}>
     <article className={preview ? "" : "mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6"}>
       {!preview && (
         <Breadcrumb
@@ -25,12 +34,23 @@ export function LocationDetailView({ location, preview = false }: LocationDetail
         />
       )}
 
-      <header className={preview ? "max-w-3xl" : "mt-4 max-w-3xl"}>
-        <h1 className="text-balance font-serif text-3xl font-bold text-foreground sm:text-4xl">
-          {location.name}
-        </h1>
-        {location.historicalName && (
-          <p className="mt-2 text-lg text-gold-deep">Tên lịch sử: {location.historicalName}</p>
+      <header className={cover ? "" : preview ? "max-w-3xl" : "mt-4 max-w-3xl"}>
+        {cover ? (
+          <DetailCover cover={cover}>
+            <h1 className="max-w-3xl text-balance font-serif text-3xl font-bold text-white drop-shadow sm:text-5xl">
+              {location.name}
+            </h1>
+            {location.historicalName && <p className="mt-2 text-lg text-[#f3d9a4]">Tên lịch sử: {location.historicalName}</p>}
+          </DetailCover>
+        ) : (
+          <>
+            <h1 className="text-balance font-serif text-3xl font-bold text-foreground sm:text-4xl">
+              {location.name}
+            </h1>
+            {location.historicalName && (
+              <p className="mt-2 text-lg text-gold-deep">Tên lịch sử: {location.historicalName}</p>
+            )}
+          </>
         )}
         <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <span>Độ chính xác tọa độ:</span>
@@ -58,6 +78,19 @@ export function LocationDetailView({ location, preview = false }: LocationDetail
             </section>
           )}
 
+          {pairs.length > 0 && (
+            <section aria-labelledby="xua-va-nay">
+              <h2 id="xua-va-nay" className="mb-4 font-serif text-2xl font-bold text-foreground">
+                Xưa và nay
+              </h2>
+              <div className="flex flex-col gap-8">
+                {pairs.map((pair) => (
+                  <BeforeAfterSlider key={pair.before.id} before={pair.before} after={pair.after} />
+                ))}
+              </div>
+            </section>
+          )}
+
           <section aria-labelledby="su-kien-tai-day">
             <h2 id="su-kien-tai-day" className="mb-4 font-serif text-2xl font-bold text-foreground">
               Sự kiện tại địa điểm này
@@ -79,7 +112,7 @@ export function LocationDetailView({ location, preview = false }: LocationDetail
           </section>
         </div>
 
-        <aside aria-label="Vị trí trên bản đồ">
+        <aside aria-label="Vị trí và thông tin đến thăm" className="flex min-w-0 flex-col gap-4">
           {hasCoordinates ? (
             <MiniMapLazy
               locations={[
@@ -99,8 +132,38 @@ export function LocationDetailView({ location, preview = false }: LocationDetail
               Địa điểm này chưa có tọa độ nên chưa hiển thị trên bản đồ.
             </p>
           )}
+          {maps && (
+            <section aria-labelledby="den-tham" className="rounded-card border border-border bg-surface p-4">
+              <h2 id="den-tham" className="font-serif text-lg font-bold text-surface-foreground">
+                Đến thăm
+              </h2>
+              {location.accuracyNote && <p className="mt-1 text-sm text-muted-foreground">{location.accuracyNote}</p>}
+              <a
+                href={maps.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline"
+              >
+                <Navigation className="h-4 w-4" aria-hidden="true" />
+                {maps.label}
+              </a>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Giờ mở cửa và giá vé có thể thay đổi — hãy xem thông báo của ban quản lý di tích trước khi đi.
+              </p>
+            </section>
+          )}
         </aside>
       </div>
+
+      {gallery.length > 0 && (
+        <section aria-labelledby="anh-dia-diem" className="mt-12">
+          <h2 id="anh-dia-diem" className="mb-4 font-serif text-2xl font-bold text-foreground">
+            Hình ảnh
+          </h2>
+          <MediaGallery media={gallery} />
+        </section>
+      )}
     </article>
+    </LightboxProvider>
   );
 }

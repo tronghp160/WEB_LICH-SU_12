@@ -53,6 +53,17 @@ export type MediaItem = {
   height: number | null;
 };
 
+/**
+ * Link Google Maps cho một tọa độ: địa điểm chính xác/gần đúng → chỉ đường tới đó; tọa độ chỉ đại diện khu vực
+ * (region/unknown) → mở bản đồ khu vực, không hứa chỉ đường tới một công trình cụ thể.
+ */
+export function googleMapsLink(latitude: number, longitude: number, accuracyLevel: string): { href: string; label: string } {
+  const point = `${latitude},${longitude}`;
+  return accuracyLevel === "exact" || accuracyLevel === "approximate"
+    ? { href: `https://www.google.com/maps/dir/?api=1&destination=${point}`, label: "Chỉ đường bằng Google Maps" }
+    : { href: `https://www.google.com/maps/search/?api=1&query=${point}`, label: "Xem khu vực trên Google Maps" };
+}
+
 /** Tên giấy phép tiếng Anh thường gặp (lấy nguyên từ Commons) → tiếng Việt cho học sinh đọc. */
 const LICENSE_LABELS: Record<string, string> = {
   "public domain": "Phạm vi công cộng",
@@ -92,6 +103,52 @@ export function toMediaItems(rows: readonly MediaRow[]): MediaItem[] {
   return [...rows]
     .sort((a, b) => Number(b.is_cover) - Number(a.is_cover) || (a.sort_order ?? 0) - (b.sort_order ?? 0))
     .map(toMediaItem);
+}
+
+/** Ảnh gọn cho thẻ (sự kiện, nhân vật, địa điểm, chủ đề). */
+export type CardCover = { url: string; alt: string; focalPoint: string | null };
+
+export type CardMediaRow = {
+  file_url: string;
+  alt_text: string | null;
+  media_type: string;
+  is_cover: boolean;
+  focal_point: string | null;
+  sort_order: number | null;
+};
+
+/** Ảnh bìa của một nội dung; chưa chọn bìa thì lấy ảnh có thứ tự nhỏ nhất; không có ảnh → undefined. */
+export function pickCardCover(rows: readonly CardMediaRow[]): CardCover | undefined {
+  const images = rows.filter((row) => row.media_type === "image");
+  const chosen =
+    images.find((row) => row.is_cover) ?? [...images].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))[0];
+  return chosen ? { url: chosen.file_url, alt: chosen.alt_text ?? "", focalPoint: chosen.focal_point } : undefined;
+}
+
+export type ArrangedMedia = {
+  cover: MediaItem | null;
+  /** Cặp "xưa – nay": before là ảnh tư liệu/minh họa, after là ảnh ngày nay. */
+  pairs: { before: MediaItem; after: MediaItem }[];
+  /** Ảnh và tài liệu còn lại (không gồm ảnh bìa và ảnh đã nằm trong cặp xưa – nay). */
+  gallery: MediaItem[];
+};
+
+/** Chia ảnh của một trang thành ảnh bìa, các cặp xưa – nay và bộ sưu tập, không lặp ảnh trong bộ sưu tập. */
+export function arrangeMedia(items: readonly MediaItem[]): ArrangedMedia {
+  const cover = pickCover(items);
+  const byPair = new Map<string, MediaItem[]>();
+  for (const item of items) {
+    if (item.type !== "image" || !item.pairId) continue;
+    byPair.set(item.pairId, [...(byPair.get(item.pairId) ?? []), item]);
+  }
+  const pairs = [...byPair.values()].flatMap((group) => {
+    const after = group.find((item) => item.era === "today");
+    const before = group.find((item) => item.era !== "today");
+    // Chỉ nhận cặp đúng 2 ảnh, một xưa một nay; ghép sai (hai ảnh cùng loại) thì để trong bộ sưu tập.
+    return group.length === 2 && before && after ? [{ before, after }] : [];
+  });
+  const paired = new Set(pairs.flatMap((pair) => [pair.before.id, pair.after.id]));
+  return { cover, pairs, gallery: items.filter((item) => item.id !== cover?.id && !paired.has(item.id)) };
 }
 
 /** Ảnh bìa (hoặc ảnh đầu tiên nếu chưa chọn bìa); null nếu không có ảnh. */
