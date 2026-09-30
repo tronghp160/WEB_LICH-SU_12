@@ -160,6 +160,23 @@ describe("dữ liệu bài học", () => {
         }
       });
 
+      it("hiện vật có ảnh hoặc mô hình quét; mô hình quét có mã Sketchfab hợp lệ, ghi công, ảnh xem trước", () => {
+        const exhibits = [...(lesson.artifacts ?? []), ...(lesson.todayScans ?? [])];
+        const scans = [...exhibits.flatMap((item) => (item.scan ? [item.scan] : [])), ...(lesson.resultsScan ? [lesson.resultsScan] : [])];
+        for (const item of exhibits) expect(Boolean(item.image || item.scan), item.title).toBe(true);
+        for (const item of lesson.todayScans ?? []) expect(item.scan, item.title).toBeDefined();
+        expect(new Set(scans.map((scan) => scan.sketchfabId)).size).toBe(scans.length);
+        for (const scan of scans) {
+          expect(scan.sketchfabId, scan.title).toMatch(/^[0-9a-f]{32}$/);
+          expect(scan.author.length).toBeGreaterThan(1);
+          expect(scan.authorUrl).toMatch(/^https:\/\/sketchfab\.com\//);
+          expect(scan.poster).toMatch(/^https:\/\/media\.sketchfab\.com\/models\/[0-9a-f]{32}\//);
+          expect(scan.poster).toContain(scan.sketchfabId);
+          expect(scan.note.length).toBeGreaterThan(20);
+          expect(scan.sizeMb).toBeGreaterThan(0);
+        }
+      });
+
       it("trắc nghiệm riêng: 4 đáp án khác nhau, có giải thích", () => {
         for (const item of lesson.quiz ?? []) {
           expect(new Set(item.choices).size, item.question).toBe(4);
@@ -181,7 +198,7 @@ describe("dữ liệu bài học", () => {
           lesson.hero,
           ...lesson.today,
           ...lesson.figures.flatMap((figure) => (figure.image ? [figure.image] : [])),
-          ...(lesson.artifacts ?? []).map((item) => item.image),
+          ...(lesson.artifacts ?? []).flatMap((item) => (item.image ? [item.image] : [])),
           ...(lesson.resultsImage ? [lesson.resultsImage] : []),
         ];
         const stepImages = lesson.battle.steps.flatMap((step) => (step.image ? [step.image] : []));
@@ -196,7 +213,7 @@ describe("dữ liệu bài học", () => {
       });
 
       it("ảnh 3D: có bản đồ độ sâu, đúng kích thước file, điểm chú thích nằm trong khung", async () => {
-        const images = [lesson.hero, ...lesson.today, ...(lesson.artifacts ?? []).map((item) => item.image), ...(lesson.resultsImage ? [lesson.resultsImage] : [])];
+        const images = [lesson.hero, ...lesson.today, ...(lesson.artifacts ?? []).flatMap((item) => (item.image ? [item.image] : [])), ...(lesson.resultsImage ? [lesson.resultsImage] : [])];
         for (const image of images.filter((item) => item.depthSrc)) {
           expect(image.depthSrc).toBe(depthPathFor(image.src));
           const depthFile = path.join(PUBLIC_DIR, image.depthSrc!);

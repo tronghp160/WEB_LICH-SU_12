@@ -15,22 +15,41 @@ test.describe("Ảnh thật 3D trong bài học Điện Biên Phủ", () => {
   test("ba mục có ảnh 3D; ban đầu là ảnh tĩnh, chưa dựng WebGL; không còn mô hình dựng bằng mã", async ({ page }) => {
     await page.goto(LESSON);
     await expect(page.getByTestId("model-stage")).toHaveCount(0);
+    // Mục đầu của cả ba thư viện là mô hình 360°: chỉ ảnh xem trước, chưa tải trình xem Sketchfab.
     for (const section of ["ket-qua", "hien-vat", "ngay-nay"]) {
-      const stage = page.locator(`section[aria-labelledby="${section}"]`).getByTestId("photo3d-stage");
-      await expect(stage).toHaveAttribute("data-phase", "idle");
-      await expect(stage.locator("img")).toBeVisible();
+      const stage = page.locator(`section[aria-labelledby="${section}"]`).getByTestId("scan-stage");
+      await expect(stage.getByTestId("scan-start")).toBeVisible();
+      await expect(stage.getByTestId("scan-iframe")).toHaveCount(0);
     }
     const artifacts = page.locator('section[aria-labelledby="hien-vat"]');
-    await expect(artifacts.getByTestId("photo3d-tab")).toHaveCount(6);
-    await expect(page.locator('section[aria-labelledby="ngay-nay"]').getByTestId("photo3d-tab")).toHaveCount(5);
-    // Điểm chú thích đọc được ngay cả khi chưa bật 3D.
+    await expect(artifacts.getByTestId("photo3d-tab")).toHaveCount(8);
+    await expect(artifacts.getByTestId("photo3d-tab").filter({ hasText: "360°" })).toHaveCount(3);
+    await expect(page.locator('section[aria-labelledby="ngay-nay"]').getByTestId("photo3d-tab")).toHaveCount(6);
+    // Lựu pháo có cả hai cách xem; chuyển sang ảnh thật thì thấy ảnh tĩnh và điểm chú thích đọc được ngay cả khi chưa bật 3D.
+    await artifacts.getByTestId("exhibit-mode-photo").click();
+    await expect(artifacts.getByTestId("photo3d-stage")).toHaveAttribute("data-phase", "idle");
     await artifacts.getByRole("list", { name: /Các chi tiết/ }).getByRole("button", { name: /Nòng pháo/ }).click();
     await expect(artifacts.getByTestId("photo3d-text")).toContainText("105 mm");
+  });
+
+  test("mô hình 360°: bấm Xoay 360° mới chèn trình xem Sketchfab đúng mô hình, có ghi công tác giả", async ({ page }) => {
+    await page.goto(LESSON);
+    const artifacts = page.locator('section[aria-labelledby="hien-vat"]');
+    await artifacts.getByRole("tab", { name: /Mũ nan của Anh hùng Trần Can/ }).click();
+    await expect(artifacts.getByText(/tải khoảng 24 MB/)).toBeVisible();
+    await artifacts.getByTestId("scan-start").click();
+    await expect(artifacts.getByTestId("scan-iframe")).toHaveAttribute("src", /sketchfab\.com\/models\/2e78e5054efb4b0e83914848226c529a\/embed\?.*dnt=1/);
+    await expect(artifacts.getByRole("link", { name: "SEAP VR" })).toHaveAttribute("href", "https://sketchfab.com/seapvisualization");
+    // Đổi sang mô hình khác không tự tải (tránh tải hàng chục MB ngoài ý muốn).
+    await artifacts.getByRole("tab", { name: /Dép cao su/ }).click();
+    await expect(artifacts.getByTestId("scan-iframe")).toHaveCount(0);
+    await expect(artifacts.getByTestId("scan-start")).toBeVisible();
   });
 
   test("bấm Xem ảnh 3D: dựng WebGL, rê chuột để nghiêng, đổi thẻ thì ảnh mới tự dựng", async ({ page }) => {
     await page.goto(LESSON);
     const artifacts = page.locator('section[aria-labelledby="hien-vat"]');
+    await artifacts.getByRole("tab", { name: "Pháo cao xạ 37 mm" }).click();
     const stage = artifacts.getByTestId("photo3d-stage");
     await stage.scrollIntoViewIfNeeded();
     await artifacts.getByTestId("photo3d-start").click();
@@ -61,11 +80,11 @@ test.describe("Ảnh thật 3D trong bài học Điện Biên Phủ", () => {
   test("thẻ chọn đổi bằng phím mũi tên", async ({ page }) => {
     await page.goto(LESSON);
     const artifacts = page.locator('section[aria-labelledby="hien-vat"]');
-    await artifacts.getByRole("tab", { name: "Lựu pháo 105 mm" }).focus();
+    await artifacts.getByRole("tab", { name: /Lựu pháo 105 mm/ }).focus();
     await page.keyboard.press("ArrowRight");
-    await expect(artifacts.getByRole("tab", { name: "Pháo cao xạ 37 mm" })).toHaveAttribute("aria-selected", "true");
+    await expect(artifacts.getByRole("tab", { name: /Mũ nan/ })).toHaveAttribute("aria-selected", "true");
     await page.keyboard.press("ArrowLeft");
-    await expect(artifacts.getByRole("tab", { name: "Lựu pháo 105 mm" })).toHaveAttribute("aria-selected", "true");
+    await expect(artifacts.getByRole("tab", { name: /Lựu pháo 105 mm/ })).toHaveAttribute("aria-selected", "true");
   });
 
   test("không có WebGL: báo rõ, ảnh thật và chú thích vẫn dùng được", async ({ browser }) => {
@@ -80,6 +99,7 @@ test.describe("Ảnh thật 3D trong bài học Điện Biên Phủ", () => {
     });
     await page.goto(LESSON);
     const artifacts = page.locator('section[aria-labelledby="hien-vat"]');
+    await artifacts.getByRole("tab", { name: "Pháo cao xạ 37 mm" }).click();
     await artifacts.getByTestId("photo3d-start").click();
     await expect(artifacts.getByRole("alert")).toContainText("không hiển thị được ảnh 3D");
     await expect(artifacts.getByTestId("photo3d-stage").locator("img")).toBeVisible();

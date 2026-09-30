@@ -15,7 +15,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { LinkButton } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SafeImage } from "@/components/ui/SafeImage";
-import type { Lesson, LessonImage } from "@/lib/lessons/types";
+import type { Lesson, LessonExhibit, LessonImage } from "@/lib/lessons/types";
 import { quizPaths } from "@/lib/quiz/sets";
 
 function SectionHeading({ id, eyebrow, title }: { id: string; eyebrow: string; title: string }) {
@@ -35,6 +35,12 @@ function Credit({ image }: { image: LessonImage }) {
       {image.credit}
     </a>
   );
+}
+
+/** Hiện vật (ảnh thật và/hoặc mô hình quét 360°) → mục của thư viện 3D. */
+function exhibitItem(exhibit: LessonExhibit): DepthPhotoItem {
+  const base = exhibit.image ? photoItem(exhibit.image) : { id: `scan-${exhibit.scan!.sketchfabId}` };
+  return { ...base, title: exhibit.title, text: exhibit.text, image: exhibit.image, scan: exhibit.scan };
 }
 
 /** Ảnh bài học → mục của thư viện ảnh 3D (tiêu đề ngắn lấy từ chú thích nếu không có). */
@@ -217,33 +223,31 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
               </Reveal>
             ))}
           </ul>
-          {lesson.resultsImage && (
+          {(lesson.resultsScan || lesson.resultsImage?.depthSrc) && (
             <div className="mt-8">
-              {lesson.resultsImage.depthSrc ? (
-                <>
-                  <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Nhìn lòng chảo bằng ảnh 3D</h3>
-                  <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
-                    Ảnh chụp thật từ trên cao, dựng thành ảnh có chiều sâu: rê chuột (hoặc kéo trên điện thoại) để nghiêng nhìn, bấm các số để đọc chú thích.
-                  </p>
-                  <DepthPhotoGallery items={[photoItem(lesson.resultsImage)]} label="Ảnh 3D lòng chảo" />
-                </>
-              ) : (
-                <figure className="overflow-hidden rounded-card border border-border bg-surface">
-                  <SafeImage
-                    src={lesson.resultsImage.src}
-                    alt={lesson.resultsImage.alt}
-                    className="max-h-[32rem] w-full object-cover"
-                    fallbackClassName="aspect-[16/9]"
-                  />
-                  <figcaption className="p-3 text-sm text-surface-foreground">
-                    {lesson.resultsImage.caption}{" "}
-                    <span className="text-xs text-muted-foreground">
-                      (<Credit image={lesson.resultsImage} />)
-                    </span>
-                  </figcaption>
-                </figure>
-              )}
+              <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Nhìn lòng chảo bằng 3D</h3>
+              <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
+                Xoay sa bàn địa hình thật của lòng chảo 360°, hoặc xem ảnh chụp từ trên cao năm 1953 dạng có chiều sâu và bấm các số để đọc chú thích.
+              </p>
+              <DepthPhotoGallery
+                items={[
+                  ...(lesson.resultsScan ? [exhibitItem({ title: "Sa bàn lòng chảo", scan: lesson.resultsScan })] : []),
+                  ...(lesson.resultsImage?.depthSrc ? [photoItem(lesson.resultsImage)] : []),
+                ]}
+                label="Lòng chảo Điện Biên Phủ 3D"
+              />
             </div>
+          )}
+          {lesson.resultsImage && !lesson.resultsImage.depthSrc && (
+            <figure className="mt-8 overflow-hidden rounded-card border border-border bg-surface">
+              <SafeImage src={lesson.resultsImage.src} alt={lesson.resultsImage.alt} className="max-h-[32rem] w-full object-cover" fallbackClassName="aspect-[16/9]" />
+              <figcaption className="p-3 text-sm text-surface-foreground">
+                {lesson.resultsImage.caption}{" "}
+                <span className="text-xs text-muted-foreground">
+                  (<Credit image={lesson.resultsImage} />)
+                </span>
+              </figcaption>
+            </figure>
           )}
           <ul className="mt-8 grid gap-4 md:grid-cols-2">
             {lesson.significance.map((item, index) => (
@@ -322,20 +326,17 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         {lesson.artifacts && lesson.artifacts.length > 0 && (
           <section aria-labelledby="hien-vat">
             <SectionHeading id="hien-vat" eyebrow="Hiện vật và trang bị" title="Nhìn tận mắt những gì làm nên chiến thắng" />
-            {lesson.artifacts.every((item) => item.image.depthSrc) ? (
+            {lesson.artifacts.some((item) => item.scan || item.image?.depthSrc) ? (
               <>
                 <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
-                  Chọn từng hiện vật, bấm <strong className="text-foreground">Xem ảnh 3D</strong> rồi rê chuột hoặc kéo để nghiêng nhìn; bấm các số trên ảnh
-                  để biết từng bộ phận, từng chi tiết.
+                  Hiện vật có nhãn <strong className="text-foreground">360°</strong> là mô hình quét 3D từ vật thật: bấm <strong className="text-foreground">Xoay 360°</strong>{" "}
+                  rồi kéo để xem mọi phía, cuộn để phóng to. Các hiện vật khác là ảnh chụp thật xem dạng có chiều sâu, bấm các số để đọc từng chi tiết.
                 </p>
-                <DepthPhotoGallery
-                  items={lesson.artifacts.map((item) => ({ ...photoItem(item.image), title: item.title, text: item.text }))}
-                  label="Chọn hiện vật"
-                />
+                <DepthPhotoGallery items={lesson.artifacts.map((item) => exhibitItem(item))} label="Chọn hiện vật" />
               </>
             ) : (
               <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {lesson.artifacts.map((item, index) => (
+                {lesson.artifacts.flatMap((item) => (item.image ? [{ ...item, image: item.image }] : [])).map((item, index) => (
                   <Reveal as="li" key={item.image.src} delay={(index % 3) * 100}>
                     <figure className="lesson-zoom flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface">
                       <div className="overflow-hidden">
@@ -363,10 +364,13 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
             {lesson.today.every((image) => image.depthSrc) ? (
               <>
                 <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
-                  Ảnh chụp thật tại di tích, xem được dạng 3D: chọn di tích, bấm <strong className="text-foreground">Xem ảnh 3D</strong>, rê chuột hoặc kéo để
-                  nghiêng nhìn.
+                  Chọn di tích: mục có nhãn <strong className="text-foreground">360°</strong> xoay được mọi phía; các mục khác là ảnh chụp thật, bấm{" "}
+                  <strong className="text-foreground">Xem ảnh 3D</strong> rồi rê chuột hoặc kéo để nghiêng nhìn.
                 </p>
-                <DepthPhotoGallery items={lesson.today.map((image) => photoItem(image))} label="Chọn di tích" />
+                <DepthPhotoGallery
+                  items={[...(lesson.todayScans ?? []).map((item) => exhibitItem(item)), ...lesson.today.map((image) => photoItem(image))]}
+                  label="Chọn di tích"
+                />
               </>
             ) : (
               <>

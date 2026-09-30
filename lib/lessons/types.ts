@@ -19,6 +19,33 @@ export type LessonImage = {
   hotspots?: PhotoHotspot[];
 };
 
+/**
+ * Mô hình quét 3D của hiện vật/di tích thật, xoay được 360°, đăng công khai trên Sketchfab. Nhúng bằng trình xem chính
+ * thức của Sketchfab (tác giả cho phép nhúng; không tải file về), ghi công tác giả kèm link.
+ */
+export type LessonScan3D = {
+  /** Mã mô hình Sketchfab (32 ký tự hex). */
+  sketchfabId: string;
+  /** Tên mô hình như tác giả đặt. */
+  title: string;
+  author: string;
+  authorUrl: string;
+  /** Ảnh xem trước (hiện trước khi bấm, không tải trình xem). */
+  poster: string;
+  /** Xuất xứ và lưu ý ngắn cho người xem. */
+  note: string;
+  /** Dung lượng tải khi xem (MB, đo thực tế gồm cả trình xem) — báo trước cho người dùng mạng di động. */
+  sizeMb: number;
+};
+
+/** Một hiện vật/di tích trong thư viện 3D: có ảnh chụp thật (xem dạng có chiều sâu) và/hoặc mô hình quét 360°. */
+export type LessonExhibit = {
+  title: string;
+  text?: string;
+  image?: LessonImage;
+  scan?: LessonScan3D;
+};
+
 export type PhotoHotspot = {
   label: string;
   text: string;
@@ -113,8 +140,12 @@ export type Lesson = {
   quiz?: LessonQuizQuestion[];
   /** Ảnh lớn ở phần Kết quả (ví dụ toàn cảnh chiến trường). */
   resultsImage?: LessonImage;
-  /** Hiện vật và trang bị: ảnh chụp thật kèm lời giải thích. */
-  artifacts?: { title: string; text: string; image: LessonImage }[];
+  /** Mô hình 3D xoay 360° ở phần Kết quả (ví dụ sa bàn lòng chảo). */
+  resultsScan?: LessonScan3D;
+  /** Hiện vật và trang bị: ảnh chụp thật và/hoặc mô hình quét 360°, kèm lời giải thích. */
+  artifacts?: LessonExhibit[];
+  /** Mô hình quét 360° của di tích, hiện trước các ảnh "di tích ngày nay". */
+  todayScans?: LessonExhibit[];
   /** Phim 3D dựng trong trình duyệt (xem components/cinema3d). */
   cinema?: { href: string; title: string; description: string; posterSrc: string; posterAlt: string };
   /** Ảnh "ngày nay" tại di tích. */

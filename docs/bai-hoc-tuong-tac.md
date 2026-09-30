@@ -217,3 +217,20 @@ Người dùng thấy mô hình 3D dựng bằng mã "như phim hoạt hình", m
 - Điểm ảnh 100% là ảnh chụp thật; chỉ chiều sâu là do máy ước lượng (ghi rõ dưới mỗi ảnh). Không xoay ra phía sau vật được như mô hình thật — muốn vậy cần mô hình quét 3D (photogrammetry) có giấy phép, hiện chưa tìm được cho các hiện vật Điện Biên Phủ.
 - Ảnh tĩnh hiện ngay (đọc được khi chưa có JS hoặc không có WebGL); WebGL chỉ dựng khi bấm "Xem ảnh 3D", mỗi thư viện một khung, tạm dừng vẽ khi cuộn khỏi màn hình.
 - Kiểm thử: `tests/unit/photo3d.test.ts`, mục ảnh 3D trong `tests/unit/lesson-data.test.ts`, `tests/e2e/photo3d.spec.ts`.
+
+### Mô hình quét 3D xoay 360° (30/9/2026)
+
+Người dùng muốn xoay 360°, xem nhiều góc độ. Từ một tấm ảnh không làm được điều đó một cách trung thực, nên bài học nhúng thêm **mô hình quét 3D của hiện vật/di tích thật** đăng công khai trên Sketchfab (tác giả cho phép nhúng; không tải file về), hiện trong cùng thư viện với nhãn **360°**:
+
+| Mục | Mô hình | Tác giả | Tải khoảng |
+|---|---|---|---|
+| Kết quả | Lòng chảo Điện Biên Phủ (địa hình + ảnh, CC BY-NC) | cdg | 6 MB |
+| Hiện vật | Trận địa pháo H6 — lựu pháo 105 mm | Atlantic Truong \| Vietnam 3D | 56 MB |
+| Hiện vật | Mũ nan của Anh hùng liệt sĩ Trần Can (1954) | SEAP VR | 24 MB |
+| Hiện vật | Đôi dép cao su của cựu TNXP Bùi Đức Tuệ | SEAP VR | 12 MB |
+| Di tích | Cụm tượng Chiến thắng Điện Biên Phủ (Nguyễn Hải) | MetaArt | 7 MB |
+
+- `components/photo3d/ScanViewer.tsx`: tải lười như video YouTube — trước khi bấm "Xoay 360°" chỉ là ảnh xem trước; `dnt=1` (không theo dõi); ghi công tác giả + link trang gốc; báo trước dung lượng, khuyên dùng Wi-Fi từ 20 MB. Đổi thẻ không tự tải mô hình khác.
+- Lựu pháo 105 mm có cả hai cách xem (nút chuyển "Xoay 360°" / "Ảnh chụp thật").
+- Trình xem Sketchfab cần GPU thật: trong trình duyệt kiểm thử tự động (SwiftShader) nó báo "model can't be displayed"; E2E chỉ kiểm tra iframe đúng địa chỉ. Đã xem tận mắt bằng Edge có GPU: mũ nan, pháo H6 hiển thị và xoay được.
+- Chưa có mô hình quét cho pháo cao xạ 37 mm, xe đạp thồ, hầm De Castries, đồi A1 → vẫn dùng ảnh thật có chiều sâu. Cách có thêm: tự quét tại bảo tàng bằng điện thoại (Polycam, KIRI Engine, Scaniverse…) rồi xuất GLB — trình xem mô hình của web đã đọc được GLB.

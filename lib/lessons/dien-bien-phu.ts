@@ -1,5 +1,5 @@
 import { dienBienPhu1954 } from "@/lib/battles/dien-bien-phu-1954";
-import type { Lesson } from "@/lib/lessons/types";
+import type { Lesson, LessonScan3D } from "@/lib/lessons/types";
 
 // Bài học tương tác: Chiến dịch Điện Biên Phủ 1954. Nội dung VIẾT LẠI theo khung SGK Lịch sử 12 (Kết nối tri thức),
 // không chép nguyên văn sách. Ảnh đã kiểm tra giấy phép trên Wikimedia Commons (24/9/2026), tải về public/lessons/dien-bien-phu.
@@ -10,6 +10,60 @@ const COMMONS = "https://commons.wikimedia.org/wiki/File:";
 const commonsFile = (name: string) => `${COMMONS}${encodeURIComponent(name.replaceAll(" ", "_"))}`;
 // Ảnh TTXVN 1953–1954: Commons gắn PD-Vietnam nhưng tới 2026 mới ~72–73 năm (< 75 năm bảo hộ) — ghi rõ để xem lại.
 const TTXVN_CREDIT = "TTXVN, qua Wikimedia Commons (Commons ghi phạm vi công cộng tại Việt Nam; nhãn này đang được xem lại)";
+
+// Mô hình quét 3D (xoay 360°) của hiện vật/di tích thật, nhúng trình xem Sketchfab — tác giả cho phép nhúng (kiểm tra oEmbed
+// ngày 30/9/2026), không cho tải file. Ảnh xem trước lấy từ Sketchfab.
+const sketchfabPoster = (id: string, path: string) => `https://media.sketchfab.com/models/${id}/thumbnails/${path}`;
+
+const SCAN_PHAO_H6: LessonScan3D = {
+  sketchfabId: "af9bce7582804769865dc9f8f549ed70",
+  title: "Trận địa Pháo H6 | Artillery battle H6",
+  author: "Atlantic Truong | Vietnam 3D",
+  authorUrl: "https://sketchfab.com/atlantictruong19",
+  poster: sketchfabPoster("af9bce7582804769865dc9f8f549ed70", "afebd7b68c2b4e4ea03e23efffc1da99/91ed5cde0976444f846b4564e56f9a60.jpeg"),
+  note: "Khẩu pháo ở trận địa pháo H6, Điện Biên Phủ; theo mô tả của tác giả, pháo của Tiểu đoàn 224 ở đây bắn những loạt đạn đầu tiên vào phân khu Trung tâm.",
+  sizeMb: 56,
+};
+
+const SCAN_MU_TRAN_CAN: LessonScan3D = {
+  sketchfabId: "2e78e5054efb4b0e83914848226c529a",
+  title: "Mũ Cối Anh Hùng Liệt Sĩ Trần Can năm 1954",
+  author: "SEAP VR",
+  authorUrl: "https://sketchfab.com/seapvisualization",
+  poster: sketchfabPoster("2e78e5054efb4b0e83914848226c529a", "c45ccd30aeff4089834bfeb6327b51cd/ccb1b007b39f47b18dc327da97829d10.jpeg"),
+  note: "Hiện vật thật được số hóa 3D; thông tin hiện vật theo mô tả của đơn vị số hóa.",
+  sizeMb: 24,
+};
+
+const SCAN_DEP_CAO_SU: LessonScan3D = {
+  sketchfabId: "443378d6d13c4aed8bf1b4fba09ee9e5",
+  title: "Đôi Dép Cao Su Điện Biên Phủ",
+  author: "SEAP VR",
+  authorUrl: "https://sketchfab.com/seapvisualization",
+  poster: sketchfabPoster("443378d6d13c4aed8bf1b4fba09ee9e5", "8dcaf8b038b14f2ba8426cff2f6d9d6d/8b885bd551f242ed9547e76e9c69b011.jpeg"),
+  note: "Hiện vật thật được số hóa 3D; thông tin hiện vật theo mô tả của đơn vị số hóa.",
+  sizeMb: 12,
+};
+
+const SCAN_CUM_TUONG: LessonScan3D = {
+  sketchfabId: "050b006020fa4b9985b6cc352f49e1dc",
+  title: "Cụm tượng chiến thắng Điện Biên Phủ",
+  author: "MetaArt",
+  authorUrl: "https://sketchfab.com/MetaArtVN",
+  poster: sketchfabPoster("050b006020fa4b9985b6cc352f49e1dc", "d61f8f73843e4207b485e6352bdb81d2/f7ee4ab2e32042729dc0db73cbe817a0.jpeg"),
+  note: "Mô hình quét 3D cụm tượng của nhà điêu khắc Nguyễn Hải (theo mô tả của tác giả mô hình).",
+  sizeMb: 7,
+};
+
+const SCAN_LONG_CHAO: LessonScan3D = {
+  sketchfabId: "2e04601c8dab45179b81e5478df2c6e8",
+  title: "127 - Dien Bien Phu",
+  author: "cdg",
+  authorUrl: "https://sketchfab.com/cdg",
+  poster: sketchfabPoster("2e04601c8dab45179b81e5478df2c6e8", "c3a4c20e0d1044aa91ab828cb404468d/3f75fba619c841f3a4c5e095a4c5449e.jpeg"),
+  note: "Địa hình lòng chảo dựng từ dữ liệu độ cao, phủ ảnh; các chấm tròn trên mô hình mở ảnh chụp hàng không (chú thích tiếng Pháp). Giấy phép CC BY-NC.",
+  sizeMb: 6,
+};
 
 const DE_CASTRIES_PORTRAIT = {
   src: `${PHOTO}/de-castries.webp`,
@@ -97,6 +151,7 @@ export const dienBienPhuLesson: Lesson = {
   battle: dienBienPhu1954,
   mapFilm: "dien-bien-phu",
   // Mô hình 3D dựng bằng mã (sa bàn, tượng, hiện vật, di tích) đã thay bằng ảnh chụp thật theo yêu cầu (30/9/2026).
+  resultsScan: SCAN_LONG_CHAO,
   resultsImage: {
     src: `${PHOTO}/canh-dong-dien-bien.webp`,
     alt: "Ảnh chụp từ trên cao: lòng chảo Điện Biên rộng, dòng sông uốn khúc giữa những cánh đồng",
@@ -133,6 +188,17 @@ export const dienBienPhuLesson: Lesson = {
           { label: "Càng pháo", text: "Hai càng thép xòe ra, đầu cắm xuống đất để giữ pháo đứng vững khi bắn.", x: 88, y: 72 },
         ],
       },
+      scan: SCAN_PHAO_H6,
+    },
+    {
+      title: "Mũ nan của Anh hùng Trần Can",
+      text: "Chiếc mũ Anh hùng liệt sĩ Trần Can tự làm: tre chẻ nhỏ, vuốt mỏng, đan thành mũ rồi bọc vải xanh, phủ lưới và buộc các dải vải màu lá cây để ngụy trang. Anh dùng chiếc mũ qua nhiều chiến dịch và hy sinh ngày 6/5/1954 ở khu trung tâm Điện Biên Phủ.",
+      scan: SCAN_MU_TRAN_CAN,
+    },
+    {
+      title: "Dép cao su",
+      text: "Đôi dép cao su của cựu thanh niên xung phong Bùi Đức Tuệ (đội 34, C293), đi suốt đợt phục vụ chiến dịch Điện Biên Phủ. Bốn quai đan chéo ôm chặt bàn chân, đế đóng đinh nhỏ cho chắc — đủ bền để hành quân qua đường rừng núi.",
+      scan: SCAN_DEP_CAO_SU,
     },
     {
       title: "Pháo cao xạ 37 mm",
@@ -371,6 +437,13 @@ export const dienBienPhuLesson: Lesson = {
       choices: ["16.200", "6.200", "26.000", "49.000"],
       correct: 0,
       explanation: "Ta loại khỏi vòng chiến đấu khoảng 16.200 quân địch, bắn rơi và phá hủy 62 máy bay sau 56 ngày đêm chiến đấu.",
+    },
+  ],
+  todayScans: [
+    {
+      title: "Cụm tượng Chiến thắng",
+      text: "Cụm tượng Chiến thắng Điện Biên Phủ của nhà điêu khắc Nguyễn Hải: các chiến sĩ tung cờ trên nóc hầm chỉ huy của địch.",
+      scan: SCAN_CUM_TUONG,
     },
   ],
   today: [

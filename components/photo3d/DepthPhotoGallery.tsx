@@ -3,9 +3,10 @@
 import { Box, Info, Maximize2, Minimize2, MousePointer2, Play, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createDepthRenderer, sampleDepths, type DepthRenderer } from "@/components/photo3d/depth-renderer";
+import { ScanViewer } from "@/components/photo3d/ScanViewer";
 import { Button } from "@/components/ui/Button";
 import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
-import type { LessonImage } from "@/lib/lessons/types";
+import type { LessonImage, LessonScan3D } from "@/lib/lessons/types";
 import { approach, clamp, FOCUS_DEPTH, idleSway, projectPoint, tiltFromPointer, ZOOM_STEPS, zoomCenter, type Vec2 } from "@/lib/photo3d/parallax";
 import { cn } from "@/lib/utils/cn";
 
@@ -14,8 +15,13 @@ export type DepthPhotoItem = {
   title: string;
   /** Lời giải thích chung (hiện khi chưa chọn điểm chú thích nào). */
   text?: string;
-  image: LessonImage;
+  /** Ảnh chụp thật (xem dạng có chiều sâu); có thể thiếu nếu chỉ có mô hình quét. */
+  image?: LessonImage;
+  /** Mô hình quét 3D xoay 360° (Sketchfab). */
+  scan?: LessonScan3D;
 };
+
+type PhotoItem = DepthPhotoItem & { image: LessonImage };
 
 type Phase = "idle" | "loading" | "ready" | "unsupported";
 
@@ -44,7 +50,7 @@ function Credit({ image }: { image: LessonImage }) {
  * Một khung "ảnh thật có chiều sâu": ban đầu là ảnh tĩnh (nhẹ, đọc được khi chưa có JS); bấm "Xem ảnh 3D" thì dựng WebGL,
  * rê/kéo để nghiêng nhìn, phóng to, các điểm chú thích đánh số di chuyển theo đúng lớp sâu của chúng.
  */
-function DepthPhotoStage({ item, autoStart, onStarted }: { item: DepthPhotoItem; autoStart: boolean; onStarted: () => void }) {
+function DepthPhotoStage({ item, autoStart, onStarted }: { item: PhotoItem; autoStart: boolean; onStarted: () => void }) {
   const { image } = item;
   const hotspots = useMemo(() => image.hotspots ?? [], [image.hotspots]);
   const reducedMotion = usePrefersReducedMotion();
@@ -114,6 +120,8 @@ function DepthPhotoStage({ item, autoStart, onStarted }: { item: DepthPhotoItem;
     if (!renderer || !frame) return;
     let frameId = 0;
     let visible = true;
+    let lastKey = "";
+    let sizeVersion = 0;
     let last = performance.now();
     const startedAt = last;
 
@@ -125,10 +133,15 @@ function DepthPhotoStage({ item, autoStart, onStarted }: { item: DepthPhotoItem;
       const goal = idle && !reducedMotion && m.zoom === 1 ? idleSway((now - startedAt) / 1000) : m.target;
       m.tilt = approach(m.tilt, goal, dt, idle ? 2 : 7);
       m.center = approach(m.center, m.zoom === 1 ? CENTER : zoomCenter(m.pointer, m.zoom), dt, 5);
-      renderer.draw(m.tilt, m.zoom, m.center);
-      placeMarkers();
-      // Nghiêng nhẹ cả khung theo phối cảnh cho cảm giác cầm tấm ảnh 3D trên tay.
-      if (stageRef.current) stageRef.current.style.transform = `rotateY(${m.tilt.x * 4}deg) rotateX(${-m.tilt.y * 3}deg)`;
+      // Chỉ vẽ lại khi hình thay đổi (đứng yên thì không tốn GPU/pin — quan trọng với điện thoại yếu, máy chiếu cũ).
+      const key = `${m.tilt.x.toFixed(4)}:${m.tilt.y.toFixed(4)}:${m.zoom}:${m.center.x.toFixed(4)}:${m.center.y.toFixed(4)}:${sizeVersion}`;
+      if (key !== lastKey) {
+        lastKey = key;
+        renderer.draw(m.tilt, m.zoom, m.center);
+        placeMarkers();
+        // Nghiêng nhẹ cả khung theo phối cảnh cho cảm giác cầm tấm ảnh 3D trên tay.
+        if (stageRef.current) stageRef.current.style.transform = `rotateY(${m.tilt.x * 4}deg) rotateX(${-m.tilt.y * 3}deg)`;
+      }
       if (visible) frameId = requestAnimationFrame(tick);
     };
     frameId = requestAnimationFrame(tick);
@@ -142,7 +155,10 @@ function DepthPhotoStage({ item, autoStart, onStarted }: { item: DepthPhotoItem;
       visible = nowVisible;
     });
     observer.observe(frame);
-    const onResize = () => renderer.resize();
+    const onResize = () => {
+      renderer.resize();
+      sizeVersion++;
+    };
     window.addEventListener("resize", onResize);
     return () => {
       cancelAnimationFrame(frameId);
@@ -157,7 +173,8 @@ function DepthPhotoStage({ item, autoStart, onStarted }: { item: DepthPhotoItem;
   useEffect(() => {
     const onChange = () => {
       setFullscreen(document.fullscreenElement === frameRef.current);
-      requestAnimationFrame(() => rendererRef.current?.resize());
+      // Kích thước khung đổi → báo "resize" để vòng vẽ đổi cỡ canvas và vẽ lại.
+      requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
     };
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
@@ -343,6 +360,55 @@ function DepthPhotoStage({ item, autoStart, onStarted }: { item: DepthPhotoItem;
   );
 }
 
+/** Một mục: mô hình quét 360° và/hoặc ảnh thật có chiều sâu; có cả hai thì cho chọn cách xem (mặc định 360°). */
+function ExhibitPanel({ item, autoStart, onStarted }: { item: DepthPhotoItem; autoStart: boolean; onStarted: () => void }) {
+  const [mode, setMode] = useState<"scan" | "photo">(item.scan ? "scan" : "photo");
+  const both = Boolean(item.scan && item.image);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {both && (
+        <div role="group" aria-label="Cách xem" className="flex flex-wrap gap-2">
+          {(
+            [
+              ["scan", "Xoay 360° (mô hình quét)"],
+              ["photo", "Ảnh chụp thật (3D chiều sâu)"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={mode === value}
+              onClick={() => setMode(value)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
+                mode === value ? "border-foreground bg-foreground text-background" : "border-border bg-surface text-foreground hover:bg-muted",
+              )}
+              data-testid={`exhibit-mode-${value}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      {mode === "scan" && item.scan ? (
+        <>
+          {/* Không tự tải khi đổi thẻ: mô hình quét có thể nặng hàng chục MB, để người xem tự bấm. */}
+          <ScanViewer scan={item.scan} onStarted={onStarted} />
+          {item.text && (
+            <p className="flex items-start gap-1.5 rounded-card border border-border bg-muted p-3 text-sm text-surface-foreground" data-testid="photo3d-text">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              {item.text}
+            </p>
+          )}
+        </>
+      ) : item.image ? (
+        <DepthPhotoStage item={item as PhotoItem} autoStart={autoStart} onStarted={onStarted} />
+      ) : null}
+    </div>
+  );
+}
+
 /** Nhiều ảnh 3D cùng chủ đề, chọn bằng thẻ; chỉ một khung WebGL hoạt động tại một thời điểm (giống thư viện mô hình cũ). */
 export function DepthPhotoGallery({ items, label }: { items: DepthPhotoItem[]; label: string }) {
   const [index, setIndex] = useState(0);
@@ -380,6 +446,7 @@ export function DepthPhotoGallery({ items, label }: { items: DepthPhotoItem[]; l
               data-testid="photo3d-tab"
             >
               {entry.title}
+              {entry.scan && <span className="ml-1.5 rounded bg-black/15 px-1 text-[11px] font-bold">360°</span>}
             </button>
           ))}
         </div>
@@ -389,7 +456,7 @@ export function DepthPhotoGallery({ items, label }: { items: DepthPhotoItem[]; l
         role={items.length > 1 ? "tabpanel" : undefined}
         aria-labelledby={items.length > 1 ? `photo3d-tab-${item.id}` : undefined}
       >
-        <DepthPhotoStage key={item.id} item={item} autoStart={started} onStarted={onStarted} />
+        <ExhibitPanel key={item.id} item={item} autoStart={started} onStarted={onStarted} />
       </div>
     </div>
   );
