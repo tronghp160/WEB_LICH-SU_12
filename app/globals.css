@@ -795,3 +795,23 @@ span.battle-legend-siege {
 .mapfilm-label {
   display: inline-block;
 }
+
+/* ---- Chế độ trình chiếu (GĐ4.7) ----
+   Cỡ chữ và khoảng cách của Tailwind v4 đọc từ biến --text-* và --spacing, nên đặt lại các biến này trong khung
+   trình chiếu để mọi thứ co theo CHIỀU CAO màn hình: thiết kế cho 1080 dòng, máy chiếu 720p thấy đúng bố cục đó
+   thu nhỏ theo tỉ lệ (không phải cuộn), tối thiểu 60% cỡ gốc (chữ nhỏ tối thiểu 12px). */
+.deck-stage {
+  --spacing: clamp(0.15rem, 0.37vh, 0.25rem);
+  --text-xs: clamp(0.7rem, 1.111vh, 0.75rem);
+  --text-sm: clamp(0.75rem, 1.296vh, 0.875rem);
+  --text-base: clamp(0.6rem, 1.481vh, 1rem);
+  --text-lg: clamp(0.675rem, 1.667vh, 1.125rem);
+  --text-xl: clamp(0.75rem, 1.852vh, 1.25rem);
+  --text-2xl: clamp(0.9rem, 2.222vh, 1.5rem);
+  --text-3xl: clamp(1.125rem, 2.778vh, 1.875rem);
+  --text-4xl: clamp(1.35rem, 3.333vh, 2.25rem);
+  --text-5xl: clamp(1.8rem, 4.444vh, 3rem);
+  --text-6xl: clamp(2.25rem, 5.556vh, 3.75rem);
+  --text-7xl: clamp(2.7rem, 6.667vh, 4.5rem);
+  --text-8xl: clamp(3.6rem, 8.889vh, 6rem);
+}

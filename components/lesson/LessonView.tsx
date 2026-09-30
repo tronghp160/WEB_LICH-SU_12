@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowDown, ArrowRight, BookOpen, Quote } from "lucide-react";
+import { ArrowDown, ArrowRight, BookOpen, Presentation, Quote } from "lucide-react";
 import { CinemaPlayer } from "@/components/cinema3d/CinemaPlayer";
 import { CountUp } from "@/components/lesson/CountUp";
 import { FlipCard } from "@/components/lesson/FlipCard";
@@ -90,6 +90,13 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
               Bắt đầu bài học
               <ArrowDown className="h-5 w-5" aria-hidden="true" />
             </LinkButton>
+            <Link
+              href={`/bai-hoc/${lesson.slug}/trinh-chieu`}
+              className="inline-flex h-12 items-center gap-2 rounded-full border border-white/40 px-6 text-base font-medium text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+            >
+              <Presentation className="h-5 w-5" aria-hidden="true" />
+              Trình chiếu trên lớp
+            </Link>
             <p className="text-xs text-white/70">
               Ảnh: {lesson.hero.caption} <Credit image={lesson.hero} />
             </p>
