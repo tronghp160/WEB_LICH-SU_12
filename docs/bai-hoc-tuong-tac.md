@@ -151,3 +151,45 @@ Hết mỗi cảnh, bản đồ dừng chờ và hiện nút **Giai đoạn ti�
 ### Giới hạn cần nói rõ khi demo
 - **Cần Internet** để tải địa hình và ảnh vệ tinh. Ảnh vệ tinh Esri có điều khoản riêng; nếu công khai trên Vercel nên cân nhắc đổi sang EOX Sentinel-2 cloudless (CC BY 4.0) — chỉ đổi một URL trong `components/mapfilm/map-base.ts`.
 - Quân, pháo, cứ điểm không theo tỉ lệ; thời gian trong cảnh được nén; chỉ vẽ 10 cứ điểm tiêu biểu (lời thuyết minh nói 49). Các hướng tiến công Đông – Xuân và 5 nơi Pháp tập trung quân ở cảnh 1 là **gần đúng** (có trong `toVerify` của kịch bản).
+
+---
+
+## Mô hình 3D trong bài học (hiện vật, di tích, nhân vật, số liệu)
+
+Bốn mục ở nửa dưới trang bài học có khung xem 3D xoay được (kéo chuột hoặc ngón tay để xoay, cuộn để phóng to, phím mũi tên để xoay bằng bàn phím). Bấm các con số trên mô hình (hoặc các thẻ bên dưới) để bay tới bộ phận đó và đọc giải thích. Mỗi mô hình cũng có trang riêng để trình chiếu: `/mo-hinh-3d/<id>`.
+
+| Mục trong bài | Mô hình (id) | Có gì |
+|---|---|---|
+| Kết quả và ý nghĩa | **Sa bàn lòng chảo và những con số** (`sa-ban-chien-thang`) | Lòng chảo dựng từ **độ cao thật**; cờ Pháp đổi sang cờ đỏ sao vàng; 56 ô lịch, 16.200 chấm nhỏ, 62 máy bay |
+| Nhân vật | **Tượng bán thân cách điệu** của Võ Nguyên Giáp, De Castries, Phan Đình Giót, Tô Vĩnh Diện | Tượng đồng trên bệ đá cẩm thạch có bảng tên; **khuôn mặt giản lược, không phải chân dung** |
+| Hiện vật và trang bị (mục mới) | **Lựu pháo 105 mm**, **xe đạp thồ**, **người chiến sĩ và trang bị**, **máy bay C-47** | Xoay từng bộ phận, chú thích; C-47 có nút "Nổ máy" (cánh quạt quay) và "Thả hàng" (dù rơi) |
+| Di tích ngày nay | **Hầm De Castries** (cắt bổ), **đường hầm và hố bộc phá đồi A1** (mặt cắt), **hệ thống chiến hào** | Hầm có bàn bản đồ, đèn, điện đài, cờ trên nóc; A1 có nút "Mô phỏng vụ nổ"; chiến hào có hào trục, hào nhánh zigzag, rào thép gai, cứ điểm địch |
+
+![Sa bàn lòng chảo](screenshots/mo-hinh-3d-sa-ban.png)
+![Hầm De Castries cắt bổ](screenshots/mo-hinh-3d-ham-de-castries.png)
+![Vụ nổ bộc phá đồi A1](screenshots/mo-hinh-3d-a1-vu-no.png)
+![Hệ thống chiến hào](screenshots/mo-hinh-3d-chien-hao.png)
+![Lựu pháo 105 mm](screenshots/mo-hinh-3d-luu-phao.png)
+![Xe đạp thồ](screenshots/mo-hinh-3d-xe-dap-tho.png)
+![Máy bay C-47 thả dù](screenshots/mo-hinh-3d-c47-tha-du.png)
+
+### Cách làm
+- Mọi mô hình **dựng bằng mã** (Three.js, không thêm thư viện), gồm cả họa tiết (đất, cỏ, thép gỉ, bao cát, gỗ, bao tải, cẩm thạch…) tạo bằng nhiễu có hạt giống: không có file mô hình hay ảnh ngoài, nên không vướng bản quyền. Bối cảnh ánh sáng dùng môi trường phản chiếu PBR, bóng đổ mềm, tone mapping ACES.
+- Mã: `components/model3d/` (`runtime.ts` bộ xem, `kit.ts` bộ dựng hình, `textures.ts` họa tiết, `particles.ts` hạt lửa/khói dùng lại hàm tính hạt của phim A1, `builders/*` từng mô hình); dữ liệu chữ và điểm chú thích ở `lib/models3d/specs.ts` (không kéo Three.js vào phía máy chủ).
+- **Sa bàn** dùng ảnh độ cao thật `public/models/dbp-valley-dem.png` (ghép 2×2 ô Terrarium mức 12, 512×512, khoảng 35 m/điểm, ~300 KB) do `scripts/build-valley-dem.mjs` tạo; độ cao phóng đại ×1,6. Vị trí cứ điểm theo OpenStreetMap (dùng chung với bản đồ).
+- **Tải lười**: Three.js và từng mô hình chỉ nạp khi người xem bấm "Xem mô hình 3D"; khung cuộn ra ngoài màn hình thì ngừng vẽ; **tối đa 3 khung WebGL cùng lúc** (mở thêm thì khung cũ nhất về trạng thái chờ, tránh vượt giới hạn ~16 ngữ cảnh của trình duyệt). Lighthouse trang bài học không đổi (mobile 79–80, desktop 99, trợ năng 100).
+- Trợ năng: mọi điểm chú thích có nút bấm và danh sách chữ bên dưới (dùng được khi không có WebGL); thẻ chọn mô hình dùng phím mũi tên; giảm chuyển động thì tắt tự xoay; không có WebGL thì báo rõ mà vẫn đọc được mô tả.
+- Kiểm thử: `tests/unit/models3d.test.ts` (11 ca: toàn vẹn dữ liệu, mọi mô hình có bộ dựng, mọi mô hình có trong bài học, tượng ghi rõ cách điệu, ảnh độ cao phủ đúng vùng), `tests/e2e/models3d.spec.ts` (8 ca). `?debug=1` bật `window.__model3d`.
+
+### Thay bằng mô hình thật (glTF/glb)
+Mô hình dựng bằng mã là dạng khối có ánh sáng và vật liệu khá, **không phải ảnh chụp hay bản quét**. Muốn thật hơn cho một hạng mục:
+1. Chọn mô hình có **giấy phép rõ ràng** (ví dụ CC0, CC BY trên Sketchfab, Poly Pizza) và tải file `.glb`; **không dùng** mô hình không cho phép sử dụng lại.
+2. Đặt file vào `public/models/` (ví dụ `public/models/luu-phao-105.glb`, nên nén dưới 5 MB).
+3. Trong `lib/models3d/specs.ts`, đổi `source` của mô hình đó thành `{ kind: "glb", url: "/models/luu-phao-105.glb", credit: "Tên tác giả, CC BY 4.0", licenseUrl: "https://…" }`. Bộ xem tự đọc file, đưa về cỡ ~4 m, đặt đáy chạm mặt đất, tâm ở gốc.
+4. Chỉnh lại `position` của các điểm chú thích và `camera` cho khớp mô hình mới (tọa độ tính theo mét sau khi đã đưa về cỡ ~4 m), rồi thêm dòng ghi công ở dưới mô hình.
+
+### Giới hạn cần nói rõ khi demo
+- Là **đồ họa minh họa**, không phải bản quét hiện vật. Hầm De Castries, chiến hào, đường hầm A1 dựng theo mô tả và ảnh, **số gian, hình dạng hào, chi tiết bên trong là giản lược**; đường hầm A1 vẽ ngắn hơn thực tế (không theo tỉ lệ).
+- **Tượng nhân vật cố ý không có nét mặt riêng**, và mũ, quân phục chỉ mang tính gợi ý (mỗi tượng có chú thích "Tượng cách điệu").
+- Tượng đài Chiến thắng trên đồi D1 **chưa dựng 3D** vì chưa có tư liệu tham chiếu đủ tin cậy (ảnh phù điêu thật vẫn có trong mục ảnh). Nếu có ảnh và số đo chính thống, có thể bổ sung.
+- Các chi tiết cần đối chiếu tài liệu nằm trong `toVerify` của từng mô hình (loại pháo, tải trọng xe thồ, số gian hầm, chiều dài đường hầm ~45 m, khối bộc phá ~1 tấn, hình lá cờ trên nóc hầm…).

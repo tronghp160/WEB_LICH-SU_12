@@ -28,7 +28,7 @@ export default async function TopicPage({ params }: TopicPageProps) {
   if (!topic) notFound();
 
   // Dòng thời gian đã sắp sẵn theo thời gian; chỉ giữ sự kiện của chủ đề này.
-  const events = (await getTimelineEvents()).filter((event) => event.topicSlug === topic.slug);
+  const events = (await getTimelineEvents()).filter((event) => event.topicSlugs.includes(topic.slug));
 
   return <TopicDetailView topic={topic} events={events} />;
 }

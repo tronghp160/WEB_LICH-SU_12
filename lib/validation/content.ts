@@ -272,6 +272,8 @@ export const eventLinksSchema = z
         }),
       )
       .max(50),
+    /** Chủ đề PHỤ (event_topics); chủ đề chính là topic_id của sự kiện. Dữ liệu cũ không có trường này → []. */
+    topics: z.array(uuidField("chủ đề phụ")).max(10).default([]),
   })
   .superRefine((value, context) => {
     const duplicate = <T,>(items: T[], key: (item: T) => string) => new Set(items.map(key)).size !== items.length;
@@ -316,8 +318,47 @@ export type SourceInput = z.infer<typeof sourceSchema>;
 export const MEDIA_MAX_BYTES = 5 * 1024 * 1024;
 export const MEDIA_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
+/** Loại nội dung sở hữu ảnh (khớp ràng buộc media_owner_one: đúng một trong event_id/figure_id/location_id). */
+export const MEDIA_OWNER_KINDS = ["su-kien", "nhan-vat", "dia-diem"] as const;
+export type MediaOwnerKind = (typeof MEDIA_OWNER_KINDS)[number];
+
+/** Ảnh tư liệu năm đó / ảnh chụp ngày nay / tranh, ảnh minh họa (khớp CHECK media_assets.era). */
+export const MEDIA_ERAS = ["historical", "today", "illustration"] as const;
+
+/** Điểm lấy nét khi cắt ảnh, dạng "50% 30%" (ngang dọc). */
+const FOCAL_POINT_PATTERN = /^(100|[1-9]?[0-9])% (100|[1-9]?[0-9])%$/;
+
+/** Thông tin ghi công và trình bày của một ảnh — dùng chung cho thêm mới và sửa. */
+const mediaMetaShape = {
+  owner_kind: z.enum(MEDIA_OWNER_KINDS, { error: "Loại nội dung của ảnh không hợp lệ." }),
+  owner_id: uuidField("nội dung gắn ảnh"),
+  // Bắt buộc nhập chữ thay thế để trình đọc màn hình mô tả được ảnh (yêu cầu a11y).
+  alt_text: requiredText("chữ thay thế (mô tả ảnh)", 300),
+  caption: optionalText("chú thích", 500),
+  source_id: z.preprocess(blankToNull, z.string().uuid("Nguồn không hợp lệ.").nullable()),
+  era: z.enum(MEDIA_ERAS, { error: "Vui lòng chọn loại ảnh." }),
+  year_taken: optionalInt("năm chụp", 1800, 2100),
+  photographer: optionalText("tác giả", 200),
+  // Bắt buộc: không rõ giấy phép thì chưa được đưa ảnh lên trang học sinh xem.
+  license: requiredText("giấy phép (ví dụ: CC BY-SA 4.0, Phạm vi công cộng, Được phép của …)", 200),
+  license_url: optionalHttpUrl("đường dẫn giấy phép"),
+  source_page_url: optionalHttpUrl("trang gốc của ảnh"),
+  is_reenactment: checkbox,
+  is_colorized: checkbox,
+  is_cover: checkbox,
+  focal_point: z.preprocess(
+    (value) => {
+      const blank = blankToNull(value);
+      return typeof blank === "string" ? blank.trim().replace(/\s+/g, " ") : blank;
+    },
+    z.string().regex(FOCAL_POINT_PATTERN, "Điểm lấy nét có dạng \"50% 30%\" (ngang, dọc; 0–100%).").nullable(),
+  ),
+};
+
 export const mediaSchema = z.object({
-  event_id: uuidField("sự kiện"),
+  ...mediaMetaShape,
+  width: optionalInt("chiều rộng ảnh", 1, 20000),
+  height: optionalInt("chiều cao ảnh", 1, 20000),
   file_url: z.preprocess(
     (value) => (typeof value === "string" ? value.trim() : value),
     z
@@ -326,15 +367,36 @@ export const mediaSchema = z.object({
       .max(2000, "Địa chỉ ảnh quá dài.")
       .refine(isHttpUrl, "Địa chỉ ảnh phải bắt đầu bằng http:// hoặc https://."),
   ),
-  // Bắt buộc nhập chữ thay thế để trình đọc màn hình mô tả được ảnh (yêu cầu a11y).
-  alt_text: requiredText("chữ thay thế (mô tả ảnh)", 300),
-  caption: optionalText("chú thích", 500),
-  source_id: z.preprocess(blankToNull, z.string().uuid("Nguồn không hợp lệ.").nullable()),
 });
 export type MediaInput = z.infer<typeof mediaSchema>;
 
-/** Sửa media đã có: không cho đổi địa chỉ tệp, chỉ đổi chữ thay thế, chú thích, nguồn. */
-export const mediaUpdateSchema = mediaSchema.omit({ file_url: true });
+/** Sửa media đã có: không cho đổi địa chỉ tệp hay kích thước, chỉ đổi thông tin mô tả và ghi công. */
+export const mediaUpdateSchema = z.object(mediaMetaShape);
+export type MediaUpdateInput = z.infer<typeof mediaUpdateSchema>;
+
+/** Cột chủ sở hữu tương ứng trong media_assets. */
+export function mediaOwnerColumn(kind: MediaOwnerKind): "event_id" | "figure_id" | "location_id" {
+  return kind === "su-kien" ? "event_id" : kind === "nhan-vat" ? "figure_id" : "location_id";
+}
+
+/** Các cột mô tả/ghi công của media_assets lấy từ dữ liệu form đã kiểm tra (không gồm cột chủ sở hữu). */
+export function mediaColumns(input: MediaUpdateInput) {
+  return {
+    alt_text: input.alt_text,
+    caption: input.caption,
+    source_id: input.source_id,
+    era: input.era,
+    year_taken: input.year_taken,
+    photographer: input.photographer,
+    license: input.license,
+    license_url: input.license_url,
+    source_page_url: input.source_page_url,
+    is_reenactment: input.is_reenactment,
+    is_colorized: input.is_colorized,
+    is_cover: input.is_cover,
+    focal_point: input.focal_point,
+  };
+}
 
 /** Kiểm tra tệp ảnh trước khi tải lên (dùng ở client; bucket Storage cũng tự chặn ở server). */
 export function validateImageFile(file: { type: string; size: number }): string | null {

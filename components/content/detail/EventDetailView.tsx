@@ -1,18 +1,24 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, PlayCircle } from "lucide-react";
 import { AccuracyBadge } from "@/components/content/AccuracyBadge";
+import { BeforeAfterSlider } from "@/components/content/BeforeAfterSlider";
+import { DetailCover } from "@/components/content/DetailCover";
+import { LightboxProvider } from "@/components/content/Lightbox";
 import { DatePrecisionBadge } from "@/components/content/DatePrecisionBadge";
 import { EventCard } from "@/components/content/EventCard";
-import { MediaGallery } from "@/components/content/MediaGallery";
+import { MediaFigure, MediaGallery } from "@/components/content/MediaGallery";
+import { RichContent } from "@/components/content/RichContent";
 import { SourceList } from "@/components/content/SourceList";
 import { TopicBadge } from "@/components/content/TopicBadge";
 import { MiniMapLazy } from "@/components/map/MiniMapLazy";
 import { Badge } from "@/components/ui/Badge";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { getLessonForEvent } from "@/lib/lessons";
+import { arrangeMedia } from "@/lib/media";
 import type { EventDetail } from "@/lib/queries/event-detail";
 import type { TimelineEvent } from "@/lib/queries/events";
-import { formatLifespan, splitParagraphs } from "@/lib/utils/text";
+import { parseRichText } from "@/lib/utils/rich-text";
+import { formatLifespan } from "@/lib/utils/text";
 
 type EventDetailViewProps = {
   event: EventDetail;
@@ -36,7 +42,21 @@ function NotPublishedBadge() {
 
 /** Nội dung trang chi tiết sự kiện (UC05) — dùng chung cho trang công khai và xem trước ở màn hình duyệt. */
 export function EventDetailView({ event, previous, next, sameTopic = [], preview = false }: EventDetailViewProps) {
-  const paragraphs = splitParagraphs(event.content);
+  const sections = parseRichText(event.content);
+  const structured = sections.some((section) => section.heading !== null);
+  const { cover, pairs, gallery } = arrangeMedia(event.media);
+  // Nội dung có các mục: đặt ảnh xen sau mỗi mục thường (bỏ mục cuối và các hộp "Câu chuyện nhỏ"/"Em có biết?"),
+  // phần ảnh còn lại dồn xuống "Hình ảnh và tư liệu".
+  const galleryImages = gallery.filter((item) => item.type === "image");
+  const slots = structured
+    ? sections
+        .map((section, index) => ({ section, index }))
+        .filter(({ section, index }) => index < sections.length - 1 && section.heading !== null && !/^(câu chuyện|em có biết)/i.test(section.heading))
+        .map(({ index }) => index)
+    : [];
+  const inline = new Map(slots.slice(0, galleryImages.length).map((sectionIndex, i) => [sectionIndex, galleryImages[i]]));
+  const inlineIds = new Set([...inline.values()].map((item) => item.id));
+  const remaining = gallery.filter((item) => !inlineIds.has(item.id));
   // Bài học tương tác chỉ dành cho trang công khai (không hiện ở màn hình xem trước của kiểm duyệt viên).
   const lesson = preview ? undefined : getLessonForEvent(event.slug);
   const mapLocations = event.locations.flatMap((location) =>
@@ -56,6 +76,7 @@ export function EventDetailView({ event, previous, next, sameTopic = [], preview
   );
 
   return (
+    <LightboxProvider items={event.media}>
     <article className={preview ? "" : "mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6"}>
       {!preview && (
         <Breadcrumb
@@ -67,23 +88,16 @@ export function EventDetailView({ event, previous, next, sameTopic = [], preview
         />
       )}
 
-      <header className={preview ? "max-w-3xl" : "mt-4 max-w-3xl"}>
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          {event.isFeatured && (
-            <Badge variant="accent" className="shrink-0">
-              Nổi bật
-            </Badge>
-          )}
-          {event.topicName && <TopicBadge name={event.topicName} slug={event.topicSlug} />}
-        </div>
-        <h1 className="text-balance font-serif text-3xl font-bold text-foreground sm:text-4xl">
-          {event.title}
-        </h1>
-        <p className="mt-3 flex flex-wrap items-center gap-2 text-lg font-medium text-gold-deep">
-          {event.dateText}
-          <DatePrecisionBadge precision={event.datePrecision} />
-        </p>
-        <p className="mt-4 text-lg text-muted-foreground">{event.summary}</p>
+      <header className={cover ? "" : preview ? "max-w-3xl" : "mt-4 max-w-3xl"}>
+        {cover ? (
+          // Ảnh thật đi trước: ảnh bìa toàn chiều ngang, tiêu đề chồng lên ảnh.
+          <DetailCover cover={cover}>
+            <EventHeading event={event} onImage />
+          </DetailCover>
+        ) : (
+          <EventHeading event={event} />
+        )}
+        <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{event.summary}</p>
         {lesson && (
           <Link
             href={`/bai-hoc/${lesson.slug}`}
@@ -100,27 +114,49 @@ export function EventDetailView({ event, previous, next, sameTopic = [], preview
 
       <div className={preview ? "mt-8 flex flex-col gap-10" : "mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]"}>
         <div className="flex min-w-0 flex-col gap-10">
-          {paragraphs.length > 0 && (
-            <section aria-labelledby="noi-dung">
-              <h2 id="noi-dung" className="mb-4 font-serif text-2xl font-bold text-foreground">
-                Nội dung
+          {structured ? (
+            <RichContent
+              sections={sections}
+              between={(index) => {
+                const item = inline.get(index);
+                return item ? (
+                  <div className="max-w-3xl overflow-hidden rounded-card border border-border bg-surface">
+                    <MediaFigure item={item} wide />
+                  </div>
+                ) : null;
+              }}
+            />
+          ) : (
+            sections.length > 0 && (
+              <section aria-labelledby="noi-dung">
+                <h2 id="noi-dung" className="mb-4 font-serif text-2xl font-bold text-foreground">
+                  Nội dung
+                </h2>
+                <RichContent sections={sections} />
+              </section>
+            )
+          )}
+
+          {pairs.length > 0 && (
+            <section aria-labelledby="xua-va-nay">
+              <h2 id="xua-va-nay" className="mb-1 font-serif text-2xl font-bold text-foreground">
+                Xưa và nay
               </h2>
-              <div className="flex max-w-3xl flex-col gap-4 leading-relaxed text-foreground">
-                {paragraphs.map((paragraph, index) => (
-                  <p key={index} className="whitespace-pre-line">
-                    {paragraph}
-                  </p>
+              <p className="mb-4 text-sm text-muted-foreground">Kéo thanh giữa ảnh để so sánh nơi này năm ấy và bây giờ.</p>
+              <div className="flex flex-col gap-8">
+                {pairs.map((pair) => (
+                  <BeforeAfterSlider key={pair.before.id} before={pair.before} after={pair.after} />
                 ))}
               </div>
             </section>
           )}
 
-          {event.media.length > 0 && (
+          {remaining.length > 0 && (
             <section aria-labelledby="tu-lieu">
               <h2 id="tu-lieu" className="mb-4 font-serif text-2xl font-bold text-foreground">
                 Hình ảnh và tư liệu
               </h2>
-              <MediaGallery media={event.media} />
+              <MediaGallery media={remaining} />
             </section>
           )}
 
@@ -248,5 +284,44 @@ export function EventDetailView({ event, previous, next, sameTopic = [], preview
         </section>
       )}
     </article>
+    </LightboxProvider>
+  );
+}
+
+/** Nhãn, tiêu đề và ngày tháng của sự kiện; onImage: chữ sáng để đặt chồng lên ảnh bìa. */
+function EventHeading({ event, onImage = false }: { event: EventDetail; onImage?: boolean }) {
+  return (
+    <>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        {event.isFeatured && (
+          <Badge variant="accent" className="shrink-0">
+            Nổi bật
+          </Badge>
+        )}
+        {event.topicName && <TopicBadge name={event.topicName} slug={event.topicSlug} />}
+        {event.secondaryTopics.map((topic) => (
+          <TopicBadge key={topic.slug} name={topic.name} slug={topic.slug} />
+        ))}
+      </div>
+      <h1
+        className={
+          onImage
+            ? "max-w-3xl text-balance font-serif text-3xl font-bold text-white drop-shadow sm:text-5xl"
+            : "text-balance font-serif text-3xl font-bold text-foreground sm:text-4xl"
+        }
+      >
+        {event.title}
+      </h1>
+      <p
+        className={
+          onImage
+            ? "mt-3 flex flex-wrap items-center gap-2 text-lg font-medium text-[#f3d9a4]"
+            : "mt-3 flex flex-wrap items-center gap-2 text-lg font-medium text-gold-deep"
+        }
+      >
+        {event.dateText}
+        <DatePrecisionBadge precision={event.datePrecision} />
+      </p>
+    </>
   );
 }

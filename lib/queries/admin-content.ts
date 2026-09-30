@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 import type { ContentKind } from "@/lib/admin/content-kinds";
-import type { ReadinessSnapshot } from "@/lib/admin/readiness";
+import type { MediaStats, ReadinessSnapshot } from "@/lib/admin/readiness";
 import { createClient } from "@/lib/supabase/server";
 import type { WorkflowStatus } from "@/lib/utils/labels";
 import { matchesTokens, toTokens } from "@/lib/utils/search";
@@ -137,19 +137,25 @@ export async function getFigureForEdit(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("historical_figures")
-    .select("id, name, slug, other_names, birth_year, death_year, biography, portrait_url, workflow_status, review_note")
+    .select(`id, name, slug, other_names, birth_year, death_year, biography, portrait_url, workflow_status, review_note,
+       media_assets(${ADMIN_MEDIA_FIELDS})`)
     .eq("id", id)
     .maybeSingle();
   if (error) fail("nhân vật", error);
   return data;
 }
 
+/** Cột ảnh cần cho khu quản lý ảnh (MediaManager) ở trang sửa. */
+const ADMIN_MEDIA_FIELDS =
+  "id, file_url, media_type, caption, alt_text, source_id, sort_order, era, year_taken, photographer, license, license_url, source_page_url, is_reenactment, is_colorized, is_cover, focal_point" as const;
+
 export async function getLocationForEdit(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("historical_locations")
     .select(
-      "id, name, historical_name, slug, description, latitude, longitude, accuracy_level, accuracy_note, workflow_status, review_note",
+      `id, name, historical_name, slug, description, latitude, longitude, accuracy_level, accuracy_note, workflow_status, review_note,
+       media_assets(${ADMIN_MEDIA_FIELDS})`,
     )
     .eq("id", id)
     .maybeSingle();
@@ -181,7 +187,8 @@ export async function getEventForEdit(id: string) {
        event_figures(figure_id, relationship, sort_order),
        event_locations(location_id, location_role, is_primary),
        event_sources(source_id, source_note, confidence_note),
-       media_assets(id, file_url, media_type, caption, alt_text, source_id, sort_order)`,
+       event_topics(topic_id),
+       media_assets(${ADMIN_MEDIA_FIELDS})`,
     )
     .eq("id", id)
     .maybeSingle();
@@ -245,6 +252,28 @@ export async function listSources(query = ""): Promise<SourceListItem[]> {
 
 // ---------- Kiểm tra sẵn sàng gửi duyệt ----------
 
+type MediaForReadiness = {
+  caption: string | null;
+  alt_text: string | null;
+  license: string | null;
+  photographer: string | null;
+};
+
+const isBlank = (text: string | null) => !text || text.trim() === "";
+
+function mediaStats(media: MediaForReadiness[]): MediaStats {
+  return {
+    count: media.length,
+    missingAlt: media.filter((item) => isBlank(item.alt_text)).length,
+    missingLicense: media.filter((item) => isBlank(item.license)).length,
+  };
+}
+
+/** Chữ của ảnh hiện ở trang công khai (chú thích, alt, tác giả, giấy phép). */
+function mediaTexts(media: MediaForReadiness[]) {
+  return media.flatMap((item) => [item.caption, item.alt_text, item.photographer, item.license]);
+}
+
 /**
  * Dựng ảnh chụp dữ liệu (mới nhất từ DB) để `evaluateReadiness` đánh giá; dùng cả khi dựng trang
  * (hiện checklist) lẫn trong Server Action gửi duyệt (không tin dữ liệu từ client).
@@ -257,14 +286,25 @@ export async function getReadinessSnapshot(
   if (kind === "chu-de") {
     const topic = await getTopicForEdit(id);
     return topic
-      ? { status: topic.workflow_status, snapshot: { kind, description: topic.description } }
+      ? {
+          status: topic.workflow_status,
+          snapshot: { kind, description: topic.description, publicTexts: [topic.name, topic.description] },
+        }
       : null;
   }
 
   if (kind === "nhan-vat") {
     const figure = await getFigureForEdit(id);
     return figure
-      ? { status: figure.workflow_status, snapshot: { kind, biography: figure.biography } }
+      ? {
+          status: figure.workflow_status,
+          snapshot: {
+            kind,
+            biography: figure.biography,
+            publicTexts: [figure.name, figure.other_names, figure.biography, ...mediaTexts(figure.media_assets)],
+            media: mediaStats(figure.media_assets),
+          },
+        }
       : null;
   }
 
@@ -279,6 +319,14 @@ export async function getReadinessSnapshot(
             longitude: location.longitude,
             accuracyLevel: location.accuracy_level,
             description: location.description,
+            publicTexts: [
+              location.name,
+              location.historical_name,
+              location.description,
+              location.accuracy_note,
+              ...mediaTexts(location.media_assets),
+            ],
+            media: mediaStats(location.media_assets),
           },
         }
       : null;
@@ -315,7 +363,17 @@ export async function getReadinessSnapshot(
       hasPrimaryLocation: event.event_locations.some((link) => link.is_primary),
       figureCount: event.event_figures.length,
       unpublishedLinkedCount: unpublished,
-      mediaMissingAltCount: event.media_assets.filter((item) => !item.alt_text || item.alt_text.trim() === "").length,
+      publicTexts: [
+        event.title,
+        event.date_text,
+        event.summary,
+        event.content,
+        ...event.event_figures.map((link) => link.relationship),
+        ...event.event_locations.map((link) => link.location_role),
+        ...event.event_sources.flatMap((link) => [link.source_note, link.confidence_note]),
+        ...mediaTexts(event.media_assets),
+      ],
+      media: mediaStats(event.media_assets),
     },
   };
 }

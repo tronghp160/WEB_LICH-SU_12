@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cache } from "react";
 import type { Database } from "@/lib/database.types";
-import { toRelatedEvent, type RelatedEvent, type RelatedEventRow } from "@/lib/queries/events";
+import { PUBLIC_MEDIA_FIELDS, toMediaItems, type MediaItem, type MediaRow } from "@/lib/media";
+import { EVENT_CARD_MEDIA, toRelatedEvent, type RelatedEvent, type RelatedEventRow } from "@/lib/queries/events";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { WorkflowStatus } from "@/lib/utils/labels";
 
@@ -13,7 +14,10 @@ export type FigureDetail = {
   birthYear: number | null;
   deathYear: number | null;
   biography: string | null;
+  /** Ảnh chân dung cũ (cột portrait_url) — chỉ dùng khi nhân vật chưa có ảnh trong kho ảnh. */
   portraitUrl: string | null;
+  /** Ảnh trong kho ảnh (ảnh bìa = chân dung), có ghi công. */
+  media: MediaItem[];
   /** Sự kiện đã công bố có nhân vật này, theo thời gian; `relationship` là vai trò trong sự kiện. */
   events: (RelatedEvent & { relationship: string | null })[];
 };
@@ -33,7 +37,8 @@ export async function loadFigureDetail(
     .from("historical_figures")
     .select(
       `slug, name, other_names, birth_year, death_year, biography, portrait_url, workflow_status,
-       event_figures(relationship, historical_events(slug, title, summary, date_text, date_precision, is_featured, start_year, workflow_status, curriculum_topics(name, slug)))`,
+       media_assets(${PUBLIC_MEDIA_FIELDS}),
+       event_figures(relationship, historical_events(slug, title, summary, date_text, date_precision, is_featured, start_year, workflow_status, curriculum_topics(name, slug), ${EVENT_CARD_MEDIA}))`,
     );
   query = "id" in by ? query.eq("id", by.id) : query.eq("slug", by.slug);
   if (publishedOnly) query = query.eq("workflow_status", "published");
@@ -63,6 +68,7 @@ export async function loadFigureDetail(
     deathYear: data.death_year,
     biography: data.biography,
     portraitUrl: data.portrait_url,
+    media: toMediaItems(data.media_assets as MediaRow[]),
     events,
   };
 }

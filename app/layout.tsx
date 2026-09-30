@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Lora } from "next/font/google";
+import { DEFAULT_SHARE_IMAGE, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const lora = Lora({
@@ -16,6 +17,13 @@ const beVietnamPro = Be_Vietnam_Pro({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl()),
+  openGraph: {
+    siteName: "Lịch sử Việt Nam 12",
+    locale: "vi_VN",
+    type: "website",
+    images: [DEFAULT_SHARE_IMAGE],
+  },
   title: {
     default: "Lịch sử Việt Nam 12",
     template: "%s · Lịch sử Việt Nam 12",

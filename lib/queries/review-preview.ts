@@ -88,7 +88,7 @@ export async function getReviewTarget(kind: ContentKind, id: string): Promise<Re
   } else {
     const topic = await loadTopicDetail(supabase, by, false);
     if (!topic) return null;
-    const events = (await getTimelineEvents()).filter((event) => event.topicSlug === topic.slug);
+    const events = (await getTimelineEvents()).filter((event) => event.topicSlugs.includes(topic.slug));
     detail = { kind, topic, events };
     status = topic.status;
     title = topic.name;

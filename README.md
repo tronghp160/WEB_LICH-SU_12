@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lịch sử Việt Nam 12
 
-## Getting Started
+Web hỗ trợ học sinh lớp 12 tìm hiểu Lịch sử Việt Nam qua **dòng thời gian, bản đồ, ảnh tư liệu và bài học tương tác**.
+Nội dung bám theo SGK Lịch sử 12 (bộ *Kết nối tri thức với cuộc sống*). Mọi nội dung đều qua quy trình
+**biên tập → kiểm duyệt → công bố**, và sự kiện bắt buộc phải có nguồn tham khảo.
 
-First, run the development server:
+> Đồ án cơ sở ngành, Viện Công nghệ số, Trường Đại học Thủ Dầu Một.
+> Đây là công cụ hỗ trợ học tập, **không thay thế sách giáo khoa**.
+
+![Trang chủ](docs/screenshots/phase4-trang-chu-desktop-sang.png)
+
+## Tính năng chính
+
+| Trang | Đường dẫn | Nội dung |
+|---|---|---|
+| Trang chủ | `/` | Tìm nhanh, bài học tương tác, chủ đề, sự kiện nổi bật |
+| Bài học tương tác | `/bai-hoc` | Ví dụ *Chiến dịch Điện Biên Phủ*: bản đồ diễn biến 7 bước, ảnh tư liệu, video, thẻ ghi nhớ, mô hình 3D |
+| Bản đồ 3D "như phim" | `/ban-do-3d/dien-bien-phu` | Chiến dịch diễn ra trên địa hình thật (MapLibre + Three.js) |
+| Phim 3D | `/phim-3d/doi-a1` | "Đồi A1, đêm 6/5/1954" dựng trong trình duyệt, có thuyết minh và phụ đề |
+| Dòng thời gian | `/dong-thoi-gian` | Sự kiện theo năm, lọc theo chủ đề |
+| Bản đồ | `/ban-do` | Địa điểm lịch sử (Leaflet), tìm theo bán kính (PostGIS) |
+| Tra cứu | `/tra-cuu` | Tìm sự kiện, nhân vật, địa điểm; gõ không dấu vẫn được |
+| Chi tiết | `/su-kien/…`, `/nhan-vat/…`, `/dia-diem/…`, `/chu-de/…` | Nội dung, ảnh có ghi công, nguồn tham khảo |
+| Quản trị | `/quan-tri` | Soạn nội dung, kiểm duyệt, quản lý nhân sự, vận hành (cần đăng nhập) |
+
+## Công nghệ
+
+- **Next.js 16** (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4
+- **Supabase**: PostgreSQL 17 + PostGIS, Auth, Storage, Row Level Security (48 policy)
+- Bản đồ: Leaflet (2D), MapLibre GL (3D); đồ họa 3D: Three.js
+- Kiểm thử: Vitest (unit), Playwright (E2E), script kiểm thử RLS trên database thật, Lighthouse
+
+> **Lưu ý cho người sửa code:** Next.js 16 có nhiều thay đổi so với các bản cũ. Đọc tài liệu đi kèm trong
+> `node_modules/next/dist/docs/` trước khi viết code (xem `AGENTS.md`).
+
+## Cài đặt
+
+Yêu cầu: **Node.js 20.9** trở lên (dự án được phát triển trên Node 24), một project Supabase (gói miễn phí là đủ).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/tronghp160/WEB_LICH-SU_12.git
+cd WEB_LICH-SU_12
+npm install
+cp .env.example .env.local   # rồi điền giá trị thật
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Biến môi trường (`.env.local`)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Biến | Bắt buộc | Dùng ở đâu |
+|---|:-:|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | URL project Supabase |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | ✅ | Khóa công khai (đã có RLS bảo vệ) |
+| `SUPABASE_SECRET_KEY` | Cho trang Nhân sự | **Chỉ phía server**: tạo/khóa tài khoản nhân sự. Không bao giờ thêm tiền tố `NEXT_PUBLIC_` |
+| `DATABASE_URL` | Tùy chọn | Chạy migration/seed bằng Supabase CLI |
+| `NEXT_PUBLIC_SITE_URL` | Khi có tên miền | Địa chỉ web cho ảnh chia sẻ, `sitemap.xml`, `robots.txt` (trên Vercel tự lấy nếu bỏ trống) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Lấy các giá trị trong Supabase Dashboard → *Project Settings → API* (và *Connect* cho `DATABASE_URL`).
 
-## Learn More
+### Tạo database
 
-To learn more about Next.js, take a look at the following resources:
+Chạy **theo đúng thứ tự tên file**, mỗi file **một lần**, trong SQL Editor của Supabase hoặc bằng CLI:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# 1. Schema, trigger, RLS, storage…
+for f in supabase/migrations/*.sql; do npx supabase db query --db-url "$DATABASE_URL" --file "$f"; done
+# 2. Dữ liệu mẫu: 7 chủ đề, 10 sự kiện, 9 nhân vật, 11 địa điểm, nguồn và ảnh
+npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed.sql
+# 3. Kho ảnh (ảnh sự kiện, chân dung, ảnh di tích ngày nay; tệp ảnh nằm trong bucket `media`)
+npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-media.sql
+# 4. Nội dung theo khung chuẩn + sự kiện nháp mới (sinh từ supabase/content/*.md)
+npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-content.sql
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+> `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands
+> into a prepared statement"*, hãy dán nội dung file vào **SQL Editor** của Supabase Dashboard để chạy.
 
-## Deploy on Vercel
+### Thêm ảnh từ Wikimedia Commons
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+node scripts/import-commons-image.mjs --file "File:Tên ảnh.jpg" --owner su-kien:<slug> \
+  --alt "Mô tả ảnh" --caption "Chú thích" --era historical --cover
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Script đọc tác giả và giấy phép từ Commons (từ chối giấy phép NC/ND/fair use, cảnh báo ảnh Việt Nam chưa đủ
+75 năm), nén webp 400/1200/2000 px, tải lên bucket `media` rồi **in ra câu SQL** để bạn kiểm tra trước khi chạy.
+
+Tài khoản nhân sự đầu tiên: tạo user trong *Authentication → Users*, rồi thêm hồ sơ vai trò theo hướng dẫn trong
+`supabase/staff-test-accounts.sql`. Tài khoản `@test.local` trong file đó **chỉ để thử**. Xóa hoặc đổi mật khẩu trước khi công khai.
+
+### Chạy
+
+```bash
+npm run dev      # http://localhost:3000
+npm run build && npm start   # bản production
+```
+
+`predev`/`prebuild` tự chép worker của MapLibre vào `public/vendor/` (đã được gitignore).
+
+## Kiểm thử
+
+| Bộ | Lệnh |
+|---|---|
+| Unit test | `npm test` |
+| Lint, kiểu | `npm run lint`, `npx tsc --noEmit` |
+| E2E (cần bản build và tài khoản thử) | `TEST_PW='…' npm run test:e2e` |
+| Phân quyền RLS trên DB thật | `TEST_PW='…' node tests/rls/matrix.mjs` |
+| Ràng buộc CSDL | chạy `supabase/tests/constraints.sql` (tự hoàn tác) |
+
+Kết quả chi tiết: [`docs/test-report.md`](docs/test-report.md).
+
+## Cấu trúc thư mục
+
+```
+app/(public)/      Trang công khai (trang chủ, bài học, bản đồ, dòng thời gian, chi tiết…)
+app/quan-tri/      Trang quản trị: nội dung, kiểm duyệt, nhân sự, vận hành
+components/        Giao diện, chia theo khu vực (home, content, map, lesson, mapfilm, cinema3d, model3d, admin…)
+lib/queries/       Truy vấn Supabase phía server
+lib/actions/       Server Actions (lưu, gửi duyệt, duyệt…)
+lib/validation/    Zod schema cho form
+lib/admin/         Luật nghiệp vụ quản trị (điều kiện gửi duyệt, quyền theo vai trò…)
+lib/lessons/       Bài học tương tác (dữ liệu viết trong code)
+lib/battles/       Kịch bản bản đồ diễn biến
+lib/mapfilm/       Kịch bản bản đồ 3D; lib/cinema: phim 3D; lib/models3d: mô hình 3D
+supabase/          migrations/, seed.sql, tests/constraints.sql
+tests/             unit/ (Vitest), e2e/ (Playwright), rls/ (DB thật), perf/
+docs/              Báo cáo kiểm thử, dữ liệu cần kiểm chứng, lộ trình bài học, ảnh chụp màn hình
+public/            Ảnh bài học (webp đã nén), địa hình, mô hình 3D
+```
+
+## Soạn nội dung
+
+Nội dung sự kiện viết theo khung **Bối cảnh – Diễn biến – Kết quả – Ý nghĩa – Câu chuyện nhỏ – Em có biết? – Di tích ngày nay**,
+bằng cú pháp gọn: `## Tên mục`, dòng trống tách đoạn, `- ` gạch đầu dòng, `> ` trích dẫn (dòng `> — Nguồn` ghi nguồn),
+`**đậm**`, `*nghiêng*`. Trang web tự dựng thành phần tử an toàn (không nhận HTML) và đặt ảnh xen giữa các mục.
+Có thể soạn trực tiếp trong trang quản trị, hoặc soạn hàng loạt trong `supabase/content/su-kien/*.md` rồi chạy
+`node scripts/build-content-sql.mjs` để sinh `supabase/seed-content.sql`.
+
+## Nội dung và bản quyền ảnh
+
+- Mỗi ảnh ghi **tác giả, giấy phép và link trang gốc**. Ảnh dựng lại, tô màu hay minh họa đều gắn nhãn rõ.
+- Danh sách dữ liệu còn phải đối chiếu với SGK: [`docs/du-lieu-can-kiem-chung.md`](docs/du-lieu-can-kiem-chung.md).
+  Trang quản trị không cho gửi duyệt nội dung còn chữ `TODO` ở phần hiển thị công khai.
+- Dữ liệu bản đồ © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).

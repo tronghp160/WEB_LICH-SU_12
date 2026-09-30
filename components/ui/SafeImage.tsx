@@ -1,7 +1,7 @@
 "use client";
 
 import { ImageOff } from "lucide-react";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { cn } from "@/lib/utils/cn";
 
 type SafeImageProps = {
@@ -10,6 +10,15 @@ type SafeImageProps = {
   className?: string;
   /** Tỉ lệ khung khi ảnh chưa/không tải được, ví dụ "aspect-[4/3]". */
   fallbackClassName?: string;
+  style?: CSSProperties;
+  /** Kích thước thật (nếu biết) để trình duyệt giữ chỗ, tránh nhảy bố cục. */
+  width?: number;
+  height?: number;
+  srcSet?: string;
+  /** Bắt buộc đi kèm srcSet, ví dụ "(min-width: 640px) 50vw, 100vw". */
+  sizes?: string;
+  /** Ảnh đầu trang (LCP) nên tải ngay. */
+  priority?: boolean;
 };
 
 /**
@@ -19,7 +28,7 @@ type SafeImageProps = {
  * Dùng <img> thay vì next/image vì `file_url` có thể trỏ tới bất kỳ máy chủ nào
  * (Wikimedia Commons, Supabase Storage…), không cấu hình trước được từng host.
  */
-export function SafeImage({ src, alt, className, fallbackClassName }: SafeImageProps) {
+export function SafeImage({ src, alt, className, fallbackClassName, style, width, height, srcSet, sizes, priority }: SafeImageProps) {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
@@ -43,10 +52,16 @@ export function SafeImage({ src, alt, className, fallbackClassName }: SafeImageP
     // eslint-disable-next-line @next/next/no-img-element -- host ảnh tùy ý, xem chú thích ở đầu component
     <img
       src={src}
+      srcSet={srcSet}
+      sizes={srcSet ? sizes : undefined}
       alt={alt}
-      loading="lazy"
+      width={width}
+      height={height}
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : undefined}
       decoding="async"
       className={className}
+      style={style}
       onError={() => setFailed(true)}
       // Ảnh có thể đã lỗi TRƯỚC khi React hydrate (onError khi đó không được gọi).
       ref={(img) => {

@@ -124,8 +124,13 @@ export function EventForm({ id, initial, initialLinks, options, readOnly }: Even
         <Field name="summary" label="Tóm tắt" required error={errors.summary} hint="1–3 câu, hiển thị ở danh sách và thẻ sự kiện.">
           {(props) => <Textarea {...props} defaultValue={value("summary")} rows={3} />}
         </Field>
-        <Field name="content" label="Nội dung chi tiết" error={errors.content} hint="Cách nhau một dòng trống để tách đoạn.">
-          {(props) => <Textarea {...props} defaultValue={value("content")} rows={10} />}
+        <Field
+          name="content"
+          label="Nội dung chi tiết"
+          error={errors.content}
+          hint="Khung chuẩn: ## Bối cảnh · ## Diễn biến · ## Kết quả · ## Ý nghĩa · ## Câu chuyện nhỏ · ## Em có biết? · ## Di tích ngày nay. Một dòng trống tách đoạn; “- ” gạch đầu dòng; “> ” trích dẫn (dòng “> — Nguồn” ghi nguồn); **chữ đậm**."
+        >
+          {(props) => <Textarea {...props} defaultValue={value("content")} rows={18} />}
         </Field>
 
         <label className="flex items-center gap-2 text-sm font-medium text-foreground">

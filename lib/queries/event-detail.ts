@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { cache } from "react";
 import type { SourceListItem } from "@/components/content/SourceList";
 import type { Database } from "@/lib/database.types";
+import { PUBLIC_MEDIA_FIELDS, toMediaItems, type MediaItem, type MediaRow } from "@/lib/media";
 import { toEventSummary, type EventSummary } from "@/lib/queries/events";
 import { createPublicClient } from "@/lib/supabase/public";
 import { parseAccuracyLevel, parseSourceType, type AccuracyLevel, type WorkflowStatus } from "@/lib/utils/labels";
@@ -35,14 +36,7 @@ export type EventDetail = EventSummary & {
     status: WorkflowStatus;
   }[];
   sources: (SourceListItem & { confidenceNote: string | null })[];
-  media: {
-    id: string;
-    url: string;
-    type: "image" | "document";
-    caption: string | null;
-    altText: string | null;
-    sourceTitle: string | null;
-  }[];
+  media: MediaItem[];
 };
 
 // Quan hệ nhúng có thể là null lúc chạy nếu bản ghi kia chưa published (RLS ẩn với khách),
@@ -77,7 +71,8 @@ export async function loadEventDetail(
        event_figures(relationship, sort_order, historical_figures(slug, name, birth_year, death_year, workflow_status)),
        event_locations(location_role, is_primary, historical_locations(slug, name, historical_name, latitude, longitude, accuracy_level, accuracy_note, workflow_status)),
        event_sources(source_note, confidence_note, sources(id, title, citation, url, source_type)),
-       media_assets(id, file_url, media_type, caption, alt_text, sort_order, sources(title))`,
+       media_assets(${PUBLIC_MEDIA_FIELDS}),
+       event_topics(curriculum_topics(name, slug))`,
     );
   query = "id" in by ? query.eq("id", by.id) : query.eq("slug", by.slug);
   if (publishedOnly) query = query.eq("workflow_status", "published");
@@ -167,16 +162,7 @@ export async function loadEventDetail(
       : [];
   });
 
-  const media = [...data.media_assets]
-    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-    .map((item) => ({
-      id: item.id,
-      url: item.file_url,
-      type: item.media_type === "document" ? ("document" as const) : ("image" as const),
-      caption: item.caption,
-      altText: item.alt_text,
-      sourceTitle: (item.sources as Embedded<{ title: string }>)?.title ?? null,
-    }));
+  const media = toMediaItems(data.media_assets as MediaRow[]);
 
   return {
     ...toEventSummary(data),

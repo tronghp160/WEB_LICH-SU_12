@@ -69,6 +69,46 @@ SGK/nguồn chính thức** — đề nghị đối chiếu lại, đặc biệt
 - `historical_figures.portrait_url` mới chỉ có cho `ho-chi-minh`; 8 nhân
   vật còn lại chưa có ảnh chân dung.
 
+> **Cập nhật 29/09/2026 (GĐ1 — kho ảnh, `supabase/seed-media.sql`):** 10/10 sự kiện đã có ảnh (16 ảnh), 6/8 nhân vật
+> có chân dung, 9 địa điểm có ảnh ngày nay; mọi ảnh ghi tác giả, giấy phép và trang gốc, lưu trong bucket `media`.
+> Còn thiếu chân dung **Lê Đức Thọ** và **Văn Tiến Dũng**: ảnh trên Commons hoặc chụp lại từ bàn thờ, hoặc chỉ là
+> phạm vi công cộng tại Hoa Kỳ (ảnh AP/LIFE) — nên xin phép Bảo tàng Lịch sử Quân sự / TTXVN hoặc dùng ảnh tự chụp.
+> Lưu ý thêm về luật: ảnh chưa công bố trong 25 năm kể từ khi chụp được bảo hộ 100 năm kể từ khi chụp, nên nhãn
+> PD-Vietnam trên Commons (thường tính theo năm chụp) có thể sai; GĐ1 chỉ dùng ảnh công bố trước 1951 hoặc có giấy phép mở.
+
+## 5b. Nội dung GĐ3 (30/09/2026) — cần giáo viên đối chiếu SGK
+
+Nội dung soạn trong `supabase/content/su-kien/*.md` (sinh SQL bằng `node scripts/build-content-sql.mjs`).
+Agent viết theo kiến thức phổ thông, **chưa đối chiếu trực tiếp SGK Kết nối tri thức**. 10 sự kiện mới ở trạng thái
+**nháp**: chỉ công bố sau khi kiểm duyệt viên (nên là giáo viên Lịch sử) duyệt trong trang quản trị.
+Những chi tiết nên kiểm kỹ nhất:
+
+| Sự kiện | Chi tiết cần đối chiếu |
+|---|---|
+| Nguyễn Tất Thành ra đi (1911) | dạy ở Trường Dục Thanh năm 1910; tàu cập Mác-xây tháng 7/1911 |
+| Nguyễn Ái Quốc về nước | cột mốc 108 (nay là mốc 675); Hội nghị TW 8 (10–19/5/1941); báo *Việt Nam độc lập* (1941) |
+| Tổng khởi nghĩa Hà Nội | chuyện lá cờ thả từ ban công ngày 17/8; 19/8 là ngày truyền thống CAND; Bắc Bộ phủ nay là Nhà khách Chính phủ |
+| Tuyên ngôn Độc lập | câu hỏi "Tôi nói đồng bào nghe rõ không?"; trích nguyên văn Tuyên ngôn |
+| Điện Biên Phủ | số liệu 16.200 quân, 62 máy bay (khớp bài học); chuyện Phan Đình Giót |
+| Genève | Tạ Quang Bửu ký hiệp định đình chỉ chiến sự; chuyện cầu Hiền Lương sơn hai màu |
+| Tết Mậu Thân | Huế "khoảng 25 ngày đêm"; thời gian đợt 2, 3; cách SGK đánh giá tổn thất |
+| Hiệp định Paris | 202 phiên họp chung, 24 cuộc gặp riêng; 4 năm 9 tháng; 29/3/1973 lính Mỹ cuối cùng rút |
+| Chiến dịch Hồ Chí Minh | 11 giờ 30 cắm cờ; Châu Đốc giải phóng 2/5; nơi lưu giữ xe tăng 390 (Bảo tàng Tăng thiết giáp) và 843 (Bảo tàng LSQS) — tra 30/09/2026 trên báo VnExpress, VietNamNet |
+| Đại hội VI | chuyện Kim Ngọc "khoán hộ" từ 1966; 1989 bắt đầu xuất khẩu gạo |
+| Hiệp định Sơ bộ (mới) | 15.000 quân Pháp, rút trong 5 năm; câu nói ngày 7/3/1946 |
+| Toàn quốc kháng chiến (mới) | 20 giờ 19/12, Nhà máy điện Yên Phụ; "khoảng 60 ngày đêm" |
+| Điện Biên Phủ trên không (mới) | 81 máy bay / 34 B-52 (ghi rõ "theo số liệu của ta"); nguyên văn câu dự báo của Bác về B-52 |
+| Biên giới Tây Nam (mới) | thảm sát Ba Chúc (hơn 3.000 người); các mốc 22/12/1978, 2/12/1978, 7/1/1979 |
+| Biên giới phía Bắc (mới) | các mốc 17/2, 5/3, 18/3/1979; Hiệp ước biên giới 1999, phân giới cắm mốc 2008 |
+| Gạc Ma (mới) | 64 chiến sĩ; nguyên văn lời Trần Văn Phương và tuổi của anh; tên các tàu HQ-604, 605, 505 |
+| Gia nhập LHQ (mới) | thành viên thứ 149; hai nhiệm kỳ ủy viên không thường trực HĐBA |
+| Việt – Mỹ (mới) | 3/2/1994, 11–12/7/1995; các mốc 2000, 2013, 2023 |
+| ASEAN (mới) | Hội nghị AMM lần thứ 28; Timor-Leste là thành viên thứ 11 (2025) |
+| WTO (mới) | nộp đơn 1/1995; 7/11/2006; thành viên thứ 150; vai trò của ông Lương Văn Tự |
+
+**Chủ đề nhạy cảm** (biên giới 1979, Gạc Ma): đã viết theo giọng trung tính của SGK, nhưng nên để giáo viên duyệt kỹ
+cách diễn đạt trước khi công bố.
+
 ## 6. Phát hiện khi xây trang chủ (Phase 4)
 
 Hai điểm về dữ liệu lộ ra khi xem trang chủ thật — chưa sửa vì cần bạn quyết định:
@@ -89,6 +129,43 @@ Hai điểm về dữ liệu lộ ra khi xem trang chủ thật — chưa sửa 
    set date_text = 'Từ đêm 30/1/1968'
    where slug = 'tong-tien-cong-va-noi-day-tet-mau-than-1968';
    ```
+
+## 6b. Ghi chú nội bộ đã gỡ khỏi trang công khai (29/09/2026)
+
+Trước đây các ghi chú "TODO: kiểm chứng" nằm thẳng trong cột hiển thị cho học sinh
+(`sources.citation`, `event_sources.source_note`, `historical_locations.accuracy_note`).
+Migration `20260929000000_public_text_cleanup.sql` đã gỡ chúng; **việc cần kiểm chứng vẫn còn nguyên**:
+
+| Chỗ | Việc còn phải làm |
+|---|---|
+| Nguồn SGK (`sources.citation`, `published_year = 2024`) | Xác nhận năm xuất bản/tái bản của ấn bản đang dùng |
+| `event_sources.source_note` (10 sự kiện) | Bổ sung "Bài X, trang Y" cho từng sự kiện |
+| `dien-bien-phu`, `geneve-thuy-si`, `paris-phap`, `ha-noi-khu-vuc-trung-tam`, `pac-bo-cao-bang` | Đối chiếu tọa độ (xem bảng mục 2) |
+
+Từ nay trang quản trị **chặn gửi duyệt** nếu phần hiển thị công khai còn chữ `TODO`/`FIXME`
+(`lib/admin/readiness.ts`). Ghi chú kiểm chứng hãy để ở file này hoặc ở ô "Ghi chú kiểm duyệt".
+
+### Tên hành chính sau sắp xếp 1/7/2025 (đã cập nhật, nên kiểm lại)
+
+Tra cứu ngày 29/09/2026 trên báo và cổng thông tin. Nên đối chiếu lại với nghị quyết sắp xếp chính thức:
+
+| Địa điểm | Đã ghi | Nguồn tra |
+|---|---|---|
+| Dinh Độc Lập | 135 Nam Kỳ Khởi Nghĩa, phường Bến Thành, TP. Hồ Chí Minh | Dân trí, 06/07/2025 |
+| Bến Nhà Rồng | Số 1 Nguyễn Tất Thành, phường Xóm Chiếu (trước đây thuộc Quận 4) | trang du lịch, Wikipedia |
+| Sài Gòn (tâm khu vực) | "khu vực Quận 1 cũ; từ 7/2025 không còn cấp quận" | — |
+| Điện Biên Phủ | khu trung tâm nay thuộc các phường Điện Biên Phủ và Mường Thanh, tỉnh Điện Biên | Thư viện Pháp luật |
+| Pác Bó | xã Trường Hà, tỉnh Cao Bằng (trước đây thuộc huyện Hà Quảng) | Bảo tàng Hồ Chí Minh, Wikipedia — **chưa chắc xã Trường Hà có giữ tên sau sáp nhập xã, cần kiểm lại** |
+
+### Ảnh cắm cờ trên nóc hầm De Castries (1954)
+
+- **Giấy phép:** Commons gắn nhãn `PD-Vietnam` với lý do "công bố hơn 75 năm", nhưng ảnh công bố năm 1954
+  nên đến 2026 mới ~72 năm (Luật SHTT: tác phẩm nhiếp ảnh bảo hộ 75 năm kể từ khi công bố lần đầu).
+  Đã sửa câu ghi công cho trung thực; **nên hỏi thầy cô/bộ phận pháp chế** trước khi công khai rộng,
+  hoặc thay bằng ảnh có giấy phép rõ ràng.
+- **Bối cảnh:** báo Nhân Dân (bài "Dien Bien Phu resounds in foreign films", trích nhật ký Roman Karmen) và
+  Wikipedia (mục Roman Karmen) cho biết cảnh cắm cờ trên nóc hầm được đoàn làm phim của Karmen quay dựng lại
+  sau chiến dịch. Chú thích ảnh ở trang sự kiện và bài học đã ghi rõ "cảnh dựng lại".
 
 ## 7. Việc cần làm tiếp
 

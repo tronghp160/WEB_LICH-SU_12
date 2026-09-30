@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { EventDetailView } from "@/components/content/detail/EventDetailView";
 import { getEventDetail } from "@/lib/queries/event-detail";
 import { getTimelineEvents, type TimelineEvent } from "@/lib/queries/events";
+import { pickCover } from "@/lib/media";
+import { shareImage } from "@/lib/site";
 import { truncateForMeta } from "@/lib/utils/text";
 
 type EventPageProps = { params: Promise<{ slug: string }> };
@@ -16,7 +18,12 @@ export async function generateMetadata({ params }: EventPageProps): Promise<Meta
   return {
     title: event.title,
     description,
-    openGraph: { title: event.title, description, type: "article" },
+    openGraph: {
+      title: event.title,
+      description,
+      type: "article",
+      images: [shareImage("su-kien", event.slug, event.title, pickCover(event.media) !== null)],
+    },
   };
 }
 
@@ -36,7 +43,7 @@ function pickNeighbours(all: TimelineEvent[], slug: string, topicSlug: string | 
     previous: index > 0 ? all[index - 1] : undefined,
     next: index >= 0 ? all[index + 1] : undefined,
     sameTopic: topicSlug
-      ? all.filter((event) => event.topicSlug === topicSlug && event.slug !== slug).slice(0, 3)
+      ? all.filter((event) => event.topicSlugs.includes(topicSlug) && event.slug !== slug).slice(0, 3)
       : [],
   };
 }

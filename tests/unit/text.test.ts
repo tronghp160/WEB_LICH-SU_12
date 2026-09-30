@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatLifespan, resizeCommonsImage, splitParagraphs, truncateForMeta } from "@/lib/utils/text";
+import { formatLifespan, resizeCommonsImage, responsiveImage, splitParagraphs, truncateForMeta } from "@/lib/utils/text";
 
 describe("splitParagraphs", () => {
   it("tách theo dòng trống, giữ xuống dòng đơn trong đoạn", () => {
@@ -56,5 +56,23 @@ describe("resizeCommonsImage", () => {
   it("giữ nguyên URL khác hoặc URL không hợp lệ", () => {
     expect(resizeCommonsImage("https://example.com/a.jpg", 800)).toBe("https://example.com/a.jpg");
     expect(resizeCommonsImage("khong-phai-url", 800)).toBe("khong-phai-url");
+  });
+});
+
+describe("responsiveImage", () => {
+  const base = "https://x.supabase.co/storage/v1/object/public/media/events/abc/ba-dinh";
+
+  it("ảnh tự lưu đủ 3 cỡ: chọn cỡ nhỏ nhất đủ nét và kèm srcSet", () => {
+    const result = responsiveImage(`${base}-1200.webp`, 600);
+    expect(result.src).toBe(`${base}-1200.webp`);
+    expect(result.srcSet).toBe(`${base}-400.webp 400w, ${base}-1200.webp 1200w, ${base}-2000.webp 2000w`);
+    expect(responsiveImage(`${base}-2000.webp`, 300).src).toBe(`${base}-400.webp`);
+    expect(responsiveImage(`${base}-400.webp`, 5000).src).toBe(`${base}-2000.webp`);
+  });
+
+  it("ảnh Commons dùng bản thu nhỏ của Commons; ảnh khác giữ nguyên, không có srcSet", () => {
+    const commons = responsiveImage("https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg", 800);
+    expect(commons).toEqual({ src: "https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg?width=800" });
+    expect(responsiveImage("https://example.com/a-1200.jpg", 800)).toEqual({ src: "https://example.com/a-1200.jpg" });
   });
 });

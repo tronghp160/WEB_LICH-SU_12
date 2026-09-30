@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { pickCover } from "@/lib/media";
+import { shareImage } from "@/lib/site";
 import { notFound } from "next/navigation";
 import { LocationDetailView } from "@/components/content/detail/LocationDetailView";
 import { getLocationDetail } from "@/lib/queries/locations";
@@ -17,7 +19,12 @@ export async function generateMetadata({ params }: LocationPageProps): Promise<M
   return {
     title: location.name,
     description,
-    openGraph: { title: location.name, description, type: "website" },
+    openGraph: {
+      title: location.name,
+      description,
+      type: "website",
+      images: [shareImage("dia-diem", location.slug, location.name, pickCover(location.media) !== null)],
+    },
   };
 }
 

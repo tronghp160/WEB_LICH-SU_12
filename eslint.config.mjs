@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // File chép từ node_modules bởi scripts/copy-maplibre-worker.mjs (đã nén, không phải mã của dự án)
+    "public/vendor/**",
   ]),
 ]);
 

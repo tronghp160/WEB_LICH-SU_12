@@ -5,7 +5,10 @@ import {
   figureSchema,
   isRealDate,
   locationSchema,
+  mediaColumns,
+  mediaOwnerColumn,
   mediaSchema,
+  mediaUpdateSchema,
   sourceSchema,
   topicSchema,
   validateImageFile,
@@ -222,19 +225,64 @@ describe("eventLinksSchema", () => {
 });
 
 describe("mediaSchema", () => {
-  const base = { event_id: uuid, file_url: "https://example.com/a.jpg", alt_text: "Ảnh tư liệu", caption: "", source_id: "" };
+  const base = {
+    owner_kind: "su-kien",
+    owner_id: uuid,
+    file_url: "https://example.com/a.jpg",
+    alt_text: "Ảnh tư liệu",
+    caption: "",
+    source_id: "",
+    era: "historical",
+    license: "CC BY-SA 4.0",
+  };
 
-  it("nhận media hợp lệ, chú thích/nguồn trống → null", () => {
+  it("nhận media hợp lệ, ô trống → null, checkbox vắng mặt → false", () => {
     const result = mediaSchema.safeParse(base);
-    expect(result.success && [result.data.caption, result.data.source_id]).toEqual([null, null]);
+    expect(result.success && [result.data.caption, result.data.source_id, result.data.year_taken, result.data.focal_point]).toEqual([
+      null,
+      null,
+      null,
+      null,
+    ]);
+    expect(result.success && [result.data.is_cover, result.data.is_reenactment, result.data.is_colorized]).toEqual([false, false, false]);
   });
 
-  it("bắt buộc chữ thay thế (alt_text)", () => {
+  it("bắt buộc chữ thay thế (alt_text) và giấy phép", () => {
     expect(fieldErrors(mediaSchema.safeParse({ ...base, alt_text: "  " }))?.alt_text).toBeDefined();
+    expect(fieldErrors(mediaSchema.safeParse({ ...base, license: "" }))?.license).toBeDefined();
   });
 
-  it("địa chỉ ảnh chỉ nhận http/https", () => {
+  it("địa chỉ ảnh, giấy phép và trang gốc chỉ nhận http/https", () => {
     expect(fieldErrors(mediaSchema.safeParse({ ...base, file_url: "javascript:alert(1)" }))?.file_url).toBeDefined();
+    expect(fieldErrors(mediaSchema.safeParse({ ...base, license_url: "javascript:alert(1)" }))?.license_url).toBeDefined();
+    expect(fieldErrors(mediaSchema.safeParse({ ...base, source_page_url: "data:text/html,x" }))?.source_page_url).toBeDefined();
+  });
+
+  it("chủ ảnh: chỉ sự kiện / nhân vật / địa điểm; loại ảnh khớp CHECK era", () => {
+    expect(mediaSchema.safeParse({ ...base, owner_kind: "nhan-vat" }).success).toBe(true);
+    expect(fieldErrors(mediaSchema.safeParse({ ...base, owner_kind: "chu-de" }))?.owner_kind).toBeDefined();
+    expect(fieldErrors(mediaSchema.safeParse({ ...base, era: "ai" }))?.era).toBeDefined();
+  });
+
+  it("năm chụp 1800–2100, điểm lấy nét dạng '50% 30%' (khớp CHECK trong DB)", () => {
+    expect(fieldErrors(mediaSchema.safeParse({ ...base, year_taken: "1700" }))?.year_taken).toBeDefined();
+    const ok = mediaSchema.safeParse({ ...base, year_taken: "1954", focal_point: " 50%   30% ", is_cover: "on" });
+    expect(ok.success && [ok.data.year_taken, ok.data.focal_point, ok.data.is_cover]).toEqual([1954, "50% 30%", true]);
+    expect(fieldErrors(mediaSchema.safeParse({ ...base, focal_point: "101% 0%" }))?.focal_point).toBeDefined();
+    expect(fieldErrors(mediaSchema.safeParse({ ...base, focal_point: "center" }))?.focal_point).toBeDefined();
+  });
+
+  it("mediaColumns gắn đúng cột, không lọt owner_kind/owner_id; mediaOwnerColumn đúng cột chủ", () => {
+    const parsed = mediaUpdateSchema.parse(base);
+    const columns = mediaColumns(parsed);
+    expect(columns).not.toHaveProperty("owner_kind");
+    expect(columns).not.toHaveProperty("owner_id");
+    expect(columns.license).toBe("CC BY-SA 4.0");
+    expect([mediaOwnerColumn("su-kien"), mediaOwnerColumn("nhan-vat"), mediaOwnerColumn("dia-diem")]).toEqual([
+      "event_id",
+      "figure_id",
+      "location_id",
+    ]);
   });
 });
 
