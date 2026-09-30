@@ -86,7 +86,7 @@ Nội dung được viết lại bằng lời của nhóm, không chép nguyên 
 
 ## Phim 3D "Đồi A1, đêm 6/5/1954"
 
-Trang riêng: `/phim-3d/doi-a1`; cũng nhúng trong bài học Điện Biên Phủ (mục "Phim 3D"). Thời lượng 1 phút 50 giây.
+Trang riêng: `/phim-3d/doi-a1` (đã gỡ khỏi bài học Điện Biên Phủ ngày 30/9/2026 theo yêu cầu). Thời lượng 1 phút 50 giây.
 
 ### Người xem thấy gì
 - 8 chương: toàn cảnh Mường Thanh về đêm → đồi A1 → **đường hầm và khối bộc phá nhìn xuyên đất** (có nhãn chú thích) → chiến hào chờ giờ G (20 giờ 30) → **vụ nổ** (chớp trắng, cầu lửa, cột khói, mảnh văng, sóng xung kích, hố bom) → bộ đội xung phong (khoảng 75 người, đạn, lựu đạn, pháo yểm trợ, cháy) → giáp lá cà (địch bị hất ngã, rút lui hoặc giơ tay đầu hàng) → **rạng sáng**, cắm cờ trên đỉnh A1.
@@ -108,7 +108,7 @@ Trang riêng: `/phim-3d/doi-a1`; cũng nhúng trong bài học Điện Biên Ph�
 - Muốn tăng độ chân thực nữa cần tài nguyên ngoài: mô hình nhân vật/vũ khí có bản quyền rõ ràng hoặc video do AI tạo (ghi rõ nguồn) chèn vào các cảnh.
 
 ### Kịch bản demo thêm (1 phút)
-1. Vào bài học → cuộn tới "Phim 3D: Đồi A1" (hoặc mở `/phim-3d/doi-a1`), bấm **Xem phim 3D**, bật loa.
+1. Mở `/phim-3d/doi-a1`, bấm **Xem phim 3D**, bật loa.
 2. Để chạy tới **giờ G**: chỉ cho khán giả đường hầm xuyên đất, rồi vụ nổ.
 3. Tạm dừng lúc xung phong, bật **Camera tự do** kéo chuột xoay quanh chiến trường; bấm Toàn màn hình.
 4. Tua tới rạng sáng để xem lá cờ.

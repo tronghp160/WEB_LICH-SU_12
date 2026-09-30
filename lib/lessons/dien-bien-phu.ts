@@ -40,7 +40,7 @@ export const dienBienPhuLesson: Lesson = {
   dateText: "13/3 – 7/5/1954",
   tagline: "56 ngày đêm \"khoét núi, ngủ hầm, mưa dầm, cơm vắt\" làm nên chiến thắng \"lừng lẫy năm châu, chấn động địa cầu\".",
   copy: {
-    cardDescription: "Bản đồ diễn biến 7 bước, phim 3D đồi A1, ảnh tư liệu, video và thẻ ghi nhớ.",
+    cardDescription: "Bản đồ diễn biến 7 bước, bản đồ 3D, mô hình 3D, ảnh tư liệu, video và thẻ ghi nhớ.",
     mapTitle: "Xem chiến dịch diễn ra từng bước",
     mapHint: "Bản đồ sẽ bay từ toàn cảnh Đông Dương vào lòng chảo Mường Thanh; cứ điểm nào bị tiêu diệt sẽ đổi màu.",
     videoTitle: "Video về chiến dịch",
@@ -90,14 +90,7 @@ export const dienBienPhuLesson: Lesson = {
     hienVat: ["luu-phao-105", "xe-dap-tho", "chien-si", "may-bay-c47"],
     diTich: ["ham-de-castries", "duong-ham-a1", "chien-hao-a1"],
   },
-  cinema: {
-    href: "/phim-3d/doi-a1",
-    title: "Đồi A1, đêm 6/5/1954",
-    description:
-      "Xem trận đánh đồi A1 diễn ra như một thước phim 3D trên địa hình lòng chảo thật: đường hầm bộc phá, vụ nổ, bộ đội xung phong, rạng sáng cắm cờ. Có âm thanh, thuyết minh tiếng Việt và phụ đề.",
-    posterSrc: "/lessons/dien-bien-phu/ho-boc-pha-a1.webp",
-    posterAlt: "Hố bộc phá trên đồi A1 ngày nay",
-  },
+  // Mục "Phim 3D: Đồi A1" đã gỡ khỏi bài học theo yêu cầu (30/9/2026); phim vẫn xem được ở trang riêng /phim-3d/doi-a1.
   videos: [
     {
       youtubeId: "qvE5Zd9kHPY",
@@ -266,7 +259,5 @@ export const dienBienPhuLesson: Lesson = {
     "Các ngày của ba đợt: 13/3–17/3, 30/3–26/4, 1/5–7/5/1954.",
     "Khối bộc phá ở đồi A1 \"gần 1 tấn\".",
     "Cách viết \"Giơnevơ\" hay \"Genève\" theo đúng bộ sách.",
-    "Câu thơ Tố Hữu và tên bài thơ.",
-    "Phim 3D đồi A1: đường hầm ~45 m, khối bộc phá ~1 tấn, mốc 20 giờ 30 phút ngày 6/5, và \"rạng sáng 7/5\" làm chủ A1; vị trí công sự và số lượng nhân vật là minh họa.",
-  ],
+    "Câu thơ Tố Hữu và tên bài thơ.",  ],
 };
