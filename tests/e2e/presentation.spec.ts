@@ -8,6 +8,12 @@ const DECK = `${LESSON}/trinh-chieu`;
 
 test.describe("Trình chiếu bài học: Chiến dịch Điện Biên Phủ", () => {
   const status = (page: Page) => page.locator("p.sr-only[aria-live]");
+  /** Phím đầu tiên có thể tới trước khi trang hydrate xong (chưa gắn trình nghe phím) → bấm lại tới khi có tác dụng. */
+  const pressUntil = (page: Page, key: string, expected: string) =>
+    expect(async () => {
+      await page.keyboard.press(key);
+      await expect(status(page)).toContainText(expected, { timeout: 1000 });
+    }).toPass();
 
   test("lối vào từ bài học, thoát về bài học", async ({ page }) => {
     await page.goto(LESSON);
@@ -21,8 +27,7 @@ test.describe("Trình chiếu bài học: Chiến dịch Điện Biên Phủ", (
   test("phím mũi tên, Home/End chuyển slide và ghi số slide lên URL", async ({ page }) => {
     await page.goto(DECK);
     await expect(status(page)).toContainText("Slide 1/");
-    await page.keyboard.press("ArrowRight");
-    await expect(status(page)).toContainText("Mục tiêu bài học");
+    await pressUntil(page, "ArrowRight", "Mục tiêu bài học");
     await expect(page).toHaveURL(/#2$/);
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("ArrowRight");
@@ -41,11 +46,13 @@ test.describe("Trình chiếu bài học: Chiến dịch Điện Biên Phủ", (
 
   test("tải lại giữ nguyên slide; thẻ ghi nhớ bấm Tiếp lần đầu hiện đáp án", async ({ page }) => {
     await page.goto(DECK);
-    await page.keyboard.press("End");
-    // Lùi dần tới thẻ ghi nhớ đầu tiên (các thẻ nằm ngay trước slide cuối).
-    const firstCard = page.getByText("Ghi nhớ nhanh · Câu 1/");
-    for (let i = 0; i < 20 && !(await firstCard.isVisible()); i++) await page.keyboard.press("ArrowLeft");
+    await pressUntil(page, "End", "Kiểm tra nhanh");
+    // Thẻ ghi nhớ nằm liền nhau ngay trước slide cuối: từ thẻ cuối "Slide 24/25: Ghi nhớ 6/6" suy ra số slide thẻ đầu.
+    await pressUntil(page, "ArrowLeft", "Ghi nhớ ");
+    const [, lastCardSlide, cardCount] = /Slide (\d+)\/\d+: Ghi nhớ (\d+)\//.exec(await status(page).innerText()) ?? [];
+    await page.goto(`${DECK}#${Number(lastCardSlide) - Number(cardCount) + 1}`);
     await page.reload();
+    const firstCard = page.getByText("Ghi nhớ nhanh · Câu 1/");
     await expect(firstCard).toBeVisible();
     await expect(page.getByText("Kế hoạch Nava (1953–1954).")).toHaveCount(0);
     await page.getByRole("button", { name: "Tiếp" }).click();
