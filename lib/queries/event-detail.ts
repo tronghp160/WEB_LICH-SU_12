@@ -71,7 +71,8 @@ export async function loadEventDetail(
        event_figures(relationship, sort_order, historical_figures(slug, name, birth_year, death_year, workflow_status)),
        event_locations(location_role, is_primary, historical_locations(slug, name, historical_name, latitude, longitude, accuracy_level, accuracy_note, workflow_status)),
        event_sources(source_note, confidence_note, sources(id, title, citation, url, source_type)),
-       media_assets(${PUBLIC_MEDIA_FIELDS})`,
+       media_assets(${PUBLIC_MEDIA_FIELDS}),
+       event_topics(curriculum_topics(name, slug))`,
     );
   query = "id" in by ? query.eq("id", by.id) : query.eq("slug", by.slug);
   if (publishedOnly) query = query.eq("workflow_status", "published");

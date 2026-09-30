@@ -76,6 +76,39 @@ SGK/nguồn chính thức** — đề nghị đối chiếu lại, đặc biệt
 > Lưu ý thêm về luật: ảnh chưa công bố trong 25 năm kể từ khi chụp được bảo hộ 100 năm kể từ khi chụp, nên nhãn
 > PD-Vietnam trên Commons (thường tính theo năm chụp) có thể sai; GĐ1 chỉ dùng ảnh công bố trước 1951 hoặc có giấy phép mở.
 
+## 5b. Nội dung GĐ3 (30/09/2026) — cần giáo viên đối chiếu SGK
+
+Nội dung soạn trong `supabase/content/su-kien/*.md` (sinh SQL bằng `node scripts/build-content-sql.mjs`).
+Agent viết theo kiến thức phổ thông, **chưa đối chiếu trực tiếp SGK Kết nối tri thức**. 10 sự kiện mới ở trạng thái
+**nháp**: chỉ công bố sau khi kiểm duyệt viên (nên là giáo viên Lịch sử) duyệt trong trang quản trị.
+Những chi tiết nên kiểm kỹ nhất:
+
+| Sự kiện | Chi tiết cần đối chiếu |
+|---|---|
+| Nguyễn Tất Thành ra đi (1911) | dạy ở Trường Dục Thanh năm 1910; tàu cập Mác-xây tháng 7/1911 |
+| Nguyễn Ái Quốc về nước | cột mốc 108 (nay là mốc 675); Hội nghị TW 8 (10–19/5/1941); báo *Việt Nam độc lập* (1941) |
+| Tổng khởi nghĩa Hà Nội | chuyện lá cờ thả từ ban công ngày 17/8; 19/8 là ngày truyền thống CAND; Bắc Bộ phủ nay là Nhà khách Chính phủ |
+| Tuyên ngôn Độc lập | câu hỏi "Tôi nói đồng bào nghe rõ không?"; trích nguyên văn Tuyên ngôn |
+| Điện Biên Phủ | số liệu 16.200 quân, 62 máy bay (khớp bài học); chuyện Phan Đình Giót |
+| Genève | Tạ Quang Bửu ký hiệp định đình chỉ chiến sự; chuyện cầu Hiền Lương sơn hai màu |
+| Tết Mậu Thân | Huế "khoảng 25 ngày đêm"; thời gian đợt 2, 3; cách SGK đánh giá tổn thất |
+| Hiệp định Paris | 202 phiên họp chung, 24 cuộc gặp riêng; 4 năm 9 tháng; 29/3/1973 lính Mỹ cuối cùng rút |
+| Chiến dịch Hồ Chí Minh | 11 giờ 30 cắm cờ; Châu Đốc giải phóng 2/5; nơi lưu giữ xe tăng 390 (Bảo tàng Tăng thiết giáp) và 843 (Bảo tàng LSQS) — tra 30/09/2026 trên báo VnExpress, VietNamNet |
+| Đại hội VI | chuyện Kim Ngọc "khoán hộ" từ 1966; 1989 bắt đầu xuất khẩu gạo |
+| Hiệp định Sơ bộ (mới) | 15.000 quân Pháp, rút trong 5 năm; câu nói ngày 7/3/1946 |
+| Toàn quốc kháng chiến (mới) | 20 giờ 19/12, Nhà máy điện Yên Phụ; "khoảng 60 ngày đêm" |
+| Điện Biên Phủ trên không (mới) | 81 máy bay / 34 B-52 (ghi rõ "theo số liệu của ta"); nguyên văn câu dự báo của Bác về B-52 |
+| Biên giới Tây Nam (mới) | thảm sát Ba Chúc (hơn 3.000 người); các mốc 22/12/1978, 2/12/1978, 7/1/1979 |
+| Biên giới phía Bắc (mới) | các mốc 17/2, 5/3, 18/3/1979; Hiệp ước biên giới 1999, phân giới cắm mốc 2008 |
+| Gạc Ma (mới) | 64 chiến sĩ; nguyên văn lời Trần Văn Phương và tuổi của anh; tên các tàu HQ-604, 605, 505 |
+| Gia nhập LHQ (mới) | thành viên thứ 149; hai nhiệm kỳ ủy viên không thường trực HĐBA |
+| Việt – Mỹ (mới) | 3/2/1994, 11–12/7/1995; các mốc 2000, 2013, 2023 |
+| ASEAN (mới) | Hội nghị AMM lần thứ 28; Timor-Leste là thành viên thứ 11 (2025) |
+| WTO (mới) | nộp đơn 1/1995; 7/11/2006; thành viên thứ 150; vai trò của ông Lương Văn Tự |
+
+**Chủ đề nhạy cảm** (biên giới 1979, Gạc Ma): đã viết theo giọng trung tính của SGK, nhưng nên để giáo viên duyệt kỹ
+cách diễn đạt trước khi công bố.
+
 ## 6. Phát hiện khi xây trang chủ (Phase 4)
 
 Hai điểm về dữ liệu lộ ra khi xem trang chủ thật — chưa sửa vì cần bạn quyết định:

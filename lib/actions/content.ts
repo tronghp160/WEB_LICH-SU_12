@@ -226,6 +226,24 @@ async function applyEventLinks(db: Db, eventId: string, links: EventLinksInput):
     if (error) return error;
   }
 
+  // Chủ đề phụ (event_topics). Xóa phần thừa TRƯỚC: nếu người dùng vừa đổi chủ đề chính sang một chủ đề đang là
+  // chủ đề phụ thì dòng cũ phải đi trước khi thêm (trigger chặn chủ đề phụ trùng chủ đề chính).
+  {
+    const query = db.from("event_topics").delete().eq("event_id", eventId);
+    const { error } =
+      links.topics.length > 0 ? await query.not("topic_id", "in", `(${links.topics.join(",")})`) : await query;
+    if (error) return error;
+  }
+  if (links.topics.length > 0) {
+    const { error } = await db
+      .from("event_topics")
+      .upsert(
+        links.topics.map((topicId) => ({ event_id: eventId, topic_id: topicId })),
+        { onConflict: "event_id,topic_id", ignoreDuplicates: true },
+      );
+    if (error) return error;
+  }
+
   return null;
 }
 
@@ -246,6 +264,8 @@ export async function saveEventAction(_previous: ActionState, formData: FormData
   if (!links.success) {
     return errorState(links.error.issues[0]?.message ?? "Danh sách liên kết không hợp lệ.", values);
   }
+  // Chủ đề phụ trùng chủ đề chính thì bỏ (không cần báo lỗi: chủ đề chính đã bao hàm).
+  links.data.topics = [...new Set(links.data.topics)].filter((topicId) => topicId !== parsed.data.topic_id);
 
   return saveRecord({
     segment: "su-kien",

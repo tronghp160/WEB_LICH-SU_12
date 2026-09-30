@@ -102,7 +102,7 @@ async function NewEventForm() {
         content: null,
         is_featured: false,
       }}
-      initialLinks={{ figures: [], locations: [], sources: [] }}
+      initialLinks={{ figures: [], locations: [], sources: [], topics: [] }}
       options={options}
     />
   );

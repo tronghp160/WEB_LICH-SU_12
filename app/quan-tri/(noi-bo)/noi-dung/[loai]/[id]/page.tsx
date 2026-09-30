@@ -269,6 +269,7 @@ async function EditWorkflowContent({
               source_note: link.source_note ?? "",
               confidence_note: link.confidence_note ?? "",
             })),
+            topics: event.event_topics.map((link) => link.topic_id),
           }}
           options={options}
           readOnly={readOnlyEvent}

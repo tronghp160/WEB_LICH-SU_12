@@ -6,7 +6,8 @@ import { DetailCover } from "@/components/content/DetailCover";
 import { LightboxProvider } from "@/components/content/Lightbox";
 import { DatePrecisionBadge } from "@/components/content/DatePrecisionBadge";
 import { EventCard } from "@/components/content/EventCard";
-import { MediaGallery } from "@/components/content/MediaGallery";
+import { MediaFigure, MediaGallery } from "@/components/content/MediaGallery";
+import { RichContent } from "@/components/content/RichContent";
 import { SourceList } from "@/components/content/SourceList";
 import { TopicBadge } from "@/components/content/TopicBadge";
 import { MiniMapLazy } from "@/components/map/MiniMapLazy";
@@ -16,7 +17,8 @@ import { getLessonForEvent } from "@/lib/lessons";
 import { arrangeMedia } from "@/lib/media";
 import type { EventDetail } from "@/lib/queries/event-detail";
 import type { TimelineEvent } from "@/lib/queries/events";
-import { formatLifespan, splitParagraphs } from "@/lib/utils/text";
+import { parseRichText } from "@/lib/utils/rich-text";
+import { formatLifespan } from "@/lib/utils/text";
 
 type EventDetailViewProps = {
   event: EventDetail;
@@ -40,8 +42,21 @@ function NotPublishedBadge() {
 
 /** Nội dung trang chi tiết sự kiện (UC05) — dùng chung cho trang công khai và xem trước ở màn hình duyệt. */
 export function EventDetailView({ event, previous, next, sameTopic = [], preview = false }: EventDetailViewProps) {
-  const paragraphs = splitParagraphs(event.content);
+  const sections = parseRichText(event.content);
+  const structured = sections.some((section) => section.heading !== null);
   const { cover, pairs, gallery } = arrangeMedia(event.media);
+  // Nội dung có các mục: đặt ảnh xen sau mỗi mục thường (bỏ mục cuối và các hộp "Câu chuyện nhỏ"/"Em có biết?"),
+  // phần ảnh còn lại dồn xuống "Hình ảnh và tư liệu".
+  const galleryImages = gallery.filter((item) => item.type === "image");
+  const slots = structured
+    ? sections
+        .map((section, index) => ({ section, index }))
+        .filter(({ section, index }) => index < sections.length - 1 && section.heading !== null && !/^(câu chuyện|em có biết)/i.test(section.heading))
+        .map(({ index }) => index)
+    : [];
+  const inline = new Map(slots.slice(0, galleryImages.length).map((sectionIndex, i) => [sectionIndex, galleryImages[i]]));
+  const inlineIds = new Set([...inline.values()].map((item) => item.id));
+  const remaining = gallery.filter((item) => !inlineIds.has(item.id));
   // Bài học tương tác chỉ dành cho trang công khai (không hiện ở màn hình xem trước của kiểm duyệt viên).
   const lesson = preview ? undefined : getLessonForEvent(event.slug);
   const mapLocations = event.locations.flatMap((location) =>
@@ -99,19 +114,27 @@ export function EventDetailView({ event, previous, next, sameTopic = [], preview
 
       <div className={preview ? "mt-8 flex flex-col gap-10" : "mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]"}>
         <div className="flex min-w-0 flex-col gap-10">
-          {paragraphs.length > 0 && (
-            <section aria-labelledby="noi-dung">
-              <h2 id="noi-dung" className="mb-4 font-serif text-2xl font-bold text-foreground">
-                Nội dung
-              </h2>
-              <div className="flex max-w-3xl flex-col gap-4 leading-relaxed text-foreground">
-                {paragraphs.map((paragraph, index) => (
-                  <p key={index} className="whitespace-pre-line">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </section>
+          {structured ? (
+            <RichContent
+              sections={sections}
+              between={(index) => {
+                const item = inline.get(index);
+                return item ? (
+                  <div className="max-w-3xl overflow-hidden rounded-card border border-border bg-surface">
+                    <MediaFigure item={item} wide />
+                  </div>
+                ) : null;
+              }}
+            />
+          ) : (
+            sections.length > 0 && (
+              <section aria-labelledby="noi-dung">
+                <h2 id="noi-dung" className="mb-4 font-serif text-2xl font-bold text-foreground">
+                  Nội dung
+                </h2>
+                <RichContent sections={sections} />
+              </section>
+            )
           )}
 
           {pairs.length > 0 && (
@@ -128,12 +151,12 @@ export function EventDetailView({ event, previous, next, sameTopic = [], preview
             </section>
           )}
 
-          {gallery.length > 0 && (
+          {remaining.length > 0 && (
             <section aria-labelledby="tu-lieu">
               <h2 id="tu-lieu" className="mb-4 font-serif text-2xl font-bold text-foreground">
                 Hình ảnh và tư liệu
               </h2>
-              <MediaGallery media={gallery} />
+              <MediaGallery media={remaining} />
             </section>
           )}
 
@@ -276,6 +299,9 @@ function EventHeading({ event, onImage = false }: { event: EventDetail; onImage?
           </Badge>
         )}
         {event.topicName && <TopicBadge name={event.topicName} slug={event.topicSlug} />}
+        {event.secondaryTopics.map((topic) => (
+          <TopicBadge key={topic.slug} name={topic.name} slug={topic.slug} />
+        ))}
       </div>
       <h1
         className={

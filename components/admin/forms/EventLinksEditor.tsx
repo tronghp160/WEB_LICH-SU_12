@@ -12,10 +12,12 @@ export type EventLinksValue = {
   figures: { figure_id: string; relationship: string }[];
   locations: { location_id: string; location_role: string; is_primary: boolean }[];
   sources: { source_id: string; source_note: string; confidence_note: string }[];
+  /** Chủ đề phụ (id). */
+  topics: string[];
 };
 
 type EventLinksEditorProps = {
-  options: { figures: Option[]; locations: Option[]; sources: Option[] };
+  options: { figures: Option[]; locations: Option[]; sources: Option[]; topics: Option[] };
   initial: EventLinksValue;
   disabled?: boolean;
 };
@@ -102,17 +104,41 @@ export function EventLinksEditor({ options, initial, disabled }: EventLinksEdito
   const [figures, setFigures] = useState(initial.figures);
   const [locations, setLocations] = useState(initial.locations);
   const [sources, setSources] = useState(initial.sources);
+  const [topics, setTopics] = useState(initial.topics);
 
   const nameOf = (list: Option[], id: string) => {
     const option = list.find((item) => item.id === id);
     return option ? optionLabel(option) : "(không còn tồn tại)";
   };
 
-  const payload: EventLinksValue = { figures, locations, sources };
+  const payload: EventLinksValue = { figures, locations, sources, topics };
 
   return (
     <div className="flex flex-col gap-8">
       <input type="hidden" name="links" value={JSON.stringify(payload)} />
+
+      {/* ---- Chủ đề phụ ---- */}
+      <fieldset disabled={disabled} className="m-0 flex flex-col gap-2 border-0 p-0">
+        <legend className="mb-1 font-serif text-lg font-semibold text-foreground">Chủ đề phụ</legend>
+        <p className="text-sm text-muted-foreground">
+          Sự kiện sẽ hiện thêm ở các chủ đề này (ví dụ Hiệp định Genève còn thuộc “Lịch sử đối ngoại”). Chủ đề chính chọn ở trên.
+        </p>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          {options.topics.map((topic) => (
+            <label key={topic.id} className="flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-[var(--accent)]"
+                checked={topics.includes(topic.id)}
+                onChange={(event) =>
+                  setTopics(event.target.checked ? [...topics, topic.id] : topics.filter((id) => id !== topic.id))
+                }
+              />
+              {optionLabel(topic)}
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       {/* ---- Nhân vật ---- */}
       <section aria-labelledby="lien-ket-nhan-vat" className="flex flex-col gap-3">

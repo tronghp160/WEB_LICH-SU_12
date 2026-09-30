@@ -41,7 +41,7 @@ export function Timeline({ events, topics }: TimelineProps) {
   const visibleEvents =
     selected.length === 0
       ? events
-      : events.filter((event) => event.topicSlug && selected.includes(event.topicSlug));
+      : events.filter((event) => event.topicSlugs.some((slug) => selected.includes(slug)));
   const groups = groupEventsByYear(visibleEvents);
   const jumpTargets = pickJumpTargets(groups);
 

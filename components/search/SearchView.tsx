@@ -90,7 +90,7 @@ export function SearchView({ index }: SearchViewProps) {
   const events = index.events.filter(
     (event) =>
       matchesTokens(event.title, tokens) &&
-      (topics.length === 0 || (event.topicSlug !== undefined && topics.includes(event.topicSlug))),
+      (topics.length === 0 || event.topicSlugs.some((slug) => topics.includes(slug))),
   );
   const figures = index.figures.filter(
     (figure) =>

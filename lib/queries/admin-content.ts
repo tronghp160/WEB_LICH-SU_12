@@ -187,6 +187,7 @@ export async function getEventForEdit(id: string) {
        event_figures(figure_id, relationship, sort_order),
        event_locations(location_id, location_role, is_primary),
        event_sources(source_id, source_note, confidence_note),
+       event_topics(topic_id),
        media_assets(${ADMIN_MEDIA_FIELDS})`,
     )
     .eq("id", id)

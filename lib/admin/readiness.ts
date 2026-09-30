@@ -4,6 +4,7 @@
 //  - warnings: khuyến nghị, không chặn nhưng nên xử lý
 
 import type { ContentKind } from "@/lib/admin/content-kinds";
+import { countWords, missingStandardSections } from "@/lib/utils/rich-text";
 
 export type ReadinessResult = {
   blocking: string[];
@@ -89,6 +90,15 @@ export function evaluateReadiness(snapshot: ReadinessSnapshot): ReadinessResult 
       }
       if (!snapshot.content || snapshot.content.trim() === "") {
         warnings.push("Chưa có phần nội dung chi tiết (chỉ có tóm tắt).");
+      } else {
+        const missing = missingStandardSections(snapshot.content);
+        if (missing.length > 0) {
+          warnings.push(`Nội dung chưa theo khung chuẩn, còn thiếu mục: ${missing.join(", ")} (viết "## Tên mục" ở đầu mỗi mục).`);
+        }
+        const words = countWords(snapshot.content);
+        if (words < 300) {
+          warnings.push(`Nội dung còn ngắn (${words} chữ); khuyến nghị 400–800 chữ.`);
+        }
       }
       if (snapshot.figureCount === 0) {
         warnings.push("Chưa gắn nhân vật nào.");

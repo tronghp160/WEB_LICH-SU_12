@@ -1,0 +1,48 @@
+[
+  {
+    "slug": "tru-so-lien-hop-quoc-new-york",
+    "name": "Trụ sở Liên hợp quốc (New York)",
+    "description": "Trụ sở chính của Liên hợp quốc bên bờ sông East River, thành phố New York (Hoa Kỳ), nơi họp Đại hội đồng Liên hợp quốc.",
+    "latitude": 40.749300,
+    "longitude": -73.968000,
+    "accuracy_level": "approximate",
+    "accuracy_note": "Tọa độ khu vực tòa nhà trụ sở Liên hợp quốc (gần đúng)."
+  },
+  {
+    "slug": "bandar-seri-begawan",
+    "name": "Bandar Seri Begawan (Brunei)",
+    "description": "Thủ đô của Brunei, nơi diễn ra Hội nghị Bộ trưởng Ngoại giao ASEAN lần thứ 28 và lễ kết nạp Việt Nam vào ASEAN ngày 28/7/1995.",
+    "latitude": 4.903100,
+    "longitude": 114.939800,
+    "accuracy_level": "region",
+    "accuracy_note": "Tọa độ trung tâm thành phố Bandar Seri Begawan; chưa xác định địa điểm họp cụ thể."
+  },
+  {
+    "slug": "bien-gioi-tay-nam",
+    "name": "Biên giới Tây Nam (Tây Ninh)",
+    "description": "Vùng biên giới Tây Nam của Tổ quốc, nơi quân và dân ta chiến đấu chống các cuộc tấn công của tập đoàn Pol Pot (1975–1979). Tây Ninh là một trong những địa bàn bị tấn công ác liệt nhất.",
+    "latitude": 11.310000,
+    "longitude": 106.098000,
+    "accuracy_level": "region",
+    "accuracy_note": "Điểm đại diện cho cả vùng biên giới Tây Nam (đặt tại Tây Ninh); các trận đánh diễn ra trên nhiều tỉnh từ Tây Ninh đến Kiên Giang."
+  },
+  {
+    "slug": "bien-gioi-phia-bac",
+    "name": "Biên giới phía Bắc (Lạng Sơn)",
+    "description": "Tuyến biên giới phía Bắc của Tổ quốc, nơi quân và dân ta chiến đấu bảo vệ lãnh thổ năm 1979 và những năm sau đó.",
+    "latitude": 21.853700,
+    "longitude": 106.761500,
+    "accuracy_level": "region",
+    "accuracy_note": "Điểm đại diện cho cả tuyến biên giới phía Bắc (đặt tại Lạng Sơn); các trận đánh diễn ra từ Lai Châu đến Quảng Ninh."
+  },
+  {
+    "slug": "dao-gac-ma",
+    "name": "Đảo Gạc Ma (quần đảo Trường Sa)",
+    "historical_name": "Gạc Ma",
+    "description": "Đảo đá thuộc cụm Sinh Tồn, quần đảo Trường Sa (Việt Nam), nơi các chiến sĩ Hải quân nhân dân Việt Nam chiến đấu bảo vệ chủ quyền ngày 14/3/1988.",
+    "latitude": 9.716700,
+    "longitude": 114.283300,
+    "accuracy_level": "approximate",
+    "accuracy_note": "Tọa độ gần đúng của đảo Gạc Ma."
+  }
+]

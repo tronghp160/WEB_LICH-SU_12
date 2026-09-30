@@ -67,6 +67,8 @@ for f in supabase/migrations/*.sql; do npx supabase db query --db-url "$DATABASE
 npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed.sql
 # 3. Kho ảnh (ảnh sự kiện, chân dung, ảnh di tích ngày nay; tệp ảnh nằm trong bucket `media`)
 npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-media.sql
+# 4. Nội dung theo khung chuẩn + sự kiện nháp mới (sinh từ supabase/content/*.md)
+npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-content.sql
 ```
 
 > `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands
@@ -124,6 +126,14 @@ tests/             unit/ (Vitest), e2e/ (Playwright), rls/ (DB thật), perf/
 docs/              Báo cáo kiểm thử, dữ liệu cần kiểm chứng, lộ trình bài học, ảnh chụp màn hình
 public/            Ảnh bài học (webp đã nén), địa hình, mô hình 3D
 ```
+
+## Soạn nội dung
+
+Nội dung sự kiện viết theo khung **Bối cảnh – Diễn biến – Kết quả – Ý nghĩa – Câu chuyện nhỏ – Em có biết? – Di tích ngày nay**,
+bằng cú pháp gọn: `## Tên mục`, dòng trống tách đoạn, `- ` gạch đầu dòng, `> ` trích dẫn (dòng `> — Nguồn` ghi nguồn),
+`**đậm**`, `*nghiêng*`. Trang web tự dựng thành phần tử an toàn (không nhận HTML) và đặt ảnh xen giữa các mục.
+Có thể soạn trực tiếp trong trang quản trị, hoặc soạn hàng loạt trong `supabase/content/su-kien/*.md` rồi chạy
+`node scripts/build-content-sql.mjs` để sinh `supabase/seed-content.sql`.
 
 ## Nội dung và bản quyền ảnh
 

@@ -10,7 +10,7 @@ export type PublishedTopic = {
   slug: string;
   name: string;
   description: string | null;
-  /** Số sự kiện ĐÃ CÔNG BỐ thuộc chủ đề này. */
+  /** Số sự kiện ĐÃ CÔNG BỐ thuộc chủ đề này (chủ đề chính hoặc chủ đề phụ). */
   eventCount: number;
   /** Ảnh đại diện: ảnh bìa của sự kiện sớm nhất (đã công bố) có ảnh trong chủ đề. */
   cover?: CardCover;
@@ -23,7 +23,7 @@ export async function getPublishedTopics(): Promise<PublishedTopic[]> {
   const { data, error } = await supabase
     .from("curriculum_topics")
     .select(
-      "id, slug, name, description, historical_events(count), covers:historical_events(start_year, media_assets(file_url, alt_text, media_type, is_cover, focal_point, sort_order))",
+      "id, slug, name, description, historical_events(count), covers:historical_events(start_year, media_assets(file_url, alt_text, media_type, is_cover, focal_point, sort_order)), secondary:event_topics(historical_events(workflow_status))",
     )
     .eq("workflow_status", "published")
     // Chỉ đếm sự kiện published (RLS đã lọc cho anon, đây là lớp phòng thủ thứ hai).
@@ -40,7 +40,12 @@ export async function getPublishedTopics(): Promise<PublishedTopic[]> {
     slug: topic.slug,
     name: topic.name,
     description: topic.description,
-    eventCount: topic.historical_events[0]?.count ?? 0,
+    eventCount:
+      (topic.historical_events[0]?.count ?? 0) +
+      // Sự kiện gắn làm chủ đề phụ: sự kiện chưa công bố bị RLS ẩn (null) → không đếm.
+      (topic.secondary as { historical_events: { workflow_status: string } | null }[]).filter(
+        (link) => link.historical_events?.workflow_status === "published",
+      ).length,
     cover: topicCover(topic.covers as { start_year: number; media_assets: CardMediaRow[] }[]),
   }));
 }

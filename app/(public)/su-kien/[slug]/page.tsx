@@ -43,7 +43,7 @@ function pickNeighbours(all: TimelineEvent[], slug: string, topicSlug: string | 
     previous: index > 0 ? all[index - 1] : undefined,
     next: index >= 0 ? all[index + 1] : undefined,
     sameTopic: topicSlug
-      ? all.filter((event) => event.topicSlug === topicSlug && event.slug !== slug).slice(0, 3)
+      ? all.filter((event) => event.topicSlugs.includes(topicSlug) && event.slug !== slug).slice(0, 3)
       : [],
   };
 }

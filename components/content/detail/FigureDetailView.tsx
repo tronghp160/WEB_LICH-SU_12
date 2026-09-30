@@ -2,12 +2,14 @@ import { CompactTimeline } from "@/components/content/CompactTimeline";
 import { LightboxProvider, LightboxTrigger } from "@/components/content/Lightbox";
 import { MediaCredit, MediaLabels } from "@/components/content/MediaCredit";
 import { MediaGallery } from "@/components/content/MediaGallery";
+import { RichContent } from "@/components/content/RichContent";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SafeImage } from "@/components/ui/SafeImage";
 import type { FigureDetail } from "@/lib/queries/figures";
 import { arrangeMedia } from "@/lib/media";
-import { formatLifespan, resizeCommonsImage, responsiveImage, splitParagraphs } from "@/lib/utils/text";
+import { parseRichText } from "@/lib/utils/rich-text";
+import { formatLifespan, resizeCommonsImage, responsiveImage } from "@/lib/utils/text";
 
 type FigureDetailViewProps = {
   figure: FigureDetail;
@@ -18,7 +20,8 @@ type FigureDetailViewProps = {
 /** Nội dung trang chi tiết nhân vật (UC05) — dùng chung cho trang công khai và xem trước ở màn hình duyệt. */
 export function FigureDetailView({ figure, preview = false }: FigureDetailViewProps) {
   const lifespan = formatLifespan(figure.birthYear, figure.deathYear);
-  const paragraphs = splitParagraphs(figure.biography);
+  // Tiểu sử dùng cùng định dạng với nội dung sự kiện (đoạn, "> trích dẫn — nguồn", **đậm**, "### mục").
+  const biography = parseRichText(figure.biography);
   const { cover: portrait, gallery } = arrangeMedia(figure.media);
 
   return (
@@ -75,14 +78,8 @@ export function FigureDetailView({ figure, preview = false }: FigureDetailViewPr
           <h2 id="tieu-su" className="mb-4 font-serif text-2xl font-bold text-foreground">
             Tiểu sử
           </h2>
-          {paragraphs.length > 0 ? (
-            <div className="flex max-w-3xl flex-col gap-4 leading-relaxed text-foreground">
-              {paragraphs.map((paragraph, index) => (
-                <p key={index} className="whitespace-pre-line">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+          {biography.length > 0 ? (
+            <RichContent sections={biography} headingLevel={3} />
           ) : (
             <p className="text-muted-foreground">Chưa có tiểu sử được công bố.</p>
           )}

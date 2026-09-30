@@ -3,7 +3,7 @@ import { evaluateReadiness, isReady } from "@/lib/admin/readiness";
 
 const fullEvent = {
   kind: "su-kien" as const,
-  content: "Nội dung",
+  content: ["## Bối cảnh", "## Diễn biến", "## Kết quả", "## Ý nghĩa", "chữ ".repeat(400)].join("\n\n"),
   sourceCount: 1,
   hasPrimaryLocation: true,
   figureCount: 2,
@@ -52,6 +52,13 @@ describe("evaluateReadiness — sự kiện", () => {
     const result = evaluateReadiness({ ...fullEvent, content: "  ", figureCount: 0, unpublishedLinkedCount: 3 });
     expect(isReady(result)).toBe(true);
     expect(result.warnings).toHaveLength(3);
+  });
+
+  it("nội dung chưa theo khung chuẩn hoặc quá ngắn → cảnh báo (không chặn)", () => {
+    const result = evaluateReadiness({ ...fullEvent, content: "## Bối cảnh\n\nMột đoạn ngắn." });
+    expect(isReady(result)).toBe(true);
+    expect(result.warnings.join(" ")).toContain("Diễn biến, Kết quả, Ý nghĩa");
+    expect(result.warnings.join(" ")).toContain("còn ngắn");
   });
 });
 

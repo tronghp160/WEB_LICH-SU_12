@@ -272,6 +272,8 @@ export const eventLinksSchema = z
         }),
       )
       .max(50),
+    /** Chủ đề PHỤ (event_topics); chủ đề chính là topic_id của sự kiện. Dữ liệu cũ không có trường này → []. */
+    topics: z.array(uuidField("chủ đề phụ")).max(10).default([]),
   })
   .superRefine((value, context) => {
     const duplicate = <T,>(items: T[], key: (item: T) => string) => new Set(items.map(key)).size !== items.length;

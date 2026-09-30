@@ -92,7 +92,7 @@ export function MapExplorer({ locations, topics }: MapExplorerProps) {
       ? locations
       : locations.flatMap((location) => {
           const events = location.events.filter(
-            (event) => event.topicSlug && selectedTopics.includes(event.topicSlug),
+            (event) => event.topicSlugs.some((slug) => selectedTopics.includes(slug)),
           );
           return events.length > 0 ? [{ ...location, events }] : [];
         });

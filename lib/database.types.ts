@@ -343,6 +343,40 @@ export type Database = {
           },
         ]
       }
+      // Migration 20260930000000: CHỦ ĐỀ PHỤ của sự kiện (chủ đề chính vẫn là historical_events.topic_id).
+      event_topics: {
+        Row: {
+          id: string
+          event_id: string
+          topic_id: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          topic_id: string
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_topics_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "historical_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_sources: {
         Row: {
           event_id: string

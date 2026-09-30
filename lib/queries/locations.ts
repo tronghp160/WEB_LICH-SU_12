@@ -11,6 +11,8 @@ export type MapLocationEvent = {
   title: string;
   dateText: string;
   topicSlug?: string;
+  /** Chủ đề chính + chủ đề phụ, để lọc bản đồ theo chủ đề. */
+  topicSlugs: string[];
   /** Địa điểm này là địa điểm CHÍNH của sự kiện. */
   isPrimary: boolean;
 };
@@ -36,6 +38,7 @@ type EmbeddedEvent = {
   date_text: string;
   workflow_status: string;
   curriculum_topics: { slug: string } | null;
+  event_topics: { curriculum_topics: { slug: string } | null }[];
 };
 
 /**
@@ -48,7 +51,7 @@ export async function getMapLocations(): Promise<MapLocation[]> {
   const { data, error } = await supabase
     .from("historical_locations")
     .select(
-      "id, slug, name, historical_name, latitude, longitude, accuracy_level, accuracy_note, event_locations(is_primary, historical_events(slug, title, date_text, workflow_status, start_year, curriculum_topics(slug))), media_assets(file_url, alt_text, media_type, is_cover, focal_point, sort_order)",
+      "id, slug, name, historical_name, latitude, longitude, accuracy_level, accuracy_note, event_locations(is_primary, historical_events(slug, title, date_text, workflow_status, start_year, curriculum_topics(slug), event_topics(curriculum_topics(slug)))), media_assets(file_url, alt_text, media_type, is_cover, focal_point, sort_order)",
     )
     .eq("workflow_status", "published")
     .not("latitude", "is", null)
@@ -77,6 +80,9 @@ export async function getMapLocations(): Promise<MapLocation[]> {
         title: event.title,
         dateText: event.date_text,
         topicSlug: event.curriculum_topics?.slug,
+        topicSlugs: [event.curriculum_topics?.slug, ...event.event_topics.map((link) => link.curriculum_topics?.slug)].filter(
+          (slug): slug is string => Boolean(slug),
+        ),
         isPrimary,
       }));
 
