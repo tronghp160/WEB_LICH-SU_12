@@ -55,11 +55,11 @@ function escapeHtml(text: string): string {
 }
 
 /** Cứ điểm: ô vuông theo trạng thái + nhãn ngắn (A1, C1...). */
-function getStrongpointIcon(label: string, status: StrongpointStatus): L.DivIcon {
-  return cachedIcon(`sp:${label}:${status}`, () =>
+function getStrongpointIcon(label: string, status: StrongpointStatus, minorLabel = false): L.DivIcon {
+  return cachedIcon(`sp:${label}:${status}:${minorLabel}`, () =>
     L.divIcon({
       className: "map-marker",
-      html: `<span class="battle-sp battle-sp--${status}"><span class="battle-sp__label">${escapeHtml(label)}</span></span>`,
+      html: `<span class="battle-sp battle-sp--${status}"><span class="battle-sp__label${minorLabel ? " battle-sp__label--minor" : ""}">${escapeHtml(label)}</span></span>`,
       iconSize: [18, 18],
       iconAnchor: [9, 9],
     }),
@@ -106,7 +106,10 @@ function ZoomBand() {
   });
   function apply() {
     const zoom = map.getZoom();
-    map.getContainer().dataset.zoomBand = zoom < 9 ? "far" : zoom < 12.5 ? "mid" : "near";
+    const container = map.getContainer();
+    container.dataset.zoomBand = zoom < 9 ? "far" : zoom < 12.5 ? "mid" : "near";
+    // Xem toàn quốc: ẩn nhãn phụ (StrongpointDefinition.minorLabel).
+    container.dataset.countryView = String(zoom < 6);
   }
   useEffect(apply);
   return null;
@@ -254,7 +257,7 @@ export default function BattleMap({ scenario, frame, camera, flyDuration }: Batt
           <Marker
             key={point.id}
             position={point.position}
-            icon={getStrongpointIcon(point.label, state.status)}
+            icon={getStrongpointIcon(point.label, state.status, point.minorLabel)}
             opacity={state.opacity}
             title={point.name}
             interactive={false}

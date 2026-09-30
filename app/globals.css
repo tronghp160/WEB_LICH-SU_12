@@ -480,6 +480,10 @@ path.battle-stake--exposed {
   display: none;
 }
 
+[data-country-view="true"] .battle-sp__label--minor {
+  display: none;
+}
+
 path.battle-arrow--attack {
   stroke: var(--battle-ours);
 }

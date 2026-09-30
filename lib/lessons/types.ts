@@ -59,9 +59,23 @@ export type Lesson = {
   slug: string;
   /** Sự kiện trong database mà bài học này mở rộng (để trang chi tiết sự kiện gắn nút "Xem bài học tương tác"). */
   eventSlug: string;
+  /** Các sự kiện khác bài học cũng bao trùm: trang của chúng cũng có nút vào bài học, trắc nghiệm bài học lấy thêm câu hỏi của chúng. */
+  relatedEventSlugs?: string[];
   title: string;
   dateText: string;
   tagline: string;
+  /** Chữ riêng của bài ở những mục dùng chung giữa các bài học. */
+  copy: {
+    /** Mô tả ngắn trên thẻ bài học (trang chủ, trang /bai-hoc). */
+    cardDescription: string;
+    /** Tiêu đề mục bản đồ diễn biến. */
+    mapTitle: string;
+    /** Câu dẫn thêm dưới tiêu đề bản đồ (sau câu hướng dẫn bấm Phát). */
+    mapHint: string;
+    videoTitle: string;
+    resultsTitle: string;
+    todayTitle: string;
+  };
   hero: LessonImage;
   heroStats: LessonStat[];
   textbook: {

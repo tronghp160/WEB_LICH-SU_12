@@ -35,6 +35,8 @@ export type StrongpointDefinition = {
   /** Tên đầy đủ cho chú thích, ví dụ "Đồi A1 (Éliane 2)". */
   name: string;
   position: LatLng;
+  /** Nhãn phụ: ẩn khi xem toàn quốc (zoom < 6) để các điểm gần nhau không đè chữ lên nhau. */
+  minorLabel?: boolean;
 };
 
 /** Mũi tên tiến công. Mũi tên xuất hiện ở bước nào thì được "vẽ dần" khi chuyển tới bước đó. */

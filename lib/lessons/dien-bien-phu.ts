@@ -39,6 +39,14 @@ export const dienBienPhuLesson: Lesson = {
   title: "Chiến dịch Điện Biên Phủ",
   dateText: "13/3 – 7/5/1954",
   tagline: "56 ngày đêm \"khoét núi, ngủ hầm, mưa dầm, cơm vắt\" làm nên chiến thắng \"lừng lẫy năm châu, chấn động địa cầu\".",
+  copy: {
+    cardDescription: "Bản đồ diễn biến 7 bước, phim 3D đồi A1, ảnh tư liệu, video và thẻ ghi nhớ.",
+    mapTitle: "Xem chiến dịch diễn ra từng bước",
+    mapHint: "Bản đồ sẽ bay từ toàn cảnh Đông Dương vào lòng chảo Mường Thanh; cứ điểm nào bị tiêu diệt sẽ đổi màu.",
+    videoTitle: "Video về chiến dịch",
+    resultsTitle: "Vì sao gọi là chiến thắng \"chấn động địa cầu\"?",
+    todayTitle: "Chiến trường xưa bây giờ ra sao?",
+  },
   hero: {
     src: `${PHOTO}/cam-co-ham-de-castries.webp`,
     alt: "Chiến sĩ Quân đội nhân dân Việt Nam cắm cờ trên nóc hầm chỉ huy của Pháp ở Điện Biên Phủ",

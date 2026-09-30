@@ -59,5 +59,6 @@ export function questionsForLesson(pool: readonly QuizQuestion[], lesson: Lesson
     eventSlugs: [lesson.eventSlug],
     topicSlugs: [],
   }));
-  return [...own, ...pool.filter((question) => question.eventSlugs.includes(lesson.eventSlug))];
+  const eventSlugs = [lesson.eventSlug, ...(lesson.relatedEventSlugs ?? [])];
+  return [...own, ...pool.filter((question) => question.eventSlugs.some((slug) => eventSlugs.includes(slug)))];
 }

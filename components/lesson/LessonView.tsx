@@ -82,7 +82,10 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
           <ul className="mt-8 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3" aria-label="Số liệu chính">
             {lesson.heroStats.map((stat) => (
               <li key={stat.label} className="rounded-card border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
-                <CountUp value={stat.value} className="block font-serif text-4xl font-bold" />
+                <span className="block font-serif text-4xl font-bold">
+                  <CountUp value={stat.value} />
+                  {stat.suffix}
+                </span>
                 <span className="text-sm text-white/85">{stat.label}</span>
               </li>
             ))}
@@ -152,10 +155,10 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
 
         {/* 4. Bản đồ diễn biến */}
         <section aria-labelledby="dien-bien-tieu-de" id="dien-bien" className="scroll-mt-20">
-          <SectionHeading id="dien-bien-tieu-de" eyebrow="Diễn biến trên bản đồ" title="Xem chiến dịch diễn ra từng bước" />
+          <SectionHeading id="dien-bien-tieu-de" eyebrow="Diễn biến trên bản đồ" title={lesson.copy.mapTitle} />
           <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
-            Bấm <strong className="text-foreground">Phát</strong> để bản đồ tự chạy qua 7 bước, hoặc chọn từng bước ở cột bên phải. Bản đồ sẽ bay từ toàn cảnh
-            Đông Dương vào lòng chảo Mường Thanh; cứ điểm nào bị tiêu diệt sẽ đổi màu.
+            Bấm <strong className="text-foreground">Phát</strong> để bản đồ tự chạy qua {lesson.battle.steps.length} bước, hoặc chọn từng bước ở cột bên phải.{" "}
+            {lesson.copy.mapHint}
             {lesson.mapFilm && (
               <>
                 {" "}
@@ -183,7 +186,7 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         {/* 5. Video */}
         {mainVideo && (
           <section aria-labelledby="video">
-            <SectionHeading id="video" eyebrow="Xem phim tư liệu" title="Video về chiến dịch" />
+            <SectionHeading id="video" eyebrow="Xem phim tư liệu" title={lesson.copy.videoTitle} />
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
               <VideoEmbed video={mainVideo} />
               <div className="flex flex-col gap-6">
@@ -200,12 +203,15 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
 
         {/* 6. Kết quả và ý nghĩa */}
         <section aria-labelledby="ket-qua">
-          <SectionHeading id="ket-qua" eyebrow="Kết quả và ý nghĩa" title="Vì sao gọi là chiến thắng &quot;chấn động địa cầu&quot;?" />
+          <SectionHeading id="ket-qua" eyebrow="Kết quả và ý nghĩa" title={lesson.copy.resultsTitle} />
           <ul className="grid gap-4 sm:grid-cols-3">
             {lesson.results.map((stat, index) => (
               <Reveal as="li" key={stat.label} delay={index * 100}>
                 <Card className="h-full p-5 text-center">
-                  <CountUp value={stat.value} className="block font-serif text-5xl font-bold text-accent" />
+                  <span className="block font-serif text-5xl font-bold text-accent">
+                    <CountUp value={stat.value} />
+                    {stat.suffix}
+                  </span>
                   <span className="mt-1 block text-sm text-muted-foreground">{stat.label}</span>
                 </Card>
               </Reveal>
@@ -318,7 +324,7 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         {/* 8. Di tích ngày nay */}
         {lesson.today.length > 0 && (
           <section aria-labelledby="ngay-nay">
-            <SectionHeading id="ngay-nay" eyebrow="Di tích ngày nay" title="Chiến trường xưa bây giờ ra sao?" />
+            <SectionHeading id="ngay-nay" eyebrow="Di tích ngày nay" title={lesson.copy.todayTitle} />
             {specsOf(lesson.models3d?.diTich).length > 0 && (
               <div className="mb-10">
                 <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Dựng lại di tích bằng 3D</h3>

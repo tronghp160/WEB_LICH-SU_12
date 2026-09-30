@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { interpolateFrame } from "@/lib/battles/animation";
+import { cachMangThangTam1945 } from "@/lib/battles/cach-mang-thang-tam-1945";
 import { dienBienPhu1954 } from "@/lib/battles/dien-bien-phu-1954";
 import { getLesson, getLessonForEvent, interactiveEntries, lessons } from "@/lib/lessons";
 import type { StrongpointStatus } from "@/lib/battles/types";
@@ -87,16 +88,83 @@ describe("kịch bản Điện Biên Phủ", () => {
   });
 });
 
+describe("kịch bản Cách mạng tháng Tám", () => {
+  const byId = Object.fromEntries(cachMangThangTam1945.steps.map((step) => [step.id, step.strongpoints ?? {}]));
+
+  it("diễn biến đúng thứ tự: 4 tỉnh sớm nhất → Hà Nội 19/8 → Huế, Sài Gòn → cả nước", () => {
+    const early = ["bacGiang", "haiDuong", "haTinh", "quangNam"];
+    expect(early.map((id) => byId["khoi-nghia-lan-rong"][id])).toEqual(["captured", "captured", "captured", "captured"]);
+    expect(byId["khoi-nghia-lan-rong"].haNoi).toBe("held");
+    expect(byId["ha-noi"].haNoi).toBe("captured");
+    expect([byId["ha-noi"].hue, byId["ha-noi"].saiGon]).toEqual(["held", "held"]);
+    expect([byId["hue-sai-gon"].hue, byId["hue-sai-gon"].saiGon]).toEqual(["captured", "captured"]);
+    expect([byId["hue-sai-gon"].dongNaiThuong, byId["hue-sai-gon"].haTien]).toEqual(["held", "held"]);
+    expect(Object.values(byId["ca-nuoc"]).every((status) => status === "captured")).toBe(true);
+  });
+
+  it("các địa phương nằm trong lãnh thổ Việt Nam", () => {
+    for (const point of cachMangThangTam1945.strongpointDefinitions ?? []) {
+      const [lat, lng] = point.position;
+      expect(lat, point.id).toBeGreaterThan(8.3);
+      expect(lat, point.id).toBeLessThan(23.4);
+      expect(lng, point.id).toBeGreaterThan(102.1);
+      expect(lng, point.id).toBeLessThan(109.5);
+    }
+  });
+});
+
 describe("dữ liệu bài học", () => {
-  it("tra cứu theo slug bài học và theo sự kiện", () => {
+  it("tra cứu theo slug bài học và theo sự kiện (kể cả sự kiện liên quan)", () => {
     expect(getLesson("chien-dich-dien-bien-phu")?.title).toBe("Chiến dịch Điện Biên Phủ");
     expect(getLessonForEvent("chien-dich-dien-bien-phu")?.slug).toBe("chien-dich-dien-bien-phu");
+    expect(getLessonForEvent("tong-khoi-nghia-gianh-chinh-quyen-o-ha-noi")?.slug).toBe("cach-mang-thang-tam-1945");
+    expect(getLessonForEvent("tuyen-ngon-doc-lap")?.slug).toBe("cach-mang-thang-tam-1945");
     expect(getLesson("khong-co")).toBeUndefined();
     expect(getLessonForEvent("hiep-dinh-geneve-ve-dong-duong")).toBeUndefined();
   });
 
+  it("slug bài học không trùng", () => {
+    expect(new Set(lessons.map((lesson) => lesson.slug)).size).toBe(lessons.length);
+  });
+
   for (const lesson of lessons) {
     describe(lesson.slug, () => {
+      it("bản đồ: mọi bước khai báo đủ đơn vị, id tham chiếu tồn tại, khung nhìn trong giới hạn zoom", () => {
+        const { steps, unitDefinitions, strongpointDefinitions = [], arrowDefinitions = [], zoneDefinitions = [], minZoom = 0, maxZoom = 20 } = lesson.battle;
+        const unitIds = unitDefinitions.map((unit) => unit.id).sort();
+        const pointIds = new Set(strongpointDefinitions.map((point) => point.id));
+        const arrowIds = new Set(arrowDefinitions.map((arrow) => arrow.id));
+        const zoneIds = new Set(zoneDefinitions.map((zone) => zone.id));
+        expect(new Set(steps.map((step) => step.id)).size).toBe(steps.length);
+        for (const step of steps) {
+          expect(step.caption.length, step.id).toBeGreaterThan(200);
+          expect(Object.keys(step.units).sort(), step.id).toEqual(unitIds);
+          for (const id of Object.keys(step.strongpoints ?? {})) expect(pointIds.has(id), `${step.id}/${id}`).toBe(true);
+          for (const id of step.arrows ?? []) expect(arrowIds.has(id), `${step.id}/${id}`).toBe(true);
+          for (const id of step.zones ?? []) expect(zoneIds.has(id), `${step.id}/${id}`).toBe(true);
+          expect(step.camera, step.id).toBeDefined();
+          expect(step.camera!.zoom).toBeGreaterThanOrEqual(minZoom);
+          expect(step.camera!.zoom).toBeLessThanOrEqual(maxZoom);
+        }
+      });
+
+      it("nơi đã giành được / đã tiêu diệt không quay lại trạng thái cũ", () => {
+        const worst: Record<string, number> = {};
+        for (const step of lesson.battle.steps) {
+          for (const [id, status] of Object.entries(step.strongpoints ?? {})) {
+            expect(rank[status], `${step.id}/${id}`).toBeGreaterThanOrEqual(worst[id] ?? 0);
+            worst[id] = Math.max(worst[id] ?? 0, rank[status] === 1 ? 0 : rank[status]);
+          }
+        }
+      });
+
+      it("trắc nghiệm riêng: 4 đáp án khác nhau, có giải thích", () => {
+        for (const item of lesson.quiz ?? []) {
+          expect(new Set(item.choices).size, item.question).toBe(4);
+          expect(item.explanation.length).toBeGreaterThan(20);
+        }
+      });
+
       it("video có id YouTube hợp lệ (11 ký tự), tên kênh và ghi chú", () => {
         expect(lesson.videos.length).toBeGreaterThan(0);
         for (const video of lesson.videos) {
@@ -115,7 +183,7 @@ describe("dữ liệu bài học", () => {
         const stepImages = lesson.battle.steps.flatMap((step) => (step.image ? [step.image] : []));
         for (const image of [...images, ...stepImages]) {
           expect(image.alt.length, image.src).toBeGreaterThan(10);
-          expect(image.credit, image.src).toMatch(/phạm vi công cộng|CC BY|CC0/);
+          expect(image.credit, image.src).toMatch(/phạm vi công cộng|CC BY|CC0|chỉ cần ghi công/);
           const file = path.join(PUBLIC_DIR, image.src);
           expect(fs.existsSync(file), image.src).toBe(true);
           expect(fs.statSync(file).size, image.src).toBeLessThanOrEqual(250 * 1024);
@@ -135,6 +203,10 @@ describe("dữ liệu bài học", () => {
   }
 
   it("thẻ ở trang chủ trỏ tới bài học và trận tái hiện", () => {
-    expect(interactiveEntries.map((entry) => entry.href)).toEqual(["/bai-hoc/chien-dich-dien-bien-phu", "/tai-hien/bach-dang-938"]);
+    expect(interactiveEntries.map((entry) => entry.href)).toEqual([
+      "/bai-hoc/cach-mang-thang-tam-1945",
+      "/bai-hoc/chien-dich-dien-bien-phu",
+      "/tai-hien/bach-dang-938",
+    ]);
   });
 });

@@ -193,3 +193,15 @@ Mô hình dựng bằng mã là dạng khối có ánh sáng và vật liệu kh
 - **Tượng nhân vật cố ý không có nét mặt riêng**, và mũ, quân phục chỉ mang tính gợi ý (mỗi tượng có chú thích "Tượng cách điệu").
 - Tượng đài Chiến thắng trên đồi D1 **chưa dựng 3D** vì chưa có tư liệu tham chiếu đủ tin cậy (ảnh phù điêu thật vẫn có trong mục ảnh). Nếu có ảnh và số đo chính thống, có thể bổ sung.
 - Các chi tiết cần đối chiếu tài liệu nằm trong `toVerify` của từng mô hình (loại pháo, tải trọng xe thồ, số gian hầm, chiều dài đường hầm ~45 m, khối bộc phá ~1 tấn, hình lá cờ trên nóc hầm…).
+
+---
+
+## Bài học thứ hai: Cách mạng tháng Tám năm 1945 (GĐ5.2)
+
+Trang: `/bai-hoc/cach-mang-thang-tam-1945`. Lối vào: trang chủ, trang `/bai-hoc`, và nút "Xem bài học tương tác" trên trang sự kiện **Tổng khởi nghĩa giành chính quyền ở Hà Nội** và **Tuyên ngôn Độc lập** (trường `relatedEventSlugs`). Có sẵn chế độ trình chiếu, trắc nghiệm cuối bài (8 câu riêng + câu hỏi của hai sự kiện) và con dấu Hộ chiếu.
+
+- **Bản đồ "khởi nghĩa lan rộng theo ngày"** (`lib/battles/cach-mang-thang-tam-1945.ts`), dùng lại bộ máy bản đồ diễn biến: mỗi "cứ điểm" là một địa phương — xanh = chính quyền còn trong tay Nhật, viền đỏ nhấp nháy = đang khởi nghĩa, đỏ sao vàng = đã giành chính quyền. 7 bước: thời cơ (3–7/1945) → lệnh Tổng khởi nghĩa ở Tân Trào (13–16/8) → bốn tỉnh sớm nhất (đến 18/8) → Hà Nội (19/8) → Huế, Sài Gòn (23–25/8) → cả nước, Bảo Đại thoái vị (28–30/8) → Tuyên ngôn Độc lập (2/9).
+- Nhãn phụ (`minorLabel`) tự ẩn khi xem toàn quốc (zoom < 6) để cụm Thái Nguyên – Bắc Giang – Hải Dương – Hà Nội không đè chữ.
+- **Ảnh**: ảnh và văn bản gốc năm 1945 của Cục Văn thư và Lưu trữ nhà nước trên Wikimedia Commons (Quân lệnh số 1, diễn văn nhận sự thoái vị của Bảo Đại, bản Tuyên ngôn, mít tinh Thái Nguyên 20/8, Nhà hát Lớn 17/8), ảnh ngày nay ở Tân Trào, Nhà hát Lớn, Ba Đình, Ngọ Môn (CC BY/CC BY-SA). Tải và nén về `public/lessons/cach-mang-thang-tam/`.
+- **Video** (xác minh oEmbed 30/9/2026): `09MR7I0p7Ns` (VTV), `u7kjhRCfj2o` (Báo Quân đội nhân dân), `xRKUB3fUTJM` (VTV24 — toàn văn Tuyên ngôn).
+- Các chi tiết cần đối chiếu SGK nằm ở `toVerify` trong `lib/lessons/cach-mang-thang-tam.ts` (hiện ở mục "Ghi chú biên soạn" cuối trang).
