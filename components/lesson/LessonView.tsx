@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/Card";
 import { SafeImage } from "@/components/ui/SafeImage";
 import type { Lesson, LessonImage } from "@/lib/lessons/types";
 import { getModelSpec } from "@/lib/models3d/specs";
+import { quizPaths } from "@/lib/quiz/sets";
 import type { ModelSpec } from "@/lib/models3d/types";
 
 function SectionHeading({ id, eyebrow, title }: { id: string; eyebrow: string; title: string }) {
@@ -362,6 +363,17 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
               </li>
             ))}
           </ul>
+          {lesson.quiz && lesson.quiz.length > 0 && (
+            <div className="mt-6 flex flex-col items-start gap-3 rounded-card border border-border bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-foreground">
+                <strong>Kiểm tra nhanh:</strong> 10 câu trắc nghiệm có ảnh, chấm điểm ngay và gợi ý phần cần ôn lại.
+              </p>
+              <LinkButton href={quizPaths.lesson(lesson.slug)} size="lg">
+                Làm trắc nghiệm
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </LinkButton>
+            </div>
+          )}
         </section>
 
         {/* 10. Nguồn */}

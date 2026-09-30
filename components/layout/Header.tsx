@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils/cn";
 const NAV_ITEMS = [
   { label: "Trang chủ", href: "/" },
   { label: "Bài học", href: "/bai-hoc" },
+  { label: "Trắc nghiệm", href: "/trac-nghiem" },
   { label: "Dòng thời gian", href: "/dong-thoi-gian" },
   { label: "Bản đồ", href: "/ban-do" },
   { label: "Tra cứu", href: "/tra-cuu" },

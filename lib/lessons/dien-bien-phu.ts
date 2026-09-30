@@ -8,6 +8,22 @@ import type { Lesson } from "@/lib/lessons/types";
 const PHOTO = "/lessons/dien-bien-phu";
 const COMMONS = "https://commons.wikimedia.org/wiki/File:";
 
+const DE_CASTRIES_PORTRAIT = {
+  src: `${PHOTO}/de-castries.webp`,
+  alt: "Chân dung đại tá Christian de Castries năm 1954",
+  caption: "Christian de Castries, 1954.",
+  credit: "Không rõ tác giả, phạm vi công cộng",
+  sourceUrl: `${COMMONS}Dien_Bien_Phu001.jpg`,
+};
+
+const HAM_DE_CASTRIES_NAY = {
+  src: `${PHOTO}/ham-de-castries-nay.webp`,
+  alt: "Hầm chỉ huy của De Castries được bảo tồn, có mái vòm bằng thép",
+  caption: "Hầm chỉ huy tập đoàn cứ điểm ngày nay (2022).",
+  credit: "Ioe2015, CC BY 4.0",
+  sourceUrl: `${COMMONS}H%E1%BA%A7m_ch%E1%BB%89_huy_t%E1%BA%ADp_%C4%91o%C3%A0n_c%E1%BB%A9_%C4%91i%E1%BB%83m_%C4%90i%E1%BB%87n_Bi%C3%AAn_Ph%E1%BB%A7_(2022).jpg`,
+};
+
 export const dienBienPhuLesson: Lesson = {
   slug: "chien-dich-dien-bien-phu",
   eventSlug: "chien-dich-dien-bien-phu",
@@ -123,13 +139,7 @@ export const dienBienPhuLesson: Lesson = {
       name: "Christian de Castries",
       role: "Chỉ huy tập đoàn cứ điểm của Pháp",
       text: "Được thăng hàm thiếu tướng khi đang bị vây. Chiều 7/5/1954 bị bắt sống cùng toàn bộ Bộ tham mưu trong hầm chỉ huy.",
-      image: {
-        src: `${PHOTO}/de-castries.webp`,
-        alt: "Chân dung đại tá Christian de Castries năm 1954",
-        caption: "Christian de Castries, 1954.",
-        credit: "Không rõ tác giả, phạm vi công cộng",
-        sourceUrl: `${COMMONS}Dien_Bien_Phu001.jpg`,
-      },
+      image: DE_CASTRIES_PORTRAIT,
     },
     {
       name: "Phan Đình Giót",
@@ -150,14 +160,65 @@ export const dienBienPhuLesson: Lesson = {
     { question: "Đợt 2 của chiến dịch tập trung đánh vào đâu?", answer: "Các điểm cao phía đông phân khu Trung tâm: E1, D1, C1, A1." },
     { question: "Chiến dịch kết thúc thắng lợi khi nào?", answer: "Chiều 7/5/1954, tướng De Castries và Bộ tham mưu bị bắt sống." },
   ],
-  today: [
+  quiz: [
     {
-      src: `${PHOTO}/ham-de-castries-nay.webp`,
-      alt: "Hầm chỉ huy của De Castries được bảo tồn, có mái vòm bằng thép",
-      caption: "Hầm chỉ huy tập đoàn cứ điểm ngày nay (2022).",
-      credit: "Ioe2015, CC BY 4.0",
-      sourceUrl: `${COMMONS}H%E1%BA%A7m_ch%E1%BB%89_huy_t%E1%BA%ADp_%C4%91o%C3%A0n_c%E1%BB%A9_%C4%91i%E1%BB%83m_%C4%90i%E1%BB%87n_Bi%C3%AAn_Ph%E1%BB%A7_(2022).jpg`,
+      question: "Chiến thắng Điện Biên Phủ đã đập tan kế hoạch quân sự nào của Pháp (có Mỹ giúp sức)?",
+      choices: ["Kế hoạch Nava", "Kế hoạch Rơve", "Kế hoạch Đờ Lát đơ Tátxinhi", "Kế hoạch Bôlae"],
+      correct: 0,
+      explanation: "Tập đoàn cứ điểm mạnh nhất Đông Dương bị tiêu diệt hoàn toàn, kế hoạch Nava — kế hoạch quân sự lớn nhất của Pháp có Mỹ giúp sức — bị phá sản.",
     },
+    {
+      question: "Quyết định chuyển sang phương châm \"đánh chắc, tiến chắc\" được đưa ra ngày nào?",
+      choices: ["26/1/1954", "6/12/1953", "13/3/1954", "20/11/1953"],
+      correct: 0,
+      explanation: "Ngày 26/1/1954, ta chuyển từ \"đánh nhanh, giải quyết nhanh\" sang \"đánh chắc, tiến chắc\". Ngày 6/12/1953 là ngày Bộ Chính trị quyết định mở chiến dịch; 13/3/1954 là ngày nổ súng.",
+    },
+    {
+      question: "Chiều 13/3/1954, quân ta nổ súng mở màn chiến dịch bằng trận đánh vào đâu?",
+      choices: ["Cụm cứ điểm Him Lam", "Đồi A1", "Phân khu Nam (Hồng Cúm)", "Sở chỉ huy Mường Thanh"],
+      correct: 0,
+      explanation: "Chiều 13/3/1954, ta nổ súng đánh cụm cứ điểm Him Lam, mở đầu đợt 1. Đợt 1 tiêu diệt Him Lam và toàn bộ phân khu Bắc.",
+    },
+    {
+      question: "Đợt 2 của chiến dịch (từ 30/3/1954) tập trung đánh vào đâu?",
+      choices: [
+        "Các điểm cao phía đông phân khu Trung tâm (E1, D1, C1, A1)",
+        "Phân khu Nam (Hồng Cúm)",
+        "Cụm cứ điểm Him Lam",
+        "Các sân bay ở Hà Nội",
+      ],
+      correct: 0,
+      explanation: "Đợt 2 đánh các điểm cao phía đông phân khu Trung tâm: E1, D1, C1, A1; chiến đấu giằng co ác liệt nhất ở đồi A1.",
+    },
+    {
+      question: "Người trong ảnh chỉ huy tập đoàn cứ điểm Điện Biên Phủ và bị bắt sống chiều 7/5/1954. Đó là ai?",
+      image: DE_CASTRIES_PORTRAIT,
+      choices: ["Christian de Castries", "Henri Navarre", "Raoul Salan", "René Cogny"],
+      correct: 0,
+      explanation: "Christian de Castries được thăng hàm thiếu tướng khi đang bị vây; chiều 7/5/1954 bị bắt sống cùng toàn bộ Bộ tham mưu trong hầm chỉ huy. Henri Navarre là tác giả kế hoạch Nava.",
+    },
+    {
+      question: "Anh hùng nào hy sinh khi lấy thân mình chèn bánh xe, giữ khẩu pháo không lao xuống vực?",
+      choices: ["Tô Vĩnh Diện", "Phan Đình Giót", "Bế Văn Đàn", "Bùi Quang Thận"],
+      correct: 0,
+      explanation: "Tô Vĩnh Diện hy sinh trên đường kéo pháo khi lấy thân mình chèn bánh xe. Phan Đình Giót là người lấy thân mình lấp lỗ châu mai trong trận Him Lam.",
+    },
+    {
+      question: "Công trình trong ảnh, được bảo tồn ở Điện Biên Phủ ngày nay, là gì?",
+      image: HAM_DE_CASTRIES_NAY,
+      choices: ["Hầm chỉ huy của De Castries", "Hố bộc phá trên đồi A1", "Tượng đài Chiến thắng trên đồi D1", "Nghĩa trang liệt sĩ A1"],
+      correct: 0,
+      explanation: "Đây là hầm chỉ huy tập đoàn cứ điểm của De Castries, có mái vòm bằng thép, nay được bảo tồn cho khách tham quan.",
+    },
+    {
+      question: "Chiến dịch Điện Biên Phủ đã loại khỏi vòng chiến đấu khoảng bao nhiêu quân địch?",
+      choices: ["16.200", "6.200", "26.000", "49.000"],
+      correct: 0,
+      explanation: "Ta loại khỏi vòng chiến đấu khoảng 16.200 quân địch, bắn rơi và phá hủy 62 máy bay sau 56 ngày đêm chiến đấu.",
+    },
+  ],
+  today: [
+    HAM_DE_CASTRIES_NAY,
     {
       src: `${PHOTO}/ho-boc-pha-a1.webp`,
       alt: "Hố sâu trên đồi A1 do khối bộc phá tạo ra",

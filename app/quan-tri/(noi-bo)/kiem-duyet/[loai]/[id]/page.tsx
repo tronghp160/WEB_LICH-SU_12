@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { QuizQuestionsPreview } from "@/components/admin/review/QuizQuestionsPreview";
 import { ReviewPanel } from "@/components/admin/review/ReviewPanel";
 import { EventDetailView } from "@/components/content/detail/EventDetailView";
 import { FigureDetailView } from "@/components/content/detail/FigureDetailView";
@@ -11,7 +12,7 @@ import { REVIEW_CHECKLISTS, availableReviewActions } from "@/lib/admin/review";
 import { requireRole } from "@/lib/auth";
 import { isUuid } from "@/lib/queries/admin-content";
 import { reviewPaths } from "@/lib/queries/review";
-import { getReviewTarget } from "@/lib/queries/review-preview";
+import { getEventQuizForReview, getReviewTarget } from "@/lib/queries/review-preview";
 
 export const metadata: Metadata = { title: "Duyệt nội dung" };
 
@@ -28,7 +29,10 @@ export default async function ReviewItemPage({ params }: Props) {
   const segment = parseContentSegment(loai);
   if (!segment || segment === "nguon" || !isUuid(id)) notFound();
 
-  const target = await getReviewTarget(segment, id);
+  const [target, quiz] = await Promise.all([
+    getReviewTarget(segment, id),
+    segment === "su-kien" ? getEventQuizForReview(id) : Promise.resolve(null),
+  ]);
   if (!target) notFound();
 
   const actions = availableReviewActions(staff.role, target.status);
@@ -59,6 +63,11 @@ export default async function ReviewItemPage({ params }: Props) {
           {target.detail.kind === "dia-diem" && <LocationDetailView location={target.detail.location} preview />}
           {target.detail.kind === "chu-de" && (
             <TopicDetailView topic={target.detail.topic} events={target.detail.events} preview />
+          )}
+          {quiz && (
+            <div className="mt-8">
+              <QuizQuestionsPreview questions={quiz} />
+            </div>
           )}
         </section>
 

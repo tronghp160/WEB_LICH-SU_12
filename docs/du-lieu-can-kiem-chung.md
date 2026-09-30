@@ -167,6 +167,19 @@ Tra cứu ngày 29/09/2026 trên báo và cổng thông tin. Nên đối chiếu
   Wikipedia (mục Roman Karmen) cho biết cảnh cắm cờ trên nóc hầm được đoàn làm phim của Karmen quay dựng lại
   sau chiến dịch. Chú thích ảnh ở trang sự kiện và bài học đã ghi rõ "cảnh dựng lại".
 
+## 6c. Trắc nghiệm GĐ4 (30/09/2026) — cần giáo viên đối chiếu
+
+- **30 câu soạn tay** cho 10 sự kiện đã công bố: `supabase/content/trac-nghiem.json` (sinh ra `supabase/seed-quiz.sql`
+  bằng `node scripts/build-quiz-sql.mjs`). Đáp án đúng và lời giải thích chỉ dùng chi tiết **đã có** trong bài viết
+  của sự kiện (mục 5b), nên đối chiếu cùng lúc với mục 5b. Đáp án nhiễu cố ý sai; cần chắc không đáp án nhiễu nào
+  vô tình cũng đúng.
+- **8 câu của bài học Điện Biên Phủ**: `lib/lessons/dien-bien-phu.ts` (trường `quiz`). Riêng câu "ngày 26/1/1954"
+  và "16.200 quân" trùng các chi tiết đang chờ đối chiếu của bài học (`toVerify`).
+- **Câu tự sinh** (ảnh → sự kiện, năm, chân dung, di tích) ghép trực tiếp từ dữ liệu đã duyệt, không thêm thông tin;
+  chỉ đúng khi ảnh được gắn đúng sự kiện/nhân vật/địa điểm.
+- Trò chơi "Đoán năm" lấy **năm bắt đầu** của sự kiện (không phải năm chụp ảnh), chỉ với sự kiện có ngày chính xác,
+  theo năm hoặc theo giai đoạn.
+
 ## 7. Việc cần làm tiếp
 
 1. Đối chiếu toàn bộ bảng trên với SGK Lịch sử 12 đang dùng.

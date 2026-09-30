@@ -69,6 +69,8 @@ npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed.sql
 npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-media.sql
 # 4. Nội dung theo khung chuẩn + sự kiện nháp mới (sinh từ supabase/content/*.md)
 npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-content.sql
+# 5. Câu hỏi trắc nghiệm soạn tay (sinh từ supabase/content/trac-nghiem.json)
+npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-quiz.sql
 ```
 
 > `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands

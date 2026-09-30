@@ -102,3 +102,15 @@ export async function getReviewTarget(kind: ContentKind, id: string): Promise<Re
 
   return { kind, id, status, title, reviewNote, notes, readiness, detail };
 }
+
+/** Câu hỏi trắc nghiệm soạn tay của sự kiện đang duyệt (phiên nhân sự: đọc được ở mọi trạng thái). */
+export async function getEventQuizForReview(eventId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("quiz_questions")
+    .select("id, question, choices, correct_index, explanation, media_id")
+    .eq("event_id", eventId)
+    .order("sort_order", { ascending: true });
+  if (error) throw new Error(`Không tải được câu hỏi trắc nghiệm: ${error.message}`);
+  return data;
+}

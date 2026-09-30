@@ -4,6 +4,7 @@ import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { TimelineEvent } from "@/lib/queries/events";
 import type { TopicDetail } from "@/lib/queries/topics";
+import { MIN_QUESTIONS, quizPaths } from "@/lib/quiz/sets";
 
 type TopicDetailViewProps = {
   topic: TopicDetail;
@@ -11,10 +12,12 @@ type TopicDetailViewProps = {
   events: TimelineEvent[];
   /** Xem trước ở màn hình duyệt: không breadcrumb, không nút chuyển trang. */
   preview?: boolean;
+  /** Số câu trắc nghiệm của chủ đề (đủ câu thì hiện nút "Làm trắc nghiệm"). */
+  quizCount?: number;
 };
 
 /** Nội dung trang chi tiết chủ đề (UC05) — dùng chung cho trang công khai và xem trước ở màn hình duyệt. */
-export function TopicDetailView({ topic, events, preview = false }: TopicDetailViewProps) {
+export function TopicDetailView({ topic, events, preview = false, quizCount = 0 }: TopicDetailViewProps) {
   return (
     <article className={preview ? "" : "mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6"}>
       {!preview && (
@@ -36,6 +39,11 @@ export function TopicDetailView({ topic, events, preview = false }: TopicDetailV
             <LinkButton href={`/ban-do?chu-de=${topic.slug}`} variant="secondary" size="sm">
               Xem trên bản đồ
             </LinkButton>
+            {quizCount >= MIN_QUESTIONS && (
+              <LinkButton href={quizPaths.topic(topic.slug)} size="sm">
+                Làm trắc nghiệm chủ đề
+              </LinkButton>
+            )}
           </div>
         )}
       </header>

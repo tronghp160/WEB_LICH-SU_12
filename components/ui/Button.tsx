@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
-import type { ButtonHTMLAttributes } from "react";
+import type { ComponentProps } from "react";
 
 type Variant = "primary" | "secondary" | "ghost";
 type Size = "sm" | "md" | "lg";
@@ -23,7 +23,7 @@ const sizeClasses: Record<Size, string> = {
 const baseClasses =
   "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+type ButtonProps = ComponentProps<"button"> & {
   variant?: Variant;
   size?: Size;
 };

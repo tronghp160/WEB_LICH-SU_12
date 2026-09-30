@@ -45,6 +45,16 @@ export type LessonFlashcard = {
   answer: string;
 };
 
+/** Câu trắc nghiệm riêng của bài học (ngoài câu hỏi của sự kiện trong database). Đáp án đúng: `choices[correct]`. */
+export type LessonQuizQuestion = {
+  question: string;
+  /** Ảnh của bài học dùng làm câu hỏi (chú thích và mô tả chỉ hiện sau khi trả lời). */
+  image?: LessonImage;
+  choices: [string, string, string, string];
+  correct: 0 | 1 | 2 | 3;
+  explanation: string;
+};
+
 export type Lesson = {
   slug: string;
   /** Sự kiện trong database mà bài học này mở rộng (để trang chi tiết sự kiện gắn nút "Xem bài học tương tác"). */
@@ -69,6 +79,8 @@ export type Lesson = {
   quote?: { text: string; author: string };
   figures: LessonFigure[];
   flashcards: LessonFlashcard[];
+  /** Trắc nghiệm cuối bài (/trac-nghiem/bai-hoc/[slug]); chỉ dùng chi tiết đã có trong bài học. */
+  quiz?: LessonQuizQuestion[];
   /** Mô hình 3D (lib/models3d) theo từng mục của bài học: id của các `ModelSpec`. */
   models3d?: {
     /** Kết quả và ý nghĩa: sa bàn lòng chảo và các con số. */

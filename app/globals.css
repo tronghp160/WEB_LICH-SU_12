@@ -17,6 +17,8 @@
   --gold-foreground: #2b2622;
   /* Vàng đồng đậm dùng cho CHỮ trên nền sáng (--gold gốc chỉ đạt ~2.8:1, dưới chuẩn AA 4.5:1). */
   --gold-deep: #85652b;
+  /* Xanh "trả lời đúng" (trắc nghiệm GĐ4): 5.8:1 trên nền giấy. Trả lời sai dùng --accent. */
+  --success: #2e6b37;
   --radius-card: 0.75rem;
   --shadow-card: 0 1px 2px rgba(43, 38, 34, 0.06), 0 2px 8px rgba(43, 38, 34, 0.06);
 }
@@ -35,6 +37,7 @@
     --gold: #c9a36d;
     --gold-foreground: #1c1815;
     --gold-deep: #c9a36d;
+    --success: #7ec48b;
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 }
@@ -52,6 +55,7 @@
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
   --color-gold-deep: var(--gold-deep);
+  --color-success: var(--success);
   --radius-card: var(--radius-card);
   --shadow-card: var(--shadow-card);
   --font-serif: var(--font-lora);

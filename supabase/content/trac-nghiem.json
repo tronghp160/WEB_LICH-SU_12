@@ -1,0 +1,225 @@
+{
+  "_ghi_chu": "Câu hỏi trắc nghiệm soạn tay (GĐ4.1). Mỗi câu thuộc một sự kiện (event), duyệt cùng sự kiện. Đáp án đúng là phần tử số `correct` (đếm từ 0) của `choices`; trang web tự xáo thứ tự. Chỉ dùng chi tiết ĐÃ CÓ trong bài viết của sự kiện (supabase/content/su-kien/*.md) để không đưa thêm thông tin chưa kiểm chứng. Sửa ở đây rồi chạy: node scripts/build-quiz-sql.mjs",
+  "questions": [
+    {
+      "event": "nguyen-tat-thanh-ra-di-tim-duong-cuu-nuoc",
+      "question": "Ngày 5/6/1911, Nguyễn Tất Thành rời Tổ quốc từ bến cảng nào?",
+      "choices": ["Bến Nhà Rồng (Sài Gòn)", "Cảng Hải Phòng", "Cửa Hội (Nghệ An)", "Cảng Đà Nẵng"],
+      "correct": 0,
+      "explanation": "Ngày 5/6/1911, tại Bến Nhà Rồng, Nguyễn Tất Thành xuống tàu buôn Pháp Amiral Latouche-Tréville, lấy tên là Văn Ba, làm phụ bếp để đổi lấy chuyến đi."
+    },
+    {
+      "event": "nguyen-tat-thanh-ra-di-tim-duong-cuu-nuoc",
+      "question": "Khi xuống tàu Amiral Latouche-Tréville, Nguyễn Tất Thành lấy tên là gì và làm công việc gì?",
+      "choices": ["Văn Ba, làm phụ bếp", "Lý Thụy, làm thủy thủ", "Nguyễn Ái Quốc, làm thư ký", "Văn Ba, làm hoa tiêu"],
+      "correct": 0,
+      "explanation": "Để có mặt trên tàu, anh xin làm phụ bếp với tên Văn Ba: dậy từ sáng sớm, nhóm lò, rửa nồi, khuân than trong khoang bếp nóng bức."
+    },
+    {
+      "event": "nguyen-tat-thanh-ra-di-tim-duong-cuu-nuoc",
+      "question": "Năm 1920, văn kiện nào giúp Nguyễn Ái Quốc tìm thấy con đường giải phóng dân tộc?",
+      "choices": [
+        "Sơ thảo lần thứ nhất những luận cương về vấn đề dân tộc và vấn đề thuộc địa của Lênin",
+        "Tuyên ngôn Độc lập của Mỹ năm 1776",
+        "Tuyên ngôn Nhân quyền và Dân quyền của Pháp",
+        "Bản yêu sách của nhân dân An Nam"
+      ],
+      "correct": 0,
+      "explanation": "Tháng 7/1920, Người đọc Sơ thảo luận cương của Lênin và tìm thấy con đường cách mạng vô sản. Bản yêu sách của nhân dân An Nam là văn bản chính Người gửi tới Hội nghị Véc-xai năm 1919."
+    },
+    {
+      "event": "nguyen-ai-quoc-ve-nuoc-lanh-dao-cach-mang",
+      "question": "Ngày 28/1/1941, Nguyễn Ái Quốc về nước và sống, làm việc ở đâu?",
+      "choices": ["Hang Cốc Bó, bản Pác Bó (Cao Bằng)", "Tân Trào (Tuyên Quang)", "Nhà 48 Hàng Ngang (Hà Nội)", "Kim Liên (Nghệ An)"],
+      "correct": 0,
+      "explanation": "Người vượt biên giới ở khu vực cột mốc 108 (Hà Quảng, Cao Bằng), sống và làm việc tại hang Cốc Bó, bản Pác Bó, trong điều kiện vô cùng gian khổ."
+    },
+    {
+      "event": "nguyen-ai-quoc-ve-nuoc-lanh-dao-cach-mang",
+      "question": "Hội nghị lần thứ 8 Ban Chấp hành Trung ương Đảng (5/1941) quyết định thành lập tổ chức nào?",
+      "choices": ["Mặt trận Việt Minh", "Đội Việt Nam Tuyên truyền Giải phóng quân", "Ủy ban khởi nghĩa toàn quốc", "Chính phủ lâm thời"],
+      "correct": 0,
+      "explanation": "Hội nghị do Nguyễn Ái Quốc chủ trì ở Pác Bó đặt nhiệm vụ giải phóng dân tộc lên hàng đầu và thành lập Mặt trận Việt Minh (19/5/1941). Đội Việt Nam Tuyên truyền Giải phóng quân ra đời sau, ngày 22/12/1944."
+    },
+    {
+      "event": "nguyen-ai-quoc-ve-nuoc-lanh-dao-cach-mang",
+      "question": "Ở Pác Bó, Nguyễn Ái Quốc đặt tên cho dòng suối trước hang là gì?",
+      "choices": ["Suối Lê-nin", "Suối Các Mác", "Suối Hiền Lương", "Suối Khuổi Nậm"],
+      "correct": 0,
+      "explanation": "Người đặt tên dòng suối trước hang là suối Lê-nin, ngọn núi bên cạnh là núi Các Mác. Chiếc \"bàn đá chông chênh\" trong bài thơ Tức cảnh Pác Bó là một phiến đá bên bờ suối Lê-nin."
+    },
+    {
+      "event": "tong-khoi-nghia-gianh-chinh-quyen-o-ha-noi",
+      "question": "Sáng 19/8/1945, quần chúng Hà Nội tập trung mít tinh ở đâu trước khi chia thành các đoàn đi chiếm công sở?",
+      "choices": ["Quảng trường Nhà hát Lớn", "Quảng trường Ba Đình", "Hồ Hoàn Kiếm", "Văn Miếu – Quốc Tử Giám"],
+      "correct": 0,
+      "explanation": "Hàng chục vạn người kéo về Quảng trường Nhà hát Lớn dự mít tinh, rồi chia thành nhiều đoàn có tự vệ đi kèm, chiếm Phủ Khâm sai Bắc Bộ, Tòa Thị chính, Sở Cảnh sát…"
+    },
+    {
+      "event": "tong-khoi-nghia-gianh-chinh-quyen-o-ha-noi",
+      "question": "Ngày 19/8/1945 về sau được chọn là ngày truyền thống của lực lượng nào?",
+      "choices": ["Công an nhân dân Việt Nam", "Quân đội nhân dân Việt Nam", "Bộ đội Biên phòng", "Hải quân nhân dân Việt Nam"],
+      "correct": 0,
+      "explanation": "Ngày 19/8/1945 — ngày Hà Nội giành chính quyền — được chọn là ngày truyền thống của lực lượng Công an nhân dân Việt Nam."
+    },
+    {
+      "event": "tong-khoi-nghia-gianh-chinh-quyen-o-ha-noi",
+      "question": "Sau Hà Nội, khởi nghĩa giành chính quyền thắng lợi ở Huế và Sài Gòn vào những ngày nào?",
+      "choices": ["Huế 23/8, Sài Gòn 25/8/1945", "Huế 19/8, Sài Gòn 23/8/1945", "Huế 25/8, Sài Gòn 28/8/1945", "Huế 30/8, Sài Gòn 2/9/1945"],
+      "correct": 0,
+      "explanation": "Khởi nghĩa thắng lợi ở Huế (23/8) và Sài Gòn (25/8). Đến 28/8/1945, Tổng khởi nghĩa thành công trong cả nước; ngày 30/8, vua Bảo Đại thoái vị."
+    },
+    {
+      "event": "tuyen-ngon-doc-lap",
+      "question": "Chủ tịch Hồ Chí Minh khởi thảo bản Tuyên ngôn Độc lập tại đâu?",
+      "choices": ["Nhà số 48 phố Hàng Ngang, Hà Nội", "Hang Cốc Bó, Cao Bằng", "Bắc Bộ phủ, Hà Nội", "Đình Tân Trào, Tuyên Quang"],
+      "correct": 0,
+      "explanation": "Ngày 25/8/1945, Chủ tịch Hồ Chí Minh từ Tân Trào về Hà Nội. Tại căn nhà số 48 phố Hàng Ngang, Người khởi thảo bản Tuyên ngôn Độc lập. Ngôi nhà nay là di tích lịch sử."
+    },
+    {
+      "event": "tuyen-ngon-doc-lap",
+      "question": "Mở đầu bản Tuyên ngôn Độc lập, Chủ tịch Hồ Chí Minh dẫn những câu \"bất hủ\" trong văn kiện của hai nước nào?",
+      "choices": ["Mỹ và Pháp", "Anh và Pháp", "Liên Xô và Trung Quốc", "Mỹ và Anh"],
+      "correct": 0,
+      "explanation": "Tuyên ngôn dẫn Tuyên ngôn Độc lập của Mỹ (1776) và Tuyên ngôn Nhân quyền và Dân quyền của Pháp (1791), rồi vạch trần tội ác của thực dân Pháp."
+    },
+    {
+      "event": "tuyen-ngon-doc-lap",
+      "question": "Bản Tuyên ngôn Độc lập ngày 2/9/1945 khai sinh ra nhà nước nào?",
+      "choices": ["Việt Nam Dân chủ Cộng hòa", "Cộng hòa xã hội chủ nghĩa Việt Nam", "Việt Nam Cộng hòa", "Đế quốc Việt Nam"],
+      "correct": 0,
+      "explanation": "Thay mặt Chính phủ lâm thời, Chủ tịch Hồ Chí Minh đọc bản Tuyên ngôn Độc lập, khai sinh nước Việt Nam Dân chủ Cộng hòa. Ngày 2/9 trở thành Ngày Quốc khánh."
+    },
+    {
+      "event": "chien-dich-dien-bien-phu",
+      "question": "Trong chiến dịch Điện Biên Phủ, phương châm tác chiến được chuyển sang phương châm nào?",
+      "choices": ["\"Đánh chắc, tiến chắc\"", "\"Đánh nhanh, thắng nhanh\"", "\"Đánh lâu dài\"", "\"Thần tốc, táo bạo, bất ngờ\""],
+      "correct": 0,
+      "explanation": "Phương châm tác chiến được chuyển từ \"đánh nhanh, thắng nhanh\" sang \"đánh chắc, tiến chắc\". Chiến dịch diễn ra trong 56 ngày đêm với ba đợt tiến công."
+    },
+    {
+      "event": "chien-dich-dien-bien-phu",
+      "question": "Tập đoàn cứ điểm Điện Biên Phủ gồm bao nhiêu cứ điểm, chia thành mấy phân khu?",
+      "choices": ["49 cứ điểm, 3 phân khu", "36 cứ điểm, 2 phân khu", "62 cứ điểm, 4 phân khu", "56 cứ điểm, 3 phân khu"],
+      "correct": 0,
+      "explanation": "Pháp xây dựng Điện Biên Phủ thành tập đoàn cứ điểm mạnh nhất Đông Dương: 49 cứ điểm, chia thành ba phân khu (Bắc, Trung tâm, Nam), có sân bay, pháo binh và xe tăng."
+    },
+    {
+      "event": "chien-dich-dien-bien-phu",
+      "question": "Trong trận Him Lam (13/3/1954), ai đã lấy thân mình lấp lỗ châu mai, mở đường cho đơn vị xung phong?",
+      "choices": ["Phan Đình Giót", "Tô Vĩnh Diện", "Bế Văn Đàn", "Bùi Quang Thận"],
+      "correct": 0,
+      "explanation": "Tiểu đội phó Phan Đình Giót bị thương nặng vẫn xin đi đánh tiếp, dùng thân mình lấp kín lỗ châu mai. Anh hy sinh ở tuổi 21, được truy tặng danh hiệu Anh hùng Lực lượng vũ trang nhân dân."
+    },
+    {
+      "event": "hiep-dinh-geneve-ve-dong-duong",
+      "question": "Theo Hiệp định Genève 1954, giới tuyến quân sự tạm thời ở Việt Nam là ở đâu?",
+      "choices": ["Vĩ tuyến 17 (sông Bến Hải)", "Vĩ tuyến 16 (đèo Hải Vân)", "Vĩ tuyến 18 (sông Gianh)", "Vĩ tuyến 13"],
+      "correct": 0,
+      "explanation": "Hiệp định quy định ngừng bắn trên toàn Đông Dương và lấy vĩ tuyến 17 (sông Bến Hải) làm giới tuyến quân sự tạm thời; hai bên tập kết quân đội về hai miền."
+    },
+    {
+      "event": "hiep-dinh-geneve-ve-dong-duong",
+      "question": "Ai dẫn đầu đoàn Việt Nam Dân chủ Cộng hòa tại Hội nghị Genève?",
+      "choices": ["Phạm Văn Đồng", "Lê Đức Thọ", "Xuân Thủy", "Võ Nguyên Giáp"],
+      "correct": 0,
+      "explanation": "Đoàn Việt Nam Dân chủ Cộng hòa do Phó Thủ tướng kiêm Bộ trưởng Ngoại giao Phạm Văn Đồng dẫn đầu. Người ký hiệp định đình chỉ chiến sự ở Việt Nam là Thứ trưởng Bộ Quốc phòng Tạ Quang Bửu."
+    },
+    {
+      "event": "hiep-dinh-geneve-ve-dong-duong",
+      "question": "Theo Hiệp định Genève, cuộc tổng tuyển cử thống nhất đất nước dự kiến diễn ra khi nào?",
+      "choices": ["Tháng 7/1956", "Tháng 7/1955", "Tháng 10/1954", "Tháng 1/1957"],
+      "correct": 0,
+      "explanation": "Hiệp định quy định tổng tuyển cử tự do trong cả nước vào tháng 7/1956, dưới sự giám sát của Ủy ban quốc tế (Ấn Độ, Ba Lan, Canada). Cuộc tổng tuyển cử đã không diễn ra."
+    },
+    {
+      "event": "tong-tien-cong-va-noi-day-tet-mau-than-1968",
+      "question": "Đợt 1 cuộc Tổng tiến công và nổi dậy Tết Mậu Thân mở màn vào thời điểm nào?",
+      "choices": ["Đêm 30 rạng sáng 31/1/1968 (đêm Giao thừa)", "Ngày 13/5/1968", "Tháng 8/1968", "Ngày 30/4/1968"],
+      "correct": 0,
+      "explanation": "Đêm 30 rạng sáng 31/1/1968 — đêm Giao thừa Tết Mậu Thân — quân và dân miền Nam đồng loạt tiến công và nổi dậy ở hầu khắp các thành phố, thị xã."
+    },
+    {
+      "event": "tong-tien-cong-va-noi-day-tet-mau-than-1968",
+      "question": "Trong Tết Mậu Thân 1968, quân ta làm chủ phần lớn thành phố nào trong khoảng 25 ngày đêm?",
+      "choices": ["Huế", "Đà Nẵng", "Sài Gòn", "Cần Thơ"],
+      "correct": 0,
+      "explanation": "Tại Huế, quân ta làm chủ phần lớn thành phố trong khoảng 25 ngày đêm. Kinh thành Huế — nơi giao tranh ác liệt — nay đã được trùng tu và là Di sản Văn hóa Thế giới."
+    },
+    {
+      "event": "tong-tien-cong-va-noi-day-tet-mau-than-1968",
+      "question": "Sau đòn tiến công Tết Mậu Thân 1968, Mỹ phải làm gì?",
+      "choices": [
+        "Tuyên bố \"phi Mỹ hóa\" chiến tranh và chấp nhận đàm phán tại Paris",
+        "Rút hết quân khỏi miền Nam ngay trong năm 1968",
+        "Ký Hiệp định Paris ngay trong năm 1968",
+        "Đưa thêm quân vào miền Nam và ném bom Hà Nội bằng B-52"
+      ],
+      "correct": 0,
+      "explanation": "Tết Mậu Thân làm lung lay ý chí xâm lược của Mỹ: Mỹ tuyên bố \"phi Mỹ hóa\" chiến tranh, chấm dứt không điều kiện việc ném bom miền Bắc (11/1968) và đàm phán với ta tại Paris (từ 13/5/1968)."
+    },
+    {
+      "event": "hiep-dinh-paris-ve-viet-nam",
+      "question": "Hiệp định Paris về chấm dứt chiến tranh, lập lại hòa bình ở Việt Nam được ký ngày nào?",
+      "choices": ["27/1/1973", "21/7/1954", "29/3/1973", "30/4/1975"],
+      "correct": 0,
+      "explanation": "Ngày 27/1/1973, Hiệp định Paris được ký chính thức. Ngày 29/3/1973, toán lính Mỹ cuối cùng rút khỏi miền Nam."
+    },
+    {
+      "event": "hiep-dinh-paris-ve-viet-nam",
+      "question": "Ai là người phụ nữ duy nhất đặt bút ký Hiệp định Paris?",
+      "choices": ["Nguyễn Thị Bình", "Nguyễn Thị Định", "Võ Thị Sáu", "Đặng Thùy Trâm"],
+      "correct": 0,
+      "explanation": "Bộ trưởng Nguyễn Thị Bình ký thay mặt Chính phủ Cách mạng lâm thời Cộng hòa miền Nam Việt Nam; bà là người phụ nữ duy nhất ký Hiệp định Paris."
+    },
+    {
+      "event": "hiep-dinh-paris-ve-viet-nam",
+      "question": "Theo Hiệp định Paris, Mỹ phải rút hết quân viễn chinh và quân đồng minh trong thời hạn bao lâu?",
+      "choices": ["60 ngày", "2 năm", "6 tháng", "300 ngày"],
+      "correct": 0,
+      "explanation": "Hiệp định quy định Mỹ rút hết quân viễn chinh và quân đồng minh trong vòng 60 ngày, ngừng bắn trên toàn miền Nam và các bên trao trả tù binh."
+    },
+    {
+      "event": "chien-dich-ho-chi-minh",
+      "question": "Ai làm Tư lệnh Chiến dịch Hồ Chí Minh năm 1975?",
+      "choices": ["Đại tướng Văn Tiến Dũng", "Đại tướng Võ Nguyên Giáp", "Đồng chí Phạm Hùng", "Đồng chí Lê Duẩn"],
+      "correct": 0,
+      "explanation": "Đại tướng Văn Tiến Dũng làm Tư lệnh, đồng chí Phạm Hùng làm Chính ủy chiến dịch."
+    },
+    {
+      "event": "chien-dich-ho-chi-minh",
+      "question": "Trận đánh nào (9 – 21/4/1975) phá vỡ \"cánh cửa thép\" phía đông Sài Gòn?",
+      "choices": ["Trận Xuân Lộc", "Trận Buôn Ma Thuột", "Trận Phước Long", "Trận Đà Nẵng"],
+      "correct": 0,
+      "explanation": "Trận Xuân Lộc (9 – 21/4/1975) phá vỡ \"cánh cửa thép\" phía đông Sài Gòn, mở đường cho Chiến dịch Hồ Chí Minh bắt đầu lúc 17 giờ ngày 26/4/1975."
+    },
+    {
+      "event": "chien-dich-ho-chi-minh",
+      "question": "Lá cờ cách mạng tung bay trên nóc Dinh Độc Lập vào thời điểm nào?",
+      "choices": ["11 giờ 30 phút ngày 30/4/1975", "17 giờ ngày 26/4/1975", "Sáng 2/5/1975", "Chiều 29/4/1975"],
+      "correct": 0,
+      "explanation": "Sáng 30/4/1975, xe tăng Quân Giải phóng húc đổ cổng Dinh Độc Lập; 11 giờ 30 phút, lá cờ cách mạng tung bay trên nóc dinh."
+    },
+    {
+      "event": "dai-hoi-dang-lan-thu-vi",
+      "question": "Đại hội đại biểu toàn quốc lần thứ VI của Đảng (12/1986) đề ra đường lối gì?",
+      "choices": ["Đường lối Đổi mới toàn diện", "Kế hoạch 5 năm lần thứ nhất", "Đường lối kháng chiến toàn dân", "Chính sách kinh tế mới (NEP)"],
+      "correct": 0,
+      "explanation": "Đại hội VI (15 – 18/12/1986) đề ra đường lối Đổi mới toàn diện, trọng tâm là đổi mới kinh tế: xóa bỏ cơ chế tập trung quan liêu, bao cấp."
+    },
+    {
+      "event": "dai-hoi-dang-lan-thu-vi",
+      "question": "Ai được bầu làm Tổng Bí thư tại Đại hội VI của Đảng?",
+      "choices": ["Nguyễn Văn Linh", "Lê Duẩn", "Trường Chinh", "Đỗ Mười"],
+      "correct": 0,
+      "explanation": "Đồng chí Nguyễn Văn Linh được bầu làm Tổng Bí thư tại Đại hội VI."
+    },
+    {
+      "event": "dai-hoi-dang-lan-thu-vi",
+      "question": "Năm 1988, nghị quyết nào của Bộ Chính trị giao ruộng đất ổn định lâu dài cho nông dân?",
+      "choices": ["Nghị quyết 10 (\"Khoán 10\")", "Chỉ thị 100", "Nghị quyết 15", "Chỉ thị 50"],
+      "correct": 0,
+      "explanation": "Tháng 4/1988, Nghị quyết 10 (\"Khoán 10\") giao ruộng đất ổn định lâu dài cho nông dân. Chỉ thị 100 (1981) là bước thử nghiệm khoán sản phẩm trước đó. Năm 1989, Việt Nam bắt đầu xuất khẩu gạo."
+    }
+  ]
+}
