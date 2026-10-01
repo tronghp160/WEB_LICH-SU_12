@@ -19,6 +19,8 @@ export default defineConfig({
     viewport: { width: 1280, height: 900 },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    // Đánh dấu "đã xem hướng dẫn lần đầu" để hộp hướng dẫn không che nút trong các test khác; tests/e2e/sgk.spec.ts kiểm tra riêng.
+    storageState: { cookies: [], origins: [{ origin: baseURL, localStorage: [{ name: "ls12:da-xem-huong-dan", value: "1" }] }] },
   },
   // Không có E2E_BASE_URL → tự khởi động bản production đã build (npm run build) ở cổng 3100; đang chạy sẵn thì dùng lại.
   webServer: process.env.E2E_BASE_URL

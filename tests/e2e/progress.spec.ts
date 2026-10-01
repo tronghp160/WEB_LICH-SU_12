@@ -52,9 +52,11 @@ test.describe("Hộ chiếu lịch sử", () => {
     }, KEY);
     await page.goto("/ho-chieu");
     await expect(page.getByText(/^1\/\d+ con dấu$/)).toBeVisible();
+    // Tab "Tiến độ học" (mặc định): chuyên đề đã học; tab "Con dấu": điểm từng bộ.
+    await expect(page.getByText("Đã học ngày 30/9/2026")).toBeVisible();
+    await page.getByRole("tab", { name: /^Con dấu/ }).click();
     await expect(page.getByText("Điểm cao nhất 9/10 · 2 lượt")).toBeVisible();
     await expect(page.getByText(/cao nhất hiện tại 5\/10/)).toBeVisible();
-    await expect(page.getByText("Đã học ngày 30/9/2026")).toBeVisible();
     await expect(page.getByRole("link", { name: "Hộ chiếu lịch sử: 1 con dấu" })).toBeVisible();
 
     await page.getByRole("button", { name: "Xóa tiến độ trên máy này" }).click();
@@ -110,6 +112,7 @@ test.describe("Di tích gần em", () => {
     test(`hộ chiếu và di tích gần em không tràn ngang ở ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/ho-chieu");
+      await page.getByRole("tab", { name: /^Con dấu/ }).click();
       await expect(page.getByRole("heading", { name: "Con dấu" })).toBeVisible();
       expect(await hasHorizontalOverflow(page)).toBe(false);
       await page.goto("/di-tich-gan-em");

@@ -13,12 +13,17 @@ Nội dung bám theo SGK Lịch sử 12 (bộ *Kết nối tri thức với cu�
 
 | Trang | Đường dẫn | Nội dung |
 |---|---|---|
-| Trang chủ | `/` | Tìm nhanh, bài học tương tác, chủ đề, sự kiện nổi bật |
-| Bài học tương tác | `/bai-hoc` | Ví dụ *Chiến dịch Điện Biên Phủ*: bản đồ diễn biến 7 bước, ảnh tư liệu, video, thẻ ghi nhớ, mô hình 3D |
+| Trang chủ | `/` | Bảng điều khiển học tập: Bắt đầu học / Học tiếp, "Em muốn làm gì?", mục lục SGK rút gọn, chuyên đề nổi bật, hôm nay trong lịch sử |
+| Mục lục SGK | `/muc-luc`, `/muc-luc/chu-de-N` | 6 chủ đề, 17 bài (Kết nối tri thức), tiến độ từng bài, in được |
+| Bài SGK | `/bai/[số]-[slug]` | Khuôn "trang sách": mục lục bài dính, sự kiện và chuyên đề theo từng mục, luyện tập, bài trước/sau |
+| Chuyên đề tương tác | `/bai-hoc` | Ví dụ *Chiến dịch Điện Biên Phủ*: bản đồ diễn biến 7 bước, ảnh tư liệu, tab Tư liệu (video, hiện vật 3D, di tích), thẻ ghi nhớ |
+| Ôn tập | `/trac-nghiem`, `/trac-nghiem/bai/[slug]`, `/trac-nghiem/the-ghi-nho` | Trắc nghiệm theo từng Bài SGK (gợi ý mục cần đọc lại), thẻ ghi nhớ, nhìn ảnh đoán năm |
+| Tiến độ học tập | `/ho-chieu` | Tiến độ 17 bài và con dấu; xuất/nhập mã tiến độ để học tiếp trên máy khác |
+| Khám phá, Hướng dẫn | `/kham-pha`, `/huong-dan` | Mọi công cụ ở một chỗ, phòng tư liệu 3D; cách dùng web cho học sinh và giáo viên |
 | Bản đồ 3D "như phim" | `/ban-do-3d/dien-bien-phu` | Chiến dịch diễn ra trên địa hình thật (MapLibre + Three.js) |
 | Phim 3D | `/phim-3d/doi-a1` | "Đồi A1, đêm 6/5/1954" dựng trong trình duyệt, có thuyết minh và phụ đề |
-| Dòng thời gian | `/dong-thoi-gian` | Sự kiện theo năm, lọc theo chủ đề |
-| Bản đồ | `/ban-do` | Địa điểm lịch sử (Leaflet), tìm theo bán kính (PostGIS) |
+| Dòng thời gian | `/dong-thoi-gian` | Sự kiện theo năm, lọc theo chủ đề, nhãn "Bài N", chế độ thu gọn |
+| Bản đồ | `/ban-do` | Địa điểm lịch sử (Leaflet), lọc theo bài, tìm theo bán kính (PostGIS), nút "Gần em" |
 | Tra cứu | `/tra-cuu` | Tìm sự kiện, nhân vật, địa điểm; gõ không dấu vẫn được |
 | Chi tiết | `/su-kien/…`, `/nhan-vat/…`, `/dia-diem/…`, `/chu-de/…` | Nội dung, ảnh có ghi công, nguồn tham khảo |
 | Quản trị | `/quan-tri` | Soạn nội dung, kiểm duyệt, quản lý nhân sự, vận hành (cần đăng nhập) |
@@ -71,6 +76,8 @@ npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-media.sql
 npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-content.sql
 # 5. Câu hỏi trắc nghiệm soạn tay (sinh từ supabase/content/trac-nghiem.json)
 npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-quiz.sql
+# 6. GĐ7 nâng cấp giao diện: bảng gán sự kiện vào bài SGK, nội dung mới (nháp), dữ liệu gán ban đầu
+#    supabase/migrations/20261001000000_sgk_lesson_events.sql → supabase/seed-content-gd7.sql → supabase/seed-sgk.sql
 ```
 
 > `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands
@@ -120,12 +127,13 @@ lib/queries/       Truy vấn Supabase phía server
 lib/actions/       Server Actions (lưu, gửi duyệt, duyệt…)
 lib/validation/    Zod schema cho form
 lib/admin/         Luật nghiệp vụ quản trị (điều kiện gửi duyệt, quyền theo vai trò…)
-lib/lessons/       Bài học tương tác (dữ liệu viết trong code)
+lib/sgk/           Khung SGK 6 chủ đề, 17 bài (dữ liệu viết trong code)
+lib/lessons/       Chuyên đề tương tác (dữ liệu viết trong code)
 lib/battles/       Kịch bản bản đồ diễn biến
 lib/mapfilm/       Kịch bản bản đồ 3D; lib/cinema: phim 3D; lib/models3d: mô hình 3D
 supabase/          migrations/, seed.sql, tests/constraints.sql
 tests/             unit/ (Vitest), e2e/ (Playwright), rls/ (DB thật), perf/
-docs/              Báo cáo kiểm thử, dữ liệu cần kiểm chứng, lộ trình bài học, ảnh chụp màn hình
+docs/              Báo cáo kiểm thử, dữ liệu cần kiểm chứng, lộ trình bài học, hướng dẫn giao diện, ảnh chụp màn hình
 public/            Ảnh bài học (webp đã nén), địa hình, mô hình 3D
 ```
 

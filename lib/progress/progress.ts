@@ -21,15 +21,28 @@ export type QuizRecord = {
   lastAt: string;
 };
 
+/** Tiến độ đọc một Bài SGK (/bai/[slug]): các mục đã đọc tới và mục đọc gần nhất. */
+export type SgkLessonRecord = {
+  /** id mục → lần đầu đọc tới (ISO). */
+  sections: Record<string, string>;
+  lastSection?: string;
+  lastAt: string;
+};
+
 export type Progress = {
   v: 1;
-  /** Bài học đã đọc tới phần ôn tập cuối bài. */
+  /** Chuyên đề tương tác (lib/lessons) đã đọc tới phần ôn tập cuối bài. */
   lessons: Record<string, { studiedAt: string }>;
   /** Kết quả trắc nghiệm theo bộ (khóa: quizSetIds trong lib/quiz/sets). */
   quizzes: Record<string, QuizRecord>;
+  /**
+   * Bài SGK đã đọc tới mục nào (khóa: slug trong lib/sgk/curriculum). Trường thêm sau, không bắt buộc trong dữ liệu
+   * đã lưu → không cần tăng `v`, tiến độ và con dấu cũ giữ nguyên.
+   */
+  sgk: Record<string, SgkLessonRecord>;
 };
 
-export const emptyProgress: Progress = { v: 1, lessons: {}, quizzes: {} };
+export const emptyProgress: Progress = { v: 1, lessons: {}, quizzes: {}, sgk: {} };
 
 const quizRecordSchema = z.object({
   best: z.number().int().min(0),
@@ -39,10 +52,16 @@ const quizRecordSchema = z.object({
   lastAt: z.string(),
 });
 const lessonRecordSchema = z.object({ studiedAt: z.string() });
+const sgkRecordSchema = z.object({
+  sections: z.record(z.string(), z.string()),
+  lastSection: z.string().optional(),
+  lastAt: z.string(),
+});
 const progressSchema = z.object({
   v: z.literal(1),
   lessons: z.record(z.string(), z.unknown()),
   quizzes: z.record(z.string(), z.unknown()),
+  sgk: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**
@@ -70,7 +89,12 @@ export function parseProgress(raw: string | null): Progress {
     const record = quizRecordSchema.safeParse(value);
     if (record.success && record.data.best <= record.data.total) quizzes[id] = record.data;
   }
-  return { v: 1, lessons, quizzes };
+  const sgk: Progress["sgk"] = {};
+  for (const [slug, value] of Object.entries(parsed.data.sgk ?? {})) {
+    const record = sgkRecordSchema.safeParse(value);
+    if (record.success) sgk[slug] = record.data;
+  }
+  return { v: 1, lessons, quizzes, sgk };
 }
 
 export function isPassing(score: number, total: number): boolean {
@@ -99,6 +123,35 @@ export function markLessonStudied(progress: Progress, slug: string, now: Date): 
   return { ...progress, lessons: { ...progress.lessons, [slug]: { studiedAt: now.toISOString() } } };
 }
 
+/** Ghi đã đọc tới một mục của Bài SGK (mục đọc lần đầu thì nhớ thời điểm; luôn cập nhật "mục gần nhất"). */
+export function recordSectionRead(progress: Progress, lessonSlug: string, sectionId: string, now: Date): Progress {
+  const at = now.toISOString();
+  const previous = progress.sgk[lessonSlug];
+  if (previous?.lastSection === sectionId && previous.sections[sectionId]) return progress;
+  const record: SgkLessonRecord = {
+    sections: { ...previous?.sections, [sectionId]: previous?.sections[sectionId] ?? at },
+    lastSection: sectionId,
+    lastAt: at,
+  };
+  return { ...progress, sgk: { ...progress.sgk, [lessonSlug]: record } };
+}
+
+/** Tỉ lệ mục đã đọc của một bài (0–1), chỉ tính các mục còn có trong khung bài. */
+export function lessonCompletion(progress: Progress, lessonSlug: string, sectionIds: readonly string[]): number {
+  const record = progress.sgk[lessonSlug];
+  if (!record || sectionIds.length === 0) return 0;
+  return sectionIds.filter((id) => record.sections[id]).length / sectionIds.length;
+}
+
+/** Bài SGK đọc gần nhất (để hiện nút "Học tiếp"). */
+export function latestSgkLesson(progress: Progress): { slug: string; record: SgkLessonRecord } | undefined {
+  let latest: { slug: string; record: SgkLessonRecord } | undefined;
+  for (const [slug, record] of Object.entries(progress.sgk)) {
+    if (!latest || record.lastAt > latest.record.lastAt) latest = { slug, record };
+  }
+  return latest;
+}
+
 export type StampKind = "lesson" | "topic" | "special";
 
 /** Một con dấu có thể nhận: đạt bộ trắc nghiệm `setId` từ 70% trở lên. */
@@ -115,7 +168,9 @@ export type StampDef = {
 export type Stamp = StampDef & { earnedAt?: string; record?: QuizRecord };
 
 type StampCatalogInput = {
-  /** Bài học có đủ câu trắc nghiệm. */
+  /** Bài SGK có đủ câu trắc nghiệm (bộ /trac-nghiem/bai/[slug]). */
+  sgkLessons?: readonly { slug: string; number: number; shortTitle: string }[];
+  /** Chuyên đề tương tác có đủ câu trắc nghiệm. */
   lessons: readonly { slug: string; title: string; dateText: string }[];
   /** Chủ đề có đủ câu trắc nghiệm. */
   topics: readonly { slug: string; name: string }[];
@@ -133,8 +188,18 @@ export function yearsInName(name: string): string | undefined {
 const requirementText =`Đạt từ ${Math.round(PASS_RATIO * 10)}/10 câu`;
 
 /** Danh sách con dấu theo các bộ trắc nghiệm đang mở: bài học → chủ đề → hai bộ đặc biệt. */
-export function buildStampCatalog({ lessons, topics, hasAllQuiz, hasYearGame }: StampCatalogInput): StampDef[] {
+export function buildStampCatalog({ sgkLessons = [], lessons, topics, hasAllQuiz, hasYearGame }: StampCatalogInput): StampDef[] {
   const defs: StampDef[] = [
+    ...sgkLessons.map(
+      (lesson): StampDef => ({
+        setId: `bai:${lesson.slug}`,
+        kind: "lesson",
+        title: `Bài ${lesson.number}. ${lesson.shortTitle}`,
+        motto: `Bài ${lesson.number}`,
+        href: `/trac-nghiem/bai/${lesson.slug}`,
+        requirement: `${requirementText} trắc nghiệm của bài`,
+      }),
+    ),
     ...lessons.map(
       (lesson): StampDef => ({
         setId: quizSetIds.lesson(lesson.slug),
@@ -143,7 +208,7 @@ export function buildStampCatalog({ lessons, topics, hasAllQuiz, hasYearGame }: 
         // "13/3 – 7/5/1954" quá dài cho vòng giữa con dấu → chỉ giữ năm.
         motto: yearsInName(lesson.dateText) ?? lesson.dateText,
         href: quizPaths.lesson(lesson.slug),
-        requirement: `${requirementText} trắc nghiệm bài học`,
+        requirement: `${requirementText} trắc nghiệm chuyên đề`,
       }),
     ),
     ...topics.map(
@@ -192,4 +257,76 @@ export function stampDate(iso: string): string {
   return new Intl.DateTimeFormat("vi-VN", { day: "numeric", month: "numeric", year: "numeric", timeZone: "Asia/Ho_Chi_Minh" }).format(
     new Date(iso),
   );
+}
+
+// ---------- Xuất / nhập mã tiến độ (mục 6.7): học sinh hay đổi máy (máy trường ↔ điện thoại) ----------
+
+const CODE_PREFIX = "LS12-";
+
+/** Mã tiến độ để chép sang máy khác: "LS12-" + base64url của JSON (dữ liệu chỉ gồm slug và ngày giờ, toàn ký tự ASCII). */
+export function exportProgressCode(progress: Progress): string {
+  const base64 = btoa(JSON.stringify(progress));
+  return CODE_PREFIX + base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/** Đọc mã tiến độ; mã sai, hỏng hoặc không phải của web này → null. Từng mục hỏng bị bỏ như parseProgress. */
+export function importProgressCode(code: string): Progress | null {
+  const trimmed = code.trim().replace(/\s+/g, "");
+  if (!trimmed.startsWith(CODE_PREFIX)) return null;
+  const body = trimmed.slice(CODE_PREFIX.length).replace(/-/g, "+").replace(/_/g, "/");
+  let json: string;
+  try {
+    json = atob(body + "=".repeat((4 - (body.length % 4)) % 4));
+  } catch {
+    return null;
+  }
+  // parseProgress trả đúng đối tượng emptyProgress chỉ khi dữ liệu hỏng/sai phiên bản (dữ liệu hợp lệ luôn ra đối tượng mới).
+  const parsed = parseProgress(json);
+  return parsed === emptyProgress ? null : parsed;
+}
+
+const earlier = (a?: string, b?: string) => (a && b ? (a < b ? a : b) : (a ?? b));
+const later = (a: string, b: string) => (a > b ? a : b);
+
+/**
+ * Gộp tiến độ nhập từ máy khác vào tiến độ hiện có (không ghi đè): điểm cao nhất theo tỉ lệ, cộng số lượt, giữ lần đạt
+ * dấu sớm nhất; mục đã đọc lấy hợp của hai bên.
+ */
+export function mergeProgress(current: Progress, incoming: Progress): Progress {
+  const lessons: Progress["lessons"] = { ...current.lessons };
+  for (const [slug, record] of Object.entries(incoming.lessons)) {
+    lessons[slug] = { studiedAt: earlier(lessons[slug]?.studiedAt, record.studiedAt)! };
+  }
+
+  const quizzes: Progress["quizzes"] = { ...current.quizzes };
+  for (const [id, record] of Object.entries(incoming.quizzes)) {
+    const mine = quizzes[id];
+    if (!mine) {
+      quizzes[id] = record;
+      continue;
+    }
+    const better = record.best / record.total > mine.best / mine.total ? record : mine;
+    quizzes[id] = {
+      best: better.best,
+      total: better.total,
+      attempts: mine.attempts + record.attempts,
+      passedAt: earlier(mine.passedAt, record.passedAt),
+      lastAt: later(mine.lastAt, record.lastAt),
+    };
+  }
+
+  const sgk: Progress["sgk"] = { ...current.sgk };
+  for (const [slug, record] of Object.entries(incoming.sgk)) {
+    const mine = sgk[slug];
+    if (!mine) {
+      sgk[slug] = record;
+      continue;
+    }
+    const sections = { ...record.sections };
+    for (const [id, at] of Object.entries(mine.sections)) sections[id] = earlier(sections[id], at)!;
+    const newest = record.lastAt > mine.lastAt ? record : mine;
+    sgk[slug] = { sections, lastSection: newest.lastSection, lastAt: newest.lastAt };
+  }
+
+  return { v: 1, lessons, quizzes, sgk };
 }

@@ -2,14 +2,20 @@ import type { MetadataRoute } from "next";
 import { interactiveEntries, immersiveEntries } from "@/lib/lessons";
 import { createPublicClient } from "@/lib/supabase/public";
 import { siteUrl } from "@/lib/site";
+import { SGK_12, sgkLessons, sgkPaths } from "@/lib/sgk/curriculum";
+import { sgkQuizPaths } from "@/lib/sgk/review";
 
-/** sitemap.xml: trang tĩnh, bài học, và mọi sự kiện / nhân vật / địa điểm / chủ đề ĐÃ CÔNG BỐ (đọc bằng quyền khách). */
+/** sitemap.xml: trang tĩnh, mục lục và các bài SGK, chuyên đề, và mọi sự kiện / nhân vật / địa điểm / chủ đề ĐÃ CÔNG BỐ (đọc bằng quyền khách). */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const staticPaths = ["/", "/bai-hoc", "/trac-nghiem", "/trac-nghiem/tong-hop", "/trac-nghiem/doan-nam", "/dong-thoi-gian", "/ban-do", "/di-tich-gan-em", "/tra-cuu"];
+  const staticPaths = ["/", "/muc-luc", "/kham-pha", "/huong-dan", "/trac-nghiem/the-ghi-nho", "/bai-hoc", "/trac-nghiem", "/trac-nghiem/tong-hop", "/trac-nghiem/doan-nam", "/dong-thoi-gian", "/ban-do", "/di-tich-gan-em", "/tra-cuu"];
   const entries: MetadataRoute.Sitemap = [
     ...staticPaths.map((path) => ({ url: `${base}${path}`, changeFrequency: "weekly" as const, priority: path === "/" ? 1 : 0.8 })),
     ...[...interactiveEntries, ...immersiveEntries].map((entry) => ({ url: `${base}${entry.href}`, priority: 0.9 })),
+    // Khung SGK (dữ liệu tĩnh): 6 trang chủ đề, 17 trang bài.
+    ...SGK_12.map((topic) => ({ url: `${base}${sgkPaths.topic(topic.slug)}`, priority: 0.8 })),
+    ...sgkLessons.map((lesson) => ({ url: `${base}${sgkPaths.lesson(lesson.slug)}`, priority: 0.9 })),
+    ...sgkLessons.map((lesson) => ({ url: `${base}${sgkQuizPaths.lesson(lesson.slug)}`, priority: 0.6 })),
   ];
 
   try {

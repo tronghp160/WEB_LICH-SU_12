@@ -7,6 +7,8 @@ import { SectionErrorBoundary } from "@/components/ui/SectionErrorBoundary";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getTimelineEvents } from "@/lib/queries/events";
 import { getPublishedTopics } from "@/lib/queries/topics";
+import { getCurriculum } from "@/lib/queries/sgk";
+import { legacyTopicColor, placementsForEvent } from "@/lib/sgk/curriculum";
 
 export const metadata: Metadata = {
   title: "Dòng thời gian",
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 async function TimelineContent() {
-  const [events, topics] = await Promise.all([getTimelineEvents(), getPublishedTopics()]);
+  const [events, topics, curriculum] = await Promise.all([getTimelineEvents(), getPublishedTopics(), getCurriculum()]);
 
   if (events.length === 0) {
     return (
@@ -29,9 +31,10 @@ async function TimelineContent() {
   return (
     <Timeline
       events={events}
+      placements={Object.fromEntries(events.map((event) => [event.slug, placementsForEvent(event.slug, curriculum.lessons)]))}
       topics={topics
         .filter((topic) => topic.eventCount > 0)
-        .map((topic) => ({ slug: topic.slug, name: topic.name, eventCount: topic.eventCount }))}
+        .map((topic) => ({ slug: topic.slug, name: topic.name, eventCount: topic.eventCount, color: legacyTopicColor(topic.slug) }))}
     />
   );
 }
@@ -57,8 +60,8 @@ export default function TimelinePage() {
           Dòng thời gian
         </h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          Các sự kiện lịch sử Việt Nam lớp 12 theo thứ tự thời gian. Lọc theo chủ đề, hoặc bấm
-          &ldquo;Xem trên bản đồ&rdquo; để biết sự kiện diễn ra ở đâu.
+          Các sự kiện lịch sử Việt Nam lớp 12 theo thứ tự thời gian. Lọc theo chủ đề, bấm nhãn &ldquo;Bài N&rdquo; để mở bài SGK
+          tương ứng, hoặc &ldquo;Xem trên bản đồ&rdquo; để biết sự kiện diễn ra ở đâu.
         </p>
       </header>
       <SectionErrorBoundary title="Không tải được dòng thời gian">

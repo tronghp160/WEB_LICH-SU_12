@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, RotateCcw, X } from "lucide-react";
+import { BookOpen, Check, RotateCcw, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StampNotice } from "@/components/progress/StampNotice";
@@ -9,6 +9,7 @@ import { Button, LinkButton } from "@/components/ui/Button";
 import { saveQuizResult } from "@/lib/hooks/useProgress";
 import { drawRound } from "@/lib/quiz/generate";
 import type { QuizQuestion } from "@/lib/quiz/types";
+import { sectionReviewFor } from "@/lib/sgk/review";
 import { cn } from "@/lib/utils/cn";
 
 type QuizPlayerProps = {
@@ -19,6 +20,8 @@ type QuizPlayerProps = {
   backLabel: string;
   /** Khóa lưu kết quả vào tiến độ học tập (quizSetIds); có thì cuối bài báo con dấu "Hộ chiếu lịch sử". */
   setId?: string;
+  /** Đang ôn một Bài SGK: "Ôn lại phần sai" ưu tiên các mục của bài này. */
+  reviewLessonSlug?: string;
 };
 
 type Phase = "intro" | "play" | "done";
@@ -39,7 +42,7 @@ export function scoreMessage(correct: number, total: number): string {
  * không lệch hydrate), trả lời xong hiện ngay đúng/sai kèm giải thích và link ôn lại; cuối bài hiện điểm và gợi ý.
  * Bàn phím: phím 1–4 hoặc A–D để chọn, Enter để sang câu tiếp.
  */
-export function QuizPlayer({ title, pool, roundSize, backHref, backLabel, setId }: QuizPlayerProps) {
+export function QuizPlayer({ title, pool, roundSize, backHref, backLabel, setId, reviewLessonSlug }: QuizPlayerProps) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [round, setRound] = useState<QuizQuestion[]>([]);
   const [index, setIndex] = useState(0);
@@ -121,6 +124,15 @@ export function QuizPlayer({ title, pool, roundSize, backHref, backLabel, setId 
   if (phase === "done") {
     const wrong = round.filter((item, position) => answers[position] !== item.correctIndex);
     const reviews = [...new Map(wrong.map((item) => [item.review.href, item.review])).values()];
+    // Câu sai thuộc mục nào của SGK → "Ôn lại phần sai: Bài 7 › mục 3" (mục 6.6).
+    const sections = [
+      ...new Map(
+        wrong.flatMap((item) => {
+          const review = sectionReviewFor(item, reviewLessonSlug);
+          return review ? [[review.href, review] as const] : [];
+        }),
+      ).values(),
+    ];
     return (
       <div className="flex flex-col gap-6">
         <section aria-labelledby="ket-qua" className="flex flex-col items-center gap-2 rounded-card border border-border bg-surface p-6 text-center shadow-card">
@@ -146,8 +158,24 @@ export function QuizPlayer({ title, pool, roundSize, backHref, backLabel, setId 
         {reviews.length > 0 && (
           <section aria-labelledby="on-lai" className="flex flex-col gap-3">
             <h2 id="on-lai" className="font-serif text-lg font-bold text-foreground">
-              Gợi ý ôn lại
+              Ôn lại phần sai
             </h2>
+            {sections.length > 0 && (
+              <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Mục cần đọc lại trong SGK">
+                {sections.map((section) => (
+                  <li key={section.href}>
+                    <Link
+                      href={section.href}
+                      className="flex items-center gap-2 rounded-card border border-accent/50 bg-surface px-4 py-3 font-medium text-foreground hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
+                    >
+                      <BookOpen className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                      {section.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="text-sm text-muted-foreground">Đọc thêm:</p>
             <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
               {reviews.map((review) => (
                 <li key={review.href}>
@@ -174,19 +202,37 @@ export function QuizPlayer({ title, pool, roundSize, backHref, backLabel, setId 
   }
 
   const isLast = index + 1 === round.length;
-  const progress = ((index + (answered ? 1 : 0)) / round.length) * 100;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
-        <span>
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span className="font-semibold text-foreground">
           Câu {index + 1}/{round.length}
         </span>
-        <span>Đúng: {correctCount}</span>
+        <span className="text-muted-foreground">
+          Đúng: <strong className="text-success">{correctCount}</strong>
+        </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-        <div className="h-full rounded-full bg-accent transition-[width] duration-300" style={{ width: `${progress}%` }} />
-      </div>
+      {/* Thanh tiến trình chia ô theo từng câu: đúng (xanh), sai (đỏ), đang làm (viền), chưa làm (xám). */}
+      <ol className="m-0 flex list-none gap-1 p-0" aria-label={`Tiến trình: đã trả lời ${index + (answered ? 1 : 0)} trên ${round.length} câu`}>
+        {round.map((item, position) => {
+          const value = answers[position];
+          const state =
+            value === null || value === undefined ? (position === index ? "current" : "todo") : value === item.correctIndex ? "right" : "wrong";
+          return (
+            <li
+              key={item.id}
+              className={cn(
+                "h-3 flex-1 rounded-full transition-colors",
+                state === "right" && "bg-success",
+                state === "wrong" && "bg-accent",
+                state === "current" && "bg-muted ring-2 ring-inset ring-foreground/40",
+                state === "todo" && "bg-muted",
+              )}
+            />
+          );
+        })}
+      </ol>
 
       {question.image && <QuizImageFigure key={question.id} image={question.image} revealed={answered} />}
 

@@ -72,3 +72,14 @@ export async function cleanupE2eData(admin: SupabaseClient): Promise<void> {
 export async function hasHorizontalOverflow(page: Page): Promise<boolean> {
   return page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
 }
+
+/** Tên tab của mục "Tư liệu" trong chuyên đề tương tác (components/lesson/LessonView → buildResourceTabs). */
+const RESOURCE_TABS = { video: /^Phim tư liệu/, "hien-vat": /^Hiện vật/, "sa-ban": /^Sa bàn 3D/, "ngay-nay": /^Di tích ngày nay/ } as const;
+
+/** Mở một tab của mục "Tư liệu" (chỉ tab đang mở mới được dựng) và trả về vùng nội dung của tab đó. */
+export async function openResource(page: Page, id: keyof typeof RESOURCE_TABS) {
+  const tab = page.getByRole("tablist", { name: "Loại tư liệu" }).getByRole("tab", { name: RESOURCE_TABS[id] });
+  await tab.scrollIntoViewIfNeeded();
+  await tab.click();
+  return page.locator(`[data-resource="${id}"]`);
+}

@@ -1,53 +1,80 @@
 @import "tailwindcss";
 
-/* Hệ màu "trang tư liệu lịch sử hiện đại" (Mục 6, KE_HOACH_DU_AN.md):
-   nền giấy ngà, chữ nâu than, nhấn đỏ son + vàng đồng. Dark mode tự động
-   theo prefers-color-scheme (chưa có nút chuyển tay ở Phase 3). */
+/* Hệ màu "trang tư liệu lịch sử hiện đại": nền giấy ngà, chữ nâu than, nhấn đỏ son + vàng đồng.
+   Sáng/tối: mỗi biến khai báo cả hai giá trị bằng light-dark(); trang chọn bộ nào theo `color-scheme`:
+   - <html data-theme="light|dark"> do script đầu trang đặt (nút Sáng / Tối / Theo hệ thống, components/layout/ThemeToggle);
+   - chưa có data-theme (tắt JavaScript) → theo hệ điều hành.
+   Đổi màu: sửa ở đây, cả hai giá trị. Tương phản đã kiểm (≥ 4.5:1) — xem docs/huong-dan-giao-dien.md. */
 :root {
-  --background: #f7f3ea;
-  --foreground: #2b2622;
-  --surface: #ffffff;
-  --surface-foreground: #2b2622;
-  --border: #e4dcc8;
-  --muted: #efe8d8;
-  --muted-foreground: #6b6255;
-  --accent: #b3261e;
-  --accent-foreground: #ffffff;
-  --gold: #b08d57;
-  --gold-foreground: #2b2622;
+  color-scheme: light dark;
+
+  /* Nền: 4 lớp để phân cấp — giấy (trang), thẻ, khối nổi bật (Yêu cầu cần đạt, Ghi nhớ), vùng phụ (sidebar, tab). */
+  --background: light-dark(#f7f3ea, #1c1815);
+  --surface: light-dark(#ffffff, #24201b);
+  --surface-raised: light-dark(#fffdf8, #2a251f);
+  --sunken: light-dark(#efe8d8, #171310);
+
+  --foreground: light-dark(#2b2622, #f1ead9);
+  --surface-foreground: light-dark(#2b2622, #f1ead9);
+  --border: light-dark(#e4dcc8, #3a332b);
+  --border-strong: light-dark(#cfc3a6, #554b3f);
+  --muted: light-dark(#efe8d8, #2a2520);
+  /* Đậm hơn bản cũ (#6b6255) để chữ phụ đạt ≥ 6:1 trên nền giấy. */
+  --muted-foreground: light-dark(#5f574b, #c4bba8);
+
+  /* Đỏ son: chỉ cho NÚT CHÍNH và trạng thái đang chọn. */
+  --accent: light-dark(#b3261e, #f07a70);
+  --accent-foreground: light-dark(#ffffff, #1c1815);
+  --gold: light-dark(#b08d57, #c9a36d);
+  --gold-foreground: light-dark(#2b2622, #1c1815);
   /* Vàng đồng đậm dùng cho CHỮ trên nền sáng (--gold gốc chỉ đạt ~2.8:1, dưới chuẩn AA 4.5:1). */
-  --gold-deep: #85652b;
+  --gold-deep: light-dark(#85652b, #c9a36d);
   /* Xanh "trả lời đúng" (trắc nghiệm GĐ4): 5.8:1 trên nền giấy. Trả lời sai dùng --accent. */
-  --success: #2e6b37;
+  --success: light-dark(#2e6b37, #7ec48b);
+  --success-bg: light-dark(#e6f1e7, #18261a);
+
+  /* Màu ngữ nghĩa cho hộp Callout: Em có biết? / Ghi nhớ / minh họa – gần đúng. */
+  --info: light-dark(#1f5f8b, #8cc4ec);
+  --info-bg: light-dark(#e7f0f7, #17232d);
+  --note: light-dark(#85652b, #d6b47a);
+  --note-bg: light-dark(#f6eedb, #2a2318);
+  --warning: light-dark(#8a5a00, #e8b860);
+  --warning-bg: light-dark(#fbf0d9, #2b2214);
+
+  /* Màu gáy sách của 6 chủ đề SGK (lib/sgk/curriculum.ts) — luôn đi kèm số/chữ, không làm tín hiệu duy nhất. */
+  --topic-than: light-dark(#2f4f6f, #8fb3d6);
+  --topic-luc-lam: light-dark(#1f6f6a, #6fc4bc);
+  --topic-son: light-dark(#a3271f, #f07a70);
+  --topic-o-liu: light-dark(#4f6b2a, #a9c27a);
+  --topic-tim-than: light-dark(#5a3f75, #c0a4dc);
+  --topic-dong: light-dark(#85652b, #d6b47a);
+
   --radius-card: 0.75rem;
-  --shadow-card: 0 1px 2px rgba(43, 38, 34, 0.06), 0 2px 8px rgba(43, 38, 34, 0.06);
+  --shadow-1: light-dark(rgba(43, 38, 34, 0.06), rgba(0, 0, 0, 0.4));
+  --shadow-2: light-dark(rgba(43, 38, 34, 0.06), rgba(0, 0, 0, 0.3));
+  --shadow-card: 0 1px 2px var(--shadow-1), 0 2px 8px var(--shadow-2);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1c1815;
-    --foreground: #f1ead9;
-    --surface: #24201b;
-    --surface-foreground: #f1ead9;
-    --border: #3a332b;
-    --muted: #2a2520;
-    --muted-foreground: #b8af9c;
-    --accent: #ea5a50;
-    --accent-foreground: #1c1815;
-    --gold: #c9a36d;
-    --gold-foreground: #1c1815;
-    --gold-deep: #c9a36d;
-    --success: #7ec48b;
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
 }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Biến thể dark: của Tailwind theo nút chuyển (data-theme), không theo media query. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-sunken: var(--sunken);
   --color-surface-foreground: var(--surface-foreground);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -56,10 +83,37 @@
   --color-gold-foreground: var(--gold-foreground);
   --color-gold-deep: var(--gold-deep);
   --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-note: var(--note);
+  --color-note-bg: var(--note-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
   --radius-card: var(--radius-card);
   --shadow-card: var(--shadow-card);
   --font-serif: var(--font-lora);
   --font-sans: var(--font-be-vietnam-pro);
+}
+
+/* Màu gáy của một chủ đề cho cả khối con: đặt data-topic-color="son" → dùng var(--topic) (viền, số bài, chip). */
+[data-topic-color="than"] {
+  --topic: var(--topic-than);
+}
+[data-topic-color="luc-lam"] {
+  --topic: var(--topic-luc-lam);
+}
+[data-topic-color="son"] {
+  --topic: var(--topic-son);
+}
+[data-topic-color="o-liu"] {
+  --topic: var(--topic-o-liu);
+}
+[data-topic-color="tim-than"] {
+  --topic: var(--topic-tim-than);
+}
+[data-topic-color="dong"] {
+  --topic: var(--topic-dong);
 }
 
 body {
@@ -77,27 +131,17 @@ body {
   );
 }
 
-/* ---- Hero trang chủ: trình chiếu 4 ảnh (GĐ2) ----
-   Mỗi ảnh hiện 7 giây rồi mờ dần sang ảnh sau (vòng 28 giây), vừa hiện vừa phóng chậm kiểu Ken Burns.
-   Tên sự kiện của ảnh đang hiện được tô sáng. Giảm chuyển động: chỉ ảnh đầu, đứng yên. */
+/* ---- Hero trang chủ: trình chiếu 4 ảnh trong khung bên phải ----
+   Mỗi ảnh hiện 7 giây rồi mờ dần sang ảnh sau (vòng 28 giây). Không phóng to kiểu Ken Burns (mục 7.7).
+   Giảm chuyển động: chỉ ảnh đầu, đứng yên. */
 .hero-slide:not(:first-child) {
   opacity: 0;
-}
-.hero-caption {
-  color: rgb(255 255 255 / 0.7);
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .hero-slide {
     opacity: 0;
     animation: hero-fade 28s linear infinite both;
-  }
-  .hero-slide .hero-slide-img {
-    animation: hero-zoom 28s linear infinite both;
-    animation-delay: inherit;
-  }
-  .hero-caption {
-    animation: hero-caption 28s linear infinite both;
   }
 }
 
@@ -112,29 +156,6 @@ body {
   29%,
   100% {
     opacity: 0;
-  }
-}
-
-@keyframes hero-zoom {
-  0% {
-    transform: scale(1.12);
-  }
-  29%,
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes hero-caption {
-  0%,
-  26% {
-    color: rgb(255 255 255 / 1);
-    text-decoration-line: underline;
-  }
-  27%,
-  100% {
-    color: rgb(255 255 255 / 0.7);
-    text-decoration-line: none;
   }
 }
 
@@ -231,22 +252,13 @@ path.map-center {
 /* Mô phỏng trận đánh (components/battle). Ba loại đơn vị khác HÌNH DÁNG (vuông / tròn / thoi), không chỉ khác màu. */
 :root {
   /* Quy ước bản đồ lịch sử Việt Nam: quân ta màu đỏ, quân địch màu xanh. */
-  --battle-ours: #c62828;
-  --battle-ours-deep: #8e1b1b;
-  --battle-enemy: #1d5fa8;
+  --battle-ours: light-dark(#c62828, #f26b63);
+  --battle-ours-deep: light-dark(#8e1b1b, #d44b45);
+  --battle-enemy: light-dark(#1d5fa8, #6aa6e8);
   --battle-defender: var(--battle-ours);
   --battle-defender-land: var(--battle-ours-deep);
   --battle-invader: var(--battle-enemy);
-  --battle-water: #3b82c4;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --battle-ours: #f26b63;
-    --battle-ours-deep: #d44b45;
-    --battle-enemy: #6aa6e8;
-    --battle-water: #5b9bd5;
-  }
+  --battle-water: light-dark(#3b82c4, #5b9bd5);
 }
 
 .battle-unit {
@@ -562,23 +574,7 @@ span.battle-legend-siege {
   border-radius: 50%;
 }
 
-/* ---- Bài học tương tác (components/lesson) ----
-   Mọi hiệu ứng chỉ chạy khi người dùng không bật "giảm chuyển động"; trạng thái ẩn của .reveal chỉ áp khi có JavaScript. */
-@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
-  .reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition:
-      opacity 0.7s ease,
-      transform 0.7s ease;
-  }
-
-  .reveal.is-visible {
-    opacity: 1;
-    transform: none;
-  }
-}
-
+/* ---- Chuyên đề tương tác (components/lesson) ---- Mọi hiệu ứng chỉ chạy khi người dùng không bật "giảm chuyển động". */
 @media (prefers-reduced-motion: no-preference) {
   .lesson-kenburns {
     animation: lesson-kenburns 22s ease-out both;
@@ -818,4 +814,19 @@ span.battle-legend-siege {
   --text-6xl: clamp(2.25rem, 5.556vh, 3.75rem);
   --text-7xl: clamp(2.7rem, 6.667vh, 4.5rem);
   --text-8xl: clamp(3.6rem, 8.889vh, 6rem);
+}
+
+/* ---- In (mục lục, khung bài) ----
+   Nền trắng, chữ đen; menu, thanh tab, nút bấm đã có class print:hidden. */
+@media print {
+  :root,
+  :root[data-theme] {
+    color-scheme: light;
+  }
+  body {
+    background: #fff;
+  }
+  a {
+    text-decoration: none;
+  }
 }

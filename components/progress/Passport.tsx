@@ -3,11 +3,15 @@
 import { BookOpen, Check, RotateCcw, Stamp as StampIcon, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { ProgressTransfer } from "@/components/progress/ProgressTransfer";
 import { StampSeal } from "@/components/progress/StampSeal";
 import { Button, LinkButton } from "@/components/ui/Button";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Tabs } from "@/components/ui/Tabs";
 import { clearProgress, useProgress } from "@/lib/hooks/useProgress";
-import { evaluateStamps, stampDate, type Stamp, type StampDef } from "@/lib/progress/progress";
+import { evaluateStamps, lessonCompletion, stampDate, type Progress, type Stamp, type StampDef } from "@/lib/progress/progress";
+import { SGK_12, sgkLessons, sgkPaths } from "@/lib/sgk/curriculum";
 
 type PassportLesson = { slug: string; title: string; dateText: string };
 
@@ -16,7 +20,46 @@ type PassportProps = {
   lessons: PassportLesson[];
 };
 
-const KIND_LABEL: Record<Stamp["kind"], string> = { lesson: "Bài học", topic: "Chủ đề", special: "Thử thách" };
+const KIND_LABEL: Record<Stamp["kind"], string> = { lesson: "Bài", topic: "Chủ đề", special: "Thử thách" };
+
+const completionOf = (progress: Progress, lesson: (typeof sgkLessons)[number]) =>
+  lessonCompletion(progress, lesson.slug, lesson.sections.map((section) => section.id));
+
+/** Tiến độ đọc 17 Bài SGK, nhóm theo chủ đề (mục 6.7). */
+function SgkProgress({ progress }: { progress: Progress }) {
+  return (
+    <div className="flex flex-col gap-6">
+      {SGK_12.map((topic) => {
+        const done = topic.lessons.filter((lesson) => completionOf(progress, { ...lesson, topic }) >= 1).length;
+        return (
+          <section key={topic.slug} aria-labelledby={`tien-do-${topic.slug}`} data-topic-color={topic.color} className="rounded-card border border-border bg-surface p-4">
+            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+              <h3 id={`tien-do-${topic.slug}`} className="font-serif font-bold text-[var(--topic)]">
+                Chủ đề {topic.number} · {topic.shortTitle}
+              </h3>
+              <span className="text-sm text-muted-foreground">
+                {done}/{topic.lessons.length} bài
+              </span>
+            </div>
+            <ul className="flex flex-col gap-2">
+              {topic.lessons.map((lesson) => {
+                const completion = completionOf(progress, { ...lesson, topic });
+                return (
+                  <li key={lesson.slug} className="grid grid-cols-[minmax(0,1fr)_7rem] items-center gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+                    <Link href={sgkPaths.lesson(lesson.slug)} className="truncate text-sm text-foreground hover:text-accent">
+                      <span className="font-semibold">Bài {lesson.number}.</span> {lesson.shortTitle}
+                    </Link>
+                    <ProgressBar value={completion} label={`Bài ${lesson.number}: đã đọc`} showValue />
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
 
 function score(stamp: Stamp): string {
   return stamp.record ? `${stamp.record.best}/${stamp.record.total}` : "";
@@ -76,7 +119,9 @@ export function Passport({ stamps: defs, lessons }: PassportProps) {
   const stamps = evaluateStamps(defs, progress);
   const earnedCount = stamps.filter((stamp) => stamp.earnedAt).length;
   const studiedCount = lessons.filter((lesson) => progress.lessons[lesson.slug]).length;
-  const hasAnything = Object.keys(progress.quizzes).length > 0 || Object.keys(progress.lessons).length > 0;
+  const sgkDone = sgkLessons.filter((lesson) => completionOf(progress, lesson) >= 1).length;
+  const hasAnything =
+    Object.keys(progress.quizzes).length > 0 || Object.keys(progress.lessons).length > 0 || Object.keys(progress.sgk).length > 0;
 
   return (
     <div className="flex flex-col gap-10">
@@ -90,7 +135,7 @@ export function Passport({ stamps: defs, lessons }: PassportProps) {
             {earnedCount}/{stamps.length} con dấu
           </p>
           <p className="mt-1 text-sm text-[#f3e3c3]/80">
-            Đã học {studiedCount}/{lessons.length} bài học tương tác
+            Đã học xong {sgkDone}/{sgkLessons.length} bài SGK · {studiedCount}/{lessons.length} chuyên đề tương tác
           </p>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-white/15 sm:w-64" aria-hidden="true">
@@ -104,47 +149,74 @@ export function Passport({ stamps: defs, lessons }: PassportProps) {
         </p>
       )}
 
-      <section aria-labelledby="con-dau">
-        <h2 id="con-dau" className="mb-4 font-serif text-2xl font-bold text-foreground">
-          Con dấu
-        </h2>
-        <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 lg:grid-cols-4">
-          {stamps.map((stamp) => (
-            <StampCard key={stamp.setId} stamp={stamp} />
-          ))}
-        </ul>
-      </section>
+      <Tabs
+        label="Hộ chiếu"
+        items={[
+          {
+            id: "tien-do",
+            label: "Tiến độ học",
+            content: (
+              <div className="flex flex-col gap-10">
+                <section aria-labelledby="bai-sgk">
+                  <h2 id="bai-sgk" className="mb-4 font-serif text-2xl font-bold text-foreground">
+                    Bài trong sách giáo khoa
+                  </h2>
+                  <SgkProgress progress={progress} />
+                </section>
+                <section aria-labelledby="bai-da-hoc">
+                  <h2 id="bai-da-hoc" className="mb-4 font-serif text-2xl font-bold text-foreground">
+                    Chuyên đề tương tác
+                  </h2>
+                  <ul className="m-0 flex list-none flex-col gap-3 p-0">
+                    {lessons.map((lesson) => {
+                      const studied = progress.lessons[lesson.slug];
+                      return (
+                        <li key={lesson.slug} className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-border bg-surface p-4">
+                          <div className="flex items-center gap-3">
+                            {studied ? (
+                              <Check className="h-5 w-5 shrink-0 text-success" aria-hidden="true" />
+                            ) : (
+                              <BookOpen className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                            )}
+                            <div>
+                              <p className="font-medium text-foreground">{lesson.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {studied ? `Đã học ngày ${stampDate(studied.studiedAt)}` : `Chưa học · ${lesson.dateText}`}
+                              </p>
+                            </div>
+                          </div>
+                          <LinkButton href={`/bai-hoc/${lesson.slug}`} variant="secondary" size="sm">
+                            {studied ? "Học lại" : "Bắt đầu học"}
+                          </LinkButton>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              </div>
+            ),
+          },
+          {
+            id: "con-dau",
+            label: "Con dấu",
+            hint: `${earnedCount}/${stamps.length}`,
+            content: (
+              <section aria-labelledby="con-dau">
+                <h2 id="con-dau" className="mb-4 font-serif text-2xl font-bold text-foreground">
+                  Con dấu
+                </h2>
+                <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 lg:grid-cols-4">
+                  {stamps.map((stamp) => (
+                    <StampCard key={stamp.setId} stamp={stamp} />
+                  ))}
+                </ul>
+              </section>
+            ),
+          },
+        ]}
+      />
 
-      <section aria-labelledby="bai-da-hoc">
-        <h2 id="bai-da-hoc" className="mb-4 font-serif text-2xl font-bold text-foreground">
-          Bài học tương tác
-        </h2>
-        <ul className="m-0 flex list-none flex-col gap-3 p-0">
-          {lessons.map((lesson) => {
-            const studied = progress.lessons[lesson.slug];
-            return (
-              <li key={lesson.slug} className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-border bg-surface p-4">
-                <div className="flex items-center gap-3">
-                  {studied ? (
-                    <Check className="h-5 w-5 shrink-0 text-success" aria-hidden="true" />
-                  ) : (
-                    <BookOpen className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  )}
-                  <div>
-                    <p className="font-medium text-foreground">{lesson.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {studied ? `Đã học ngày ${stampDate(studied.studiedAt)}` : `Chưa học · ${lesson.dateText}`}
-                    </p>
-                  </div>
-                </div>
-                <LinkButton href={`/bai-hoc/${lesson.slug}`} variant="secondary" size="sm">
-                  {studied ? "Học lại" : "Bắt đầu học"}
-                </LinkButton>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      <ProgressTransfer />
 
       <section aria-labelledby="luu-tru" className="flex flex-col gap-3 border-t border-border pt-6 text-sm text-muted-foreground">
         <h2 id="luu-tru" className="font-serif text-lg font-bold text-foreground">

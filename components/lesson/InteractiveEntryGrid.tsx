@@ -23,12 +23,12 @@ export function InteractiveEntryGrid({ entries, actionLabel = "Vào học" }: { 
                     loading="lazy"
                     className="absolute inset-0 h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
                   />
-                  <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/5" aria-hidden="true" />
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/65 to-black/10" aria-hidden="true" />
                 </>
               )}
               <span className={entry.image ? "relative text-white" : "relative"}>
                 <span className="flex flex-wrap items-center gap-2">
-                  <span className={entry.image ? "text-sm font-medium text-[#f3d9a4]" : "text-sm font-medium text-gold-deep"}>
+                  <span className={entry.image ? "text-sm font-semibold text-white [text-shadow:0_1px_2px_rgb(0_0_0/0.8)]" : "text-sm font-medium text-gold-deep"}>
                     {entry.dateText}
                   </span>
                   {entry.badge && (

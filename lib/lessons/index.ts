@@ -1,10 +1,12 @@
 import { bachDang938 } from "@/lib/battles/bach-dang-938";
 import { cachMangThangTamLesson } from "@/lib/lessons/cach-mang-thang-tam";
+import { chienDichHoChiMinhLesson } from "@/lib/lessons/chien-dich-ho-chi-minh";
 import { dienBienPhuLesson } from "@/lib/lessons/dien-bien-phu";
+import { tetMauThanLesson } from "@/lib/lessons/tet-mau-than";
 import type { Lesson } from "@/lib/lessons/types";
 
 /** Danh mục bài học tương tác, theo thứ tự thời gian (viết cứng trong code; xem kế hoạch GĐ5.1 để đưa vào database). */
-export const lessons: Lesson[] = [cachMangThangTamLesson, dienBienPhuLesson];
+export const lessons: Lesson[] = [cachMangThangTamLesson, dienBienPhuLesson, tetMauThanLesson, chienDichHoChiMinhLesson];
 
 export function getLesson(slug: string): Lesson | undefined {
   return lessons.find((lesson) => lesson.slug === slug);

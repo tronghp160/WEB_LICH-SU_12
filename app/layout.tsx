@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Lora } from "next/font/google";
 import { DEFAULT_SHARE_IMAGE, siteUrl } from "@/lib/site";
+import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 const lora = Lora({
@@ -29,15 +30,20 @@ export const metadata: Metadata = {
     template: "%s · Lịch sử Việt Nam 12",
   },
   description:
-    "Hệ thống hỗ trợ tìm hiểu Lịch sử Việt Nam lớp 12 qua bản đồ và dòng thời gian tương tác.",
+    "Học Lịch sử 12 theo từng bài sách giáo khoa, với bản đồ diễn biến, ảnh tư liệu và trắc nghiệm.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
+    // suppressHydrationWarning: script đầu trang đặt data-theme trước khi React chạy (lib/theme.ts).
     <html
       lang="vi"
       className={`${lora.variable} ${beVietnamPro.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

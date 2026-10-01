@@ -180,6 +180,52 @@ Tra cứu ngày 29/09/2026 trên báo và cổng thông tin. Nên đối chiếu
 - Trò chơi "Đoán năm" lấy **năm bắt đầu** của sự kiện (không phải năm chụp ảnh), chỉ với sự kiện có ngày chính xác,
   theo năm hoặc theo giai đoạn.
 
+## 6d. Khung SGK 17 bài — nâng cấp giao diện (01/10/2026) — cần giáo viên đối chiếu
+
+`lib/sgk/curriculum.ts` dựng mục lục **6 chủ đề, 17 bài** của SGK Lịch sử 12 (Kết nối tri thức với cuộc sống) để
+web "học theo bài". Chỉ dùng tên chủ đề/bài/mục (thông tin mục lục), không chép nội dung sách.
+
+- **Tên chủ đề, tên bài, số tiết:** lấy theo phân phối chương trình (bảng 12.3 của KE_HOACH_NANG_CAP_GIAO_DIEN.md).
+  Cần đối chiếu từng chữ với SGK in.
+- **Tên các mục 1, 2, 3… của từng bài: diễn đạt lại, CHƯA đối chiếu SGK in.** Cách chia mục (ví dụ Bài 7 chia
+  1945–1946 / 1946–1950 / 1951–1954 / Nguyên nhân – ý nghĩa) là để gắn sự kiện cho đúng giai đoạn; nếu SGK chia khác
+  thì sửa `sections` (giữ `id` "muc-N" để không mất tiến độ đã lưu của học sinh).
+- **Yêu cầu cần đạt:** diễn đạt lại theo chương trình môn Lịch sử 2018, cần so với yêu cầu cần đạt in đầu mỗi bài.
+- **Đánh số mục bằng chữ số Ả Rập** (1, 2, 3) theo cách trình bày thường gặp của bộ Kết nối tri thức; nếu sách in dùng
+  số La Mã thì chỉ cần đổi trường `numeral`.
+- **Gắn sự kiện vào bài/mục:** theo bảng ánh xạ ở mục 12.3 của kế hoạch; một sự kiện được thuộc nhiều bài (ví dụ
+  Hiệp định Genève: Bài 7 mục 3 và Bài 13 mục 1). Bài 1–3, 5, 11, 17 chưa có sự kiện nào → hiện "Đang biên soạn".
+- **Giới thiệu chủ đề** (`summary`, 1–2 câu mỗi chủ đề): nhóm tự viết, cần đọc lại.
+
+## 6e. Nội dung GĐ7 (01 – 02/10/2026) — cần giáo viên đối chiếu
+
+**8 sự kiện mới, 2 chủ đề mới, 6 địa điểm mới — đều ở trạng thái NHÁP** (file `supabase/content/su-kien/*.md` có
+`batch: gd7`, `supabase/content/chu-de-gd7.json`, `supabase/content/dia-diem-gd7.json` → `supabase/seed-content-gd7.sql`).
+Phải qua kiểm duyệt mới hiện công khai; nên duyệt chủ đề và địa điểm trước.
+
+| Sự kiện | Điểm cần đối chiếu |
+|---|---|
+| Hội nghị Ianta (4 – 11/2/1945) | ba quyết định chính; cách viết tên Xta-lin, Ru-dơ-ven, Sớc-sin theo SGK |
+| Liên hợp quốc thành lập (24/10/1945) | mục tiêu, nguyên tắc theo cách diễn đạt của SGK; 50 nước dự Hội nghị San Phran-xi-xcô |
+| Hội nghị Manta (2 – 3/12/1989) | cách SGK gọi chức danh M. Goóc-ba-chốp năm 1989 |
+| Liên Xô tan rã (25/12/1991) | ngày 21/12/1991 và số 11 nước cộng hòa kí thành lập SNG |
+| Thành lập ASEAN (8/8/1967) | mục tiêu của ASEAN; nguyên tắc của Hiệp ước Ba-li (2/1976) |
+| Cộng đồng ASEAN (31/12/2015) | mốc 2003, Hiến chương 2007/2008, Tuyên bố Cu-a-la Lăm-pơ 22/11/2015 |
+| Bản yêu sách của nhân dân An Nam (18/6/1919) | tên tổ chức "Hội những người Việt Nam yêu nước tại Pháp"; 8 điểm |
+| UNESCO tôn vinh Hồ Chí Minh (1987) | thời gian khóa họp 24 Đại hội đồng UNESCO (20/10 – 20/11/1987) và nguyên văn danh hiệu |
+
+**Chuyên đề tương tác mới** (dữ liệu trong code, danh sách cần đối chiếu ở trường `toVerify`, hiện khi mở trang với `?bien-tap=1`):
+
+- `lib/lessons/chien-dich-ho-chi-minh.ts` + `lib/battles/chien-dich-ho-chi-minh-1975.ts` — Chiến dịch Hồ Chí Minh (Bài 8, mục 3):
+  hướng tiến công của năm cánh quân, các mốc 14/4, 21/4, 17 giờ 26/4, 10 giờ 45 và 11 giờ 30 ngày 30/4, 2/5/1975; vai trò
+  Phạm Hùng, Lê Đức Thọ. Vị trí cánh quân trên bản đồ là sơ đồ hướng tiến công.
+- `lib/lessons/tet-mau-than.ts` + `lib/battles/tet-mau-than-1968.ts` — Tết Mậu Thân 1968 (Bài 8, mục 2): số liệu "37/44 thị
+  xã, 5/6 thành phố", ngày 20/1 (Khe Sanh), thời gian làm chủ Huế, thời gian đợt 2 và 3, đánh giá hạn chế.
+- Ảnh: Commons (ảnh năm 1968, 1975 của quân đội Mỹ — phạm vi công cộng hoặc CC BY 2.0; ảnh di tích ngày nay CC BY / CC BY-SA).
+  Không dùng ảnh báo chí năm 1975 của các hãng thông tấn (còn bản quyền). Xe tăng 390, 843 trong Dinh Độc Lập là xe cùng
+  loại; xe nguyên bản lưu giữ tại Hà Nội — chú thích đã ghi rõ.
+- Video: VTV24, Báo Quân đội nhân dân, Báo Nhân Dân — đã xác minh tên kênh bằng YouTube oEmbed ngày 1 – 2/10/2026.
+
 ## 7. Việc cần làm tiếp
 
 1. Đối chiếu toàn bộ bảng trên với SGK Lịch sử 12 đang dùng.

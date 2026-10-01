@@ -5,15 +5,15 @@ import { hasHorizontalOverflow } from "./support";
 
 const LESSON = "/bai-hoc/chien-dich-dien-bien-phu";
 
-test.describe("Bài học tương tác: Chiến dịch Điện Biên Phủ", () => {
+test.describe("Chuyên đề tương tác: Chiến dịch Điện Biên Phủ", () => {
   test("lối vào từ trang chi tiết sự kiện và từ trang chủ", async ({ page }) => {
     await page.goto("/su-kien/chien-dich-dien-bien-phu");
-    await page.getByRole("link", { name: /Xem bài học tương tác/ }).click();
+    await page.getByRole("link", { name: /Xem chuyên đề tương tác/ }).click();
     await expect(page).toHaveURL(new RegExp(`${LESSON}$`));
     await expect(page.locator("h1")).toHaveText("Chiến dịch Điện Biên Phủ");
 
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Bài học tương tác" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /chuyên đề tương tác/ })).toBeVisible();
     await page.locator(`a[href="${LESSON}"]`).first().click();
     await expect(page).toHaveURL(new RegExp(`${LESSON}$`));
   });
@@ -21,7 +21,7 @@ test.describe("Bài học tương tác: Chiến dịch Điện Biên Phủ", () 
   test("sự kiện không có bài học thì không có nút", async ({ page }) => {
     await page.goto("/su-kien/hiep-dinh-geneve-ve-dong-duong");
     await expect(page.locator("h1")).toBeVisible();
-    await expect(page.getByRole("link", { name: /Xem bài học tương tác/ })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /Xem chuyên đề tương tác/ })).toHaveCount(0);
   });
 
   test("bản đồ 7 bước: cứ điểm đổi trạng thái theo từng đợt", async ({ page }) => {
@@ -86,20 +86,21 @@ test.describe("Bài học tương tác: Chiến dịch Điện Biên Phủ", () 
   for (const width of [360, 768, 1280]) {
     test(`không tràn ngang ở ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto(LESSON);
+      // Dưới 1024px chuyên đề hiện từng chương: mở thẳng chương bản đồ bằng neo.
+      await page.goto(`${LESSON}#dien-bien`);
       await expect(page.locator(".leaflet-container")).toBeVisible();
       expect(await hasHorizontalOverflow(page)).toBe(false);
     });
   }
 });
 
-test.describe("Bài học tương tác: Cách mạng tháng Tám năm 1945", () => {
+test.describe("Chuyên đề tương tác: Cách mạng tháng Tám năm 1945", () => {
   const CMT8 = "/bai-hoc/cach-mang-thang-tam-1945";
 
   test("lối vào từ trang sự kiện Tổng khởi nghĩa ở Hà Nội và Tuyên ngôn Độc lập", async ({ page }) => {
     for (const event of ["tong-khoi-nghia-gianh-chinh-quyen-o-ha-noi", "tuyen-ngon-doc-lap"]) {
       await page.goto(`/su-kien/${event}`);
-      await page.getByRole("link", { name: /Xem bài học tương tác/ }).click();
+      await page.getByRole("link", { name: /Xem chuyên đề tương tác/ }).click();
       await expect(page).toHaveURL(new RegExp(`${CMT8}$`));
       await expect(page.locator("h1")).toHaveText("Cách mạng tháng Tám năm 1945");
     }

@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: PageProps<"/bai-hoc/[slug]">)
   const { slug } = await params;
   const lesson = getLesson(slug);
   if (!lesson) return { title: "Không tìm thấy nội dung" };
-  const title = `Bài học tương tác: ${lesson.title}`;
+  const title = `Chuyên đề tương tác: ${lesson.title}`;
   return { title, description: lesson.tagline, openGraph: { title, description: lesson.tagline, images: [lesson.hero.src] } };
 }
 

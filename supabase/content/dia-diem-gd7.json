@@ -1,0 +1,57 @@
+[
+  {
+    "slug": "cung-dien-livadia-ianta",
+    "name": "Cung điện Livađia (Ianta)",
+    "historical_name": "Ianta",
+    "description": "Cung điện ở gần thành phố Ianta, bán đảo Crưm, nơi diễn ra Hội nghị Ianta của nguyên thủ ba cường quốc Liên Xô, Mỹ, Anh (4 – 11/2/1945).",
+    "latitude": 44.467700,
+    "longitude": 34.143600,
+    "accuracy_level": "approximate",
+    "accuracy_note": "Tọa độ khu vực cung điện Livađia (gần đúng)."
+  },
+  {
+    "slug": "san-francisco",
+    "name": "San Phran-xi-xcô (Hoa Kỳ)",
+    "description": "Thành phố ở bờ tây nước Mỹ, nơi họp hội nghị của 50 nước (25/4 – 26/6/1945) thông qua Hiến chương Liên hợp quốc.",
+    "latitude": 37.779300,
+    "longitude": -122.419300,
+    "accuracy_level": "region",
+    "accuracy_note": "Tọa độ trung tâm thành phố San Phran-xi-xcô; chưa xác định tòa nhà họp cụ thể."
+  },
+  {
+    "slug": "manta",
+    "name": "Manta (Malta)",
+    "description": "Đảo quốc ở Địa Trung Hải, nơi nguyên thủ Liên Xô và Mỹ gặp nhau (2 – 3/12/1989) và tuyên bố chấm dứt Chiến tranh lạnh.",
+    "latitude": 35.840000,
+    "longitude": 14.540000,
+    "accuracy_level": "region",
+    "accuracy_note": "Điểm đại diện vùng biển phía đông nam đảo Manta; cuộc gặp diễn ra trên tàu neo ngoài khơi."
+  },
+  {
+    "slug": "moskva-dien-kremli",
+    "name": "Điện Crem-li (Mát-xcơ-va)",
+    "description": "Quần thể cung điện ở trung tâm thủ đô Mát-xcơ-va, nơi lá cờ Liên Xô được hạ xuống ngày 25/12/1991.",
+    "latitude": 55.752000,
+    "longitude": 37.617500,
+    "accuracy_level": "approximate",
+    "accuracy_note": "Tọa độ khu vực điện Crem-li (gần đúng)."
+  },
+  {
+    "slug": "bang-coc",
+    "name": "Băng Cốc (Thái Lan)",
+    "description": "Thủ đô Thái Lan, nơi ngoại trưởng 5 nước kí Tuyên bố Băng Cốc thành lập ASEAN ngày 8/8/1967.",
+    "latitude": 13.756300,
+    "longitude": 100.501800,
+    "accuracy_level": "region",
+    "accuracy_note": "Tọa độ trung tâm thành phố Băng Cốc; chưa xác định địa điểm kí cụ thể."
+  },
+  {
+    "slug": "kuala-lumpur",
+    "name": "Cu-a-la Lăm-pơ (Ma-lai-xi-a)",
+    "description": "Thủ đô Ma-lai-xi-a, nơi lãnh đạo các nước ASEAN kí Tuyên bố về việc thành lập Cộng đồng ASEAN (22/11/2015).",
+    "latitude": 3.139000,
+    "longitude": 101.686900,
+    "accuracy_level": "region",
+    "accuracy_note": "Tọa độ trung tâm thành phố Cu-a-la Lăm-pơ; chưa xác định địa điểm họp cụ thể."
+  }
+]
