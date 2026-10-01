@@ -8,6 +8,7 @@ import { LocationForm } from "@/components/admin/forms/LocationForm";
 import { SourceForm } from "@/components/admin/forms/SourceForm";
 import { TopicForm } from "@/components/admin/forms/TopicForm";
 import { MediaManager } from "@/components/admin/MediaManager";
+import { QuizQuestionManager } from "@/components/admin/QuizQuestionManager";
 import { Notice } from "@/components/admin/Notice";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { SubmitForReviewPanel } from "@/components/admin/SubmitForReviewPanel";
@@ -163,6 +164,15 @@ async function EditWorkflowContent({
         </section>
       )}
 
+      {record.quiz && (
+        <section aria-labelledby="cau-hoi-trac-nghiem" className="flex max-w-3xl flex-col gap-4">
+          <h2 id="cau-hoi-trac-nghiem" className="font-serif text-xl font-bold text-foreground">
+            Câu hỏi trắc nghiệm
+          </h2>
+          {record.quiz}
+        </section>
+      )}
+
       <div className="max-w-3xl">
         <SubmitForReviewPanel
           kind={kind}
@@ -191,6 +201,7 @@ async function EditWorkflowContent({
     reviewNote: string | null;
     form: React.ReactNode;
     media?: React.ReactNode;
+    quiz?: React.ReactNode;
   } | null> {
     const isReadOnly = (current: WorkflowStatus) => !canEditContent(staff.role, current);
 
@@ -280,6 +291,16 @@ async function EditWorkflowContent({
           owner={{ kind: "su-kien", id: recordId }}
           media={sortMedia(event.media_assets)}
           sources={options.sources}
+          readOnly={readOnlyEvent}
+        />
+      ),
+      quiz: (
+        <QuizQuestionManager
+          eventId={recordId}
+          questions={[...event.quiz_questions].sort((a, b) => a.sort_order - b.sort_order)}
+          media={sortMedia(event.media_assets)
+            .filter((item) => item.media_type === "image")
+            .map((item, index) => ({ id: item.id, label: `Ảnh ${index + 1}: ${item.caption ?? item.alt_text ?? "(chưa có chú thích)"}` }))}
           readOnly={readOnlyEvent}
         />
       ),

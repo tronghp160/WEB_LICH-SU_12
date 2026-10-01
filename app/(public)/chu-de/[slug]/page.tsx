@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TopicDetailView } from "@/components/content/detail/TopicDetailView";
 import { getTimelineEvents } from "@/lib/queries/events";
+import { getQuestionPool } from "@/lib/queries/quiz";
 import { getTopicDetail } from "@/lib/queries/topics";
+import { questionsForTopic } from "@/lib/quiz/sets";
 import { truncateForMeta } from "@/lib/utils/text";
 
 type TopicPageProps = { params: Promise<{ slug: string }> };
@@ -27,8 +29,9 @@ export default async function TopicPage({ params }: TopicPageProps) {
   const topic = await getTopicDetail(slug);
   if (!topic) notFound();
 
+  const [timeline, pool] = await Promise.all([getTimelineEvents(), getQuestionPool()]);
   // Dòng thời gian đã sắp sẵn theo thời gian; chỉ giữ sự kiện của chủ đề này.
-  const events = (await getTimelineEvents()).filter((event) => event.topicSlugs.includes(topic.slug));
+  const events = timeline.filter((event) => event.topicSlugs.includes(topic.slug));
 
-  return <TopicDetailView topic={topic} events={events} />;
+  return <TopicDetailView topic={topic} events={events} quizCount={questionsForTopic(pool, topic.slug).length} />;
 }

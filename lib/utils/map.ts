@@ -46,6 +46,34 @@ export function formatDistanceKm(meters: number): string {
   })} km`;
 }
 
+type LatLng = { lat: number; lng: number };
+
+/** Khoảng cách đường chim bay (m) giữa hai tọa độ — công thức haversine, bán kính Trái Đất 6.371 km. */
+export function distanceMeters(a: LatLng, b: LatLng): number {
+  const toRad = (degrees: number) => (degrees * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6_371_000 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/**
+ * "Di tích gần em" (GĐ4.5): địa điểm trong bán kính `km`, gần nhất trước. Không có địa điểm nào trong bán kính →
+ * trả `fallback` địa điểm gần nhất (đánh dấu `withinRadius: false`) để trang không trống trơn.
+ */
+export function nearbyLocations<T extends { latitude: number; longitude: number }>(
+  locations: readonly T[],
+  center: LatLng,
+  km: number,
+  fallback = 3,
+): { items: (T & { distanceM: number })[]; withinRadius: boolean } {
+  const sorted = locations
+    .map((location) => ({ ...location, distanceM: distanceMeters(center, { lat: location.latitude, lng: location.longitude }) }))
+    .sort((a, b) => a.distanceM - b.distanceM);
+  const inside = sorted.filter((location) => location.distanceM <= km * 1000);
+  return inside.length > 0 ? { items: inside, withinRadius: true } : { items: sorted.slice(0, fallback), withinRadius: false };
+}
+
 type LocationWithEvents = {
   slug: string;
   events: { slug: string; isPrimary: boolean }[];

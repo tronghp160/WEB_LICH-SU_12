@@ -1,9 +1,10 @@
 import { bachDang938 } from "@/lib/battles/bach-dang-938";
+import { cachMangThangTamLesson } from "@/lib/lessons/cach-mang-thang-tam";
 import { dienBienPhuLesson } from "@/lib/lessons/dien-bien-phu";
 import type { Lesson } from "@/lib/lessons/types";
 
-/** Danh mục bài học tương tác (viết cứng trong code ở giai đoạn demo; xem kế hoạch GĐ3 để đưa vào database). */
-export const lessons: Lesson[] = [dienBienPhuLesson];
+/** Danh mục bài học tương tác, theo thứ tự thời gian (viết cứng trong code; xem kế hoạch GĐ5.1 để đưa vào database). */
+export const lessons: Lesson[] = [cachMangThangTamLesson, dienBienPhuLesson];
 
 export function getLesson(slug: string): Lesson | undefined {
   return lessons.find((lesson) => lesson.slug === slug);
@@ -11,7 +12,7 @@ export function getLesson(slug: string): Lesson | undefined {
 
 /** Bài học gắn với một sự kiện trong database (dùng cho nút "Xem bài học tương tác" ở trang chi tiết). */
 export function getLessonForEvent(eventSlug: string): Lesson | undefined {
-  return lessons.find((lesson) => lesson.eventSlug === eventSlug);
+  return lessons.find((lesson) => lesson.eventSlug === eventSlug || lesson.relatedEventSlugs?.includes(eventSlug));
 }
 
 /** Thẻ giới thiệu ở trang chủ và trang /bai-hoc: bài học đầy đủ + các trận tái hiện riêng lẻ. */
@@ -30,7 +31,7 @@ export const interactiveEntries: InteractiveEntry[] = [
     href: `/bai-hoc/${lesson.slug}`,
     title: lesson.title,
     dateText: lesson.dateText,
-    description: "Bản đồ diễn biến 7 bước, phim 3D đồi A1, ảnh tư liệu, video và thẻ ghi nhớ.",
+    description: lesson.copy.cardDescription,
     image: lesson.hero.src,
   })),
   {

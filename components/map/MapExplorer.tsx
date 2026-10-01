@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronUp, X } from "lucide-react";
+import { ChevronUp, LocateFixed, X } from "lucide-react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -219,6 +220,11 @@ export function MapExplorer({ locations, topics }: MapExplorerProps) {
             }}
             onFocusLocation={focusLocation}
           />
+
+          <Link href="/di-tich-gan-em" className="inline-flex items-center gap-1.5 text-sm font-medium text-accent underline">
+            <LocateFixed className="h-4 w-4" aria-hidden="true" />
+            Di tích gần em: tìm theo vị trí của em
+          </Link>
 
           <section aria-labelledby="map-list-heading" className="flex flex-col gap-2">
             <h2 id="map-list-heading" className="font-serif text-lg font-semibold text-foreground">

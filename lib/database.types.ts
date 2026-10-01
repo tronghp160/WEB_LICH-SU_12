@@ -523,6 +523,60 @@ export type Database = {
           },
         ]
       }
+      quiz_questions: {
+        Row: {
+          id: string
+          event_id: string
+          question: string
+          choices: string[]
+          correct_index: number
+          explanation: string
+          media_id: string | null
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          question: string
+          choices: string[]
+          correct_index: number
+          explanation: string
+          media_id?: string | null
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          question?: string
+          choices?: string[]
+          correct_index?: number
+          explanation?: string
+          media_id?: string | null
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "historical_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_questions_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

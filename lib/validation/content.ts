@@ -411,3 +411,43 @@ export function validateImageFile(file: { type: string; size: number }): string 
   }
   return null;
 }
+
+// ---------- Câu hỏi trắc nghiệm soạn tay (GĐ4.1, bảng quiz_questions) ----------
+
+/** Tên ô của 4 đáp án trong form. */
+export const QUIZ_CHOICE_FIELDS = ["choice_0", "choice_1", "choice_2", "choice_3"] as const;
+
+export const quizQuestionSchema = z
+  .object({
+    event_id: uuidField("sự kiện"),
+    question: requiredText("câu hỏi", 300),
+    choice_0: requiredText("đáp án A", 200),
+    choice_1: requiredText("đáp án B", 200),
+    choice_2: requiredText("đáp án C", 200),
+    choice_3: requiredText("đáp án D", 200),
+    correct_index: z.enum(["0", "1", "2", "3"], { error: "Vui lòng chọn đáp án đúng." }),
+    explanation: requiredText("lời giải thích", 1000),
+    media_id: z.preprocess(blankToNull, z.string().uuid("Ảnh không hợp lệ.").nullable()),
+  })
+  .superRefine((value, ctx) => {
+    if (value.question.length < 5) ctx.addIssue({ code: "custom", path: ["question"], message: "Câu hỏi quá ngắn (tối thiểu 5 ký tự)." });
+    if (value.explanation.length < 5) ctx.addIssue({ code: "custom", path: ["explanation"], message: "Lời giải thích quá ngắn (tối thiểu 5 ký tự)." });
+    const seen = new Map<string, string>();
+    for (const field of QUIZ_CHOICE_FIELDS) {
+      const key = value[field].toLowerCase();
+      if (seen.has(key)) ctx.addIssue({ code: "custom", path: [field], message: "Đáp án này trùng với một đáp án khác." });
+      else seen.set(key, field);
+    }
+  });
+export type QuizQuestionInput = z.infer<typeof quizQuestionSchema>;
+
+/** Dữ liệu form đã kiểm tra → cột của bảng quiz_questions (trừ event_id). */
+export function quizQuestionColumns(input: QuizQuestionInput) {
+  return {
+    question: input.question,
+    choices: QUIZ_CHOICE_FIELDS.map((field) => input[field]),
+    correct_index: Number(input.correct_index),
+    explanation: input.explanation,
+    media_id: input.media_id,
+  };
+}

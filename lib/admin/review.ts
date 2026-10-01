@@ -76,6 +76,7 @@ export const REVIEW_CHECKLISTS: Record<"chu-de" | "su-kien" | "nhan-vat" | "dia-
     "Địa điểm chính và các địa điểm phụ đúng",
     "Quan hệ của từng nhân vật với sự kiện đúng",
     "Nguồn tham khảo đủ và đáng tin cậy",
+    "Câu hỏi trắc nghiệm (nếu có): đáp án đúng, giải thích khớp nội dung và nguồn",
   ],
   "nhan-vat": [
     "Năm sinh, năm mất khớp với nguồn",

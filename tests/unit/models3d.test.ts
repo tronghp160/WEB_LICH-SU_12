@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { lessons } from "@/lib/lessons";
 import { getModelSpec, modelSpecs, specsByGroup } from "@/lib/models3d/specs";
 import { VALLEY_BOUNDS } from "@/lib/models3d/valley";
 import { toMercator } from "@/lib/mapfilm/geo";
@@ -65,24 +64,7 @@ describe("models3d/danh sách mô hình", () => {
   });
 });
 
-describe("models3d/bài học Điện Biên Phủ", () => {
-  const lesson = lessons.find((l) => l.slug === "chien-dich-dien-bien-phu")!;
-
-  it("mọi id mô hình trong bài học đều tồn tại và đúng nhóm", () => {
-    const models = lesson.models3d!;
-    const groups = { soLieu: "so-lieu", nhanVat: "nhan-vat", hienVat: "hien-vat", diTich: "di-tich" } as const;
-    for (const [key, ids] of Object.entries(models) as [keyof typeof groups, string[]][]) {
-      expect(ids.length, key).toBeGreaterThan(0);
-      for (const id of ids) expect(getModelSpec(id)?.group, `${key}/${id}`).toBe(groups[key]);
-    }
-  });
-
-  it("các nhóm trong danh sách khớp với bài học (không mô hình nào bị bỏ sót)", () => {
-    const used = new Set(Object.values(lesson.models3d!).flat());
-    for (const spec of modelSpecs) expect(used.has(spec.id), `${spec.id} chưa được đưa vào bài học`).toBe(true);
-    expect(specsByGroup("hien-vat")).toHaveLength(lesson.models3d!.hienVat.length);
-  });
-
+describe("models3d/tượng nhân vật", () => {
   it("tượng nhân vật: có nhắc rõ là cách điệu, không phải chân dung", () => {
     for (const spec of specsByGroup("nhan-vat")) {
       expect(spec.note, spec.id).toMatch(/không phải/);

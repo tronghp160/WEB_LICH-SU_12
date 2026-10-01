@@ -1,21 +1,22 @@
 import Link from "next/link";
-import { ArrowDown, ArrowRight, BookOpen, Quote } from "lucide-react";
+import { ArrowDown, ArrowRight, BookOpen, Presentation, Quote } from "lucide-react";
 import { CinemaPlayer } from "@/components/cinema3d/CinemaPlayer";
 import { CountUp } from "@/components/lesson/CountUp";
 import { FlipCard } from "@/components/lesson/FlipCard";
+import { LessonStudiedMarker } from "@/components/progress/LessonStudiedMarker";
+import { PASSPORT_HREF } from "@/components/progress/StampNotice";
 import { Reveal } from "@/components/lesson/Reveal";
 import { ScrollProgress } from "@/components/lesson/ScrollProgress";
 import { VideoEmbed } from "@/components/lesson/VideoEmbed";
 import { BattleMapSection } from "@/components/mapfilm/BattleMapSection";
-import { ModelGallery } from "@/components/model3d/ModelGallery";
+import { DepthPhotoGallery, type DepthPhotoItem } from "@/components/photo3d/DepthPhotoGallery";
 import { Badge } from "@/components/ui/Badge";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { LinkButton } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SafeImage } from "@/components/ui/SafeImage";
-import type { Lesson, LessonImage } from "@/lib/lessons/types";
-import { getModelSpec } from "@/lib/models3d/specs";
-import type { ModelSpec } from "@/lib/models3d/types";
+import type { Lesson, LessonExhibit, LessonImage } from "@/lib/lessons/types";
+import { quizPaths } from "@/lib/quiz/sets";
 
 function SectionHeading({ id, eyebrow, title }: { id: string; eyebrow: string; title: string }) {
   return (
@@ -36,8 +37,16 @@ function Credit({ image }: { image: LessonImage }) {
   );
 }
 
-function specsOf(ids: string[] | undefined): ModelSpec[] {
-  return (ids ?? []).map((id) => getModelSpec(id)).filter((spec): spec is ModelSpec => !!spec);
+/** Hiện vật (ảnh thật và/hoặc mô hình quét 360°) → mục của thư viện 3D. */
+function exhibitItem(exhibit: LessonExhibit): DepthPhotoItem {
+  const base = exhibit.image ? photoItem(exhibit.image) : { id: `scan-${exhibit.scan!.sketchfabId}` };
+  return { ...base, title: exhibit.title, text: exhibit.text, image: exhibit.image, scan: exhibit.scan };
+}
+
+/** Ảnh bài học → mục của thư viện ảnh 3D (tiêu đề ngắn lấy từ chú thích nếu không có). */
+function photoItem(image: LessonImage): DepthPhotoItem {
+  const id = image.src.split("/").pop()!.replace(/\.webp$/, "");
+  return { id, title: image.title ?? image.caption.split(/[—(,.]/)[0].trim(), image };
 }
 
 function initials(name: string): string {
@@ -79,7 +88,10 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
           <ul className="mt-8 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3" aria-label="Số liệu chính">
             {lesson.heroStats.map((stat) => (
               <li key={stat.label} className="rounded-card border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
-                <CountUp value={stat.value} className="block font-serif text-4xl font-bold" />
+                <span className="block font-serif text-4xl font-bold">
+                  <CountUp value={stat.value} />
+                  {stat.suffix}
+                </span>
                 <span className="text-sm text-white/85">{stat.label}</span>
               </li>
             ))}
@@ -89,6 +101,13 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
               Bắt đầu bài học
               <ArrowDown className="h-5 w-5" aria-hidden="true" />
             </LinkButton>
+            <Link
+              href={`/bai-hoc/${lesson.slug}/trinh-chieu`}
+              className="inline-flex h-12 items-center gap-2 rounded-full border border-white/40 px-6 text-base font-medium text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+            >
+              <Presentation className="h-5 w-5" aria-hidden="true" />
+              Trình chiếu trên lớp
+            </Link>
             <p className="text-xs text-white/70">
               Ảnh: {lesson.hero.caption} <Credit image={lesson.hero} />
             </p>
@@ -142,10 +161,10 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
 
         {/* 4. Bản đồ diễn biến */}
         <section aria-labelledby="dien-bien-tieu-de" id="dien-bien" className="scroll-mt-20">
-          <SectionHeading id="dien-bien-tieu-de" eyebrow="Diễn biến trên bản đồ" title="Xem chiến dịch diễn ra từng bước" />
+          <SectionHeading id="dien-bien-tieu-de" eyebrow="Diễn biến trên bản đồ" title={lesson.copy.mapTitle} />
           <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
-            Bấm <strong className="text-foreground">Phát</strong> để bản đồ tự chạy qua 7 bước, hoặc chọn từng bước ở cột bên phải. Bản đồ sẽ bay từ toàn cảnh
-            Đông Dương vào lòng chảo Mường Thanh; cứ điểm nào bị tiêu diệt sẽ đổi màu.
+            Bấm <strong className="text-foreground">Phát</strong> để bản đồ tự chạy qua {lesson.battle.steps.length} bước, hoặc chọn từng bước ở cột bên phải.{" "}
+            {lesson.copy.mapHint}
             {lesson.mapFilm && (
               <>
                 {" "}
@@ -173,7 +192,7 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         {/* 5. Video */}
         {mainVideo && (
           <section aria-labelledby="video">
-            <SectionHeading id="video" eyebrow="Xem phim tư liệu" title="Video về chiến dịch" />
+            <SectionHeading id="video" eyebrow="Xem phim tư liệu" title={lesson.copy.videoTitle} />
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
               <VideoEmbed video={mainVideo} />
               <div className="flex flex-col gap-6">
@@ -190,26 +209,45 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
 
         {/* 6. Kết quả và ý nghĩa */}
         <section aria-labelledby="ket-qua">
-          <SectionHeading id="ket-qua" eyebrow="Kết quả và ý nghĩa" title="Vì sao gọi là chiến thắng &quot;chấn động địa cầu&quot;?" />
+          <SectionHeading id="ket-qua" eyebrow="Kết quả và ý nghĩa" title={lesson.copy.resultsTitle} />
           <ul className="grid gap-4 sm:grid-cols-3">
             {lesson.results.map((stat, index) => (
               <Reveal as="li" key={stat.label} delay={index * 100}>
                 <Card className="h-full p-5 text-center">
-                  <CountUp value={stat.value} className="block font-serif text-5xl font-bold text-accent" />
+                  <span className="block font-serif text-5xl font-bold text-accent">
+                    <CountUp value={stat.value} />
+                    {stat.suffix}
+                  </span>
                   <span className="mt-1 block text-sm text-muted-foreground">{stat.label}</span>
                 </Card>
               </Reveal>
             ))}
           </ul>
-          {specsOf(lesson.models3d?.soLieu).length > 0 && (
+          {(lesson.resultsScan || lesson.resultsImage?.depthSrc) && (
             <div className="mt-8">
-              <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Xem những con số trên sa bàn 3D</h3>
+              <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Nhìn lòng chảo bằng 3D</h3>
               <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
-                Lòng chảo Điện Biên Phủ dựng từ độ cao thật. Các cứ điểm đổi từ cờ Pháp sang cờ đỏ sao vàng, rồi ba con số hiện thành hình khối: 56 ngày đêm,
-                16.200 quân địch, 62 máy bay. Kéo để xoay, cuộn để phóng to, bấm số trên mô hình để đọc giải thích.
+                Xoay sa bàn địa hình thật của lòng chảo 360°, hoặc xem ảnh chụp từ trên cao năm 1953 dạng có chiều sâu và bấm các số để đọc chú thích.
               </p>
-              <ModelGallery specs={specsOf(lesson.models3d?.soLieu)} label="Sa bàn 3D" />
+              <DepthPhotoGallery
+                items={[
+                  ...(lesson.resultsScan ? [exhibitItem({ title: "Sa bàn lòng chảo", scan: lesson.resultsScan })] : []),
+                  ...(lesson.resultsImage?.depthSrc ? [photoItem(lesson.resultsImage)] : []),
+                ]}
+                label="Lòng chảo Điện Biên Phủ 3D"
+              />
             </div>
+          )}
+          {lesson.resultsImage && !lesson.resultsImage.depthSrc && (
+            <figure className="mt-8 overflow-hidden rounded-card border border-border bg-surface">
+              <SafeImage src={lesson.resultsImage.src} alt={lesson.resultsImage.alt} className="max-h-[32rem] w-full object-cover" fallbackClassName="aspect-[16/9]" />
+              <figcaption className="p-3 text-sm text-surface-foreground">
+                {lesson.resultsImage.caption}{" "}
+                <span className="text-xs text-muted-foreground">
+                  (<Credit image={lesson.resultsImage} />)
+                </span>
+              </figcaption>
+            </figure>
           )}
           <ul className="mt-8 grid gap-4 md:grid-cols-2">
             {lesson.significance.map((item, index) => (
@@ -282,58 +320,77 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
               </li>
             ))}
           </ul>
-          {specsOf(lesson.models3d?.nhanVat).length > 0 && (
-            <div className="mt-10">
-              <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Tượng bán thân 3D (cách điệu)</h3>
-              <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
-                Mỗi nhân vật được dựng thành tượng đồng đặt trên bệ đá có bảng tên. Khuôn mặt được giản lược, không phải chân dung; mũ và quân phục chỉ mang tính gợi ý.
-              </p>
-              <ModelGallery specs={specsOf(lesson.models3d?.nhanVat)} label="Chọn nhân vật" />
-            </div>
-          )}
         </section>
 
-        {/* 7b. Hiện vật kháng chiến */}
-        {specsOf(lesson.models3d?.hienVat).length > 0 && (
+        {/* 7b. Hiện vật và trang bị (ảnh chụp thật) */}
+        {lesson.artifacts && lesson.artifacts.length > 0 && (
           <section aria-labelledby="hien-vat">
             <SectionHeading id="hien-vat" eyebrow="Hiện vật và trang bị" title="Nhìn tận mắt những gì làm nên chiến thắng" />
-            <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
-              Xoay từng hiện vật 3D quanh mọi phía và bấm các con số trên mô hình để biết từng bộ phận dùng làm gì: khẩu pháo kéo qua núi, chiếc xe đạp thồ, người
-              chiến sĩ với trang bị và chiếc máy bay vận tải của địch.
-            </p>
-            <ModelGallery specs={specsOf(lesson.models3d?.hienVat)} label="Chọn hiện vật" />
+            {lesson.artifacts.some((item) => item.scan || item.image?.depthSrc) ? (
+              <>
+                <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
+                  Hiện vật có nhãn <strong className="text-foreground">360°</strong> là mô hình quét 3D từ vật thật: bấm <strong className="text-foreground">Xoay 360°</strong>{" "}
+                  rồi kéo để xem mọi phía, cuộn để phóng to. Các hiện vật khác là ảnh chụp thật xem dạng có chiều sâu, bấm các số để đọc từng chi tiết.
+                </p>
+                <DepthPhotoGallery items={lesson.artifacts.map((item) => exhibitItem(item))} label="Chọn hiện vật" />
+              </>
+            ) : (
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {lesson.artifacts.flatMap((item) => (item.image ? [{ ...item, image: item.image }] : [])).map((item, index) => (
+                  <Reveal as="li" key={item.image.src} delay={(index % 3) * 100}>
+                    <figure className="lesson-zoom flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface">
+                      <div className="overflow-hidden">
+                        <SafeImage src={item.image.src} alt={item.image.alt} className="aspect-[4/3] w-full object-cover" fallbackClassName="aspect-[4/3]" />
+                      </div>
+                      <figcaption className="flex flex-1 flex-col gap-1 p-4">
+                        <span className="font-serif text-lg font-bold text-foreground">{item.title}</span>
+                        <span className="text-sm text-surface-foreground">{item.text}</span>
+                        <span className="mt-auto pt-2 text-xs text-muted-foreground">
+                          Ảnh: {item.image.caption} (<Credit image={item.image} />)
+                        </span>
+                      </figcaption>
+                    </figure>
+                  </Reveal>
+                ))}
+              </ul>
+            )}
           </section>
         )}
 
         {/* 8. Di tích ngày nay */}
         {lesson.today.length > 0 && (
           <section aria-labelledby="ngay-nay">
-            <SectionHeading id="ngay-nay" eyebrow="Di tích ngày nay" title="Chiến trường xưa bây giờ ra sao?" />
-            {specsOf(lesson.models3d?.diTich).length > 0 && (
-              <div className="mb-10">
-                <h3 className="mb-1 font-serif text-xl font-bold text-foreground">Dựng lại di tích bằng 3D</h3>
-                <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
-                  Hầm chỉ huy được cắt bổ để thấy bên trong; đường hầm dưới đồi A1 có nút mô phỏng vụ nổ; hệ thống chiến hào cho thấy bộ đội tiến sát cứ điểm.
-                  Ảnh chụp thật của các di tích nằm ngay bên dưới.
+            <SectionHeading id="ngay-nay" eyebrow="Di tích ngày nay" title={lesson.copy.todayTitle} />
+            {lesson.today.every((image) => image.depthSrc) ? (
+              <>
+                <p className="-mt-3 mb-5 max-w-3xl text-muted-foreground">
+                  Chọn di tích: mục có nhãn <strong className="text-foreground">360°</strong> xoay được mọi phía; các mục khác là ảnh chụp thật, bấm{" "}
+                  <strong className="text-foreground">Xem ảnh 3D</strong> rồi rê chuột hoặc kéo để nghiêng nhìn.
                 </p>
-                <ModelGallery specs={specsOf(lesson.models3d?.diTich)} label="Chọn di tích" />
-              </div>
-            )}
+                <DepthPhotoGallery
+                  items={[...(lesson.todayScans ?? []).map((item) => exhibitItem(item)), ...lesson.today.map((image) => photoItem(image))]}
+                  label="Chọn di tích"
+                />
+              </>
+            ) : (
+              <>
             <h3 className="mb-3 font-serif text-lg font-bold text-foreground">Ảnh chụp di tích ngày nay</h3>
-            <ul className="grid gap-4 sm:grid-cols-2">
-              {lesson.today.map((image, index) => (
-                <Reveal as="li" key={image.src} delay={(index % 2) * 120}>
-                  <figure className="lesson-zoom overflow-hidden rounded-card border border-border bg-surface">
-                    <div className="overflow-hidden">
-                      <SafeImage src={image.src} alt={image.alt} className="aspect-[4/3] w-full object-cover" fallbackClassName="aspect-[4/3]" />
-                    </div>
-                    <figcaption className="p-3 text-sm text-surface-foreground">
-                      {image.caption} <span className="text-xs text-muted-foreground">(<Credit image={image} />)</span>
-                    </figcaption>
-                  </figure>
-                </Reveal>
-              ))}
-            </ul>
+              <ul className="grid gap-4 sm:grid-cols-2">
+                {lesson.today.map((image, index) => (
+                  <Reveal as="li" key={image.src} delay={(index % 2) * 120}>
+                    <figure className="lesson-zoom overflow-hidden rounded-card border border-border bg-surface">
+                      <div className="overflow-hidden">
+                        <SafeImage src={image.src} alt={image.alt} className="aspect-[4/3] w-full object-cover" fallbackClassName="aspect-[4/3]" />
+                      </div>
+                      <figcaption className="p-3 text-sm text-surface-foreground">
+                        {image.caption} <span className="text-xs text-muted-foreground">(<Credit image={image} />)</span>
+                      </figcaption>
+                    </figure>
+                  </Reveal>
+                ))}
+              </ul>
+              </>
+            )}
           </section>
         )}
 
@@ -341,6 +398,7 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         <section aria-labelledby="ghi-nho">
           <SectionHeading id="ghi-nho" eyebrow="Tự ôn tập" title="Ghi nhớ nhanh" />
           <p className="-mt-3 mb-5 text-muted-foreground">Đọc câu hỏi, tự trả lời trong đầu, rồi bấm để lật thẻ xem đáp án.</p>
+          <LessonStudiedMarker slug={lesson.slug} />
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {lesson.flashcards.map((card, index) => (
               <li key={card.question}>
@@ -362,6 +420,22 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
               </li>
             ))}
           </ul>
+          {lesson.quiz && lesson.quiz.length > 0 && (
+            <div className="mt-6 flex flex-col items-start gap-3 rounded-card border border-border bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-foreground">
+                <strong>Kiểm tra nhanh:</strong> 10 câu trắc nghiệm có ảnh, chấm điểm ngay và gợi ý phần cần ôn lại. Đạt từ
+                7/10 là em được đóng dấu vào{" "}
+                <Link href={PASSPORT_HREF} className="text-accent underline">
+                  Hộ chiếu lịch sử
+                </Link>
+                .
+              </p>
+              <LinkButton href={quizPaths.lesson(lesson.slug)} size="lg">
+                Làm trắc nghiệm
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </LinkButton>
+            </div>
+          )}
         </section>
 
         {/* 10. Nguồn */}

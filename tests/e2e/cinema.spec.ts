@@ -117,13 +117,17 @@ test.describe("Phim 3D đồi A1", () => {
     await context.close();
   });
 
-  test("bài học Điện Biên Phủ có mục phim 3D, không tràn ngang ở 360/768/1280px", async ({ page }) => {
+  test("trang phim không tràn ngang ở 360/768/1280px; bài học Điện Biên Phủ không còn mục phim 3D", async ({ page }) => {
     for (const width of [360, 768, 1280]) {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto("/bai-hoc/chien-dich-dien-bien-phu");
-      await expect(page.getByRole("heading", { name: /Phim 3D: Đồi A1/ })).toBeVisible();
+      await page.goto("/phim-3d/doi-a1");
       await expect(page.getByTestId("cinema-start")).toBeVisible();
       expect(await hasHorizontalOverflow(page), `${width}px`).toBe(false);
     }
+    // Mục "Phim 3D: Đồi A1" đã gỡ khỏi bài học (30/9/2026).
+    await page.goto("/bai-hoc/chien-dich-dien-bien-phu");
+    await expect(page.getByRole("heading", { name: "Những mốc cần nhớ" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Phim 3D: Đồi A1/ })).toHaveCount(0);
+    await expect(page.getByTestId("cinema-start")).toHaveCount(0);
   });
 });

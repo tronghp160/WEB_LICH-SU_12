@@ -86,7 +86,7 @@ Nội dung được viết lại bằng lời của nhóm, không chép nguyên 
 
 ## Phim 3D "Đồi A1, đêm 6/5/1954"
 
-Trang riêng: `/phim-3d/doi-a1`; cũng nhúng trong bài học Điện Biên Phủ (mục "Phim 3D"). Thời lượng 1 phút 50 giây.
+Trang riêng: `/phim-3d/doi-a1` (đã gỡ khỏi bài học Điện Biên Phủ ngày 30/9/2026 theo yêu cầu). Thời lượng 1 phút 50 giây.
 
 ### Người xem thấy gì
 - 8 chương: toàn cảnh Mường Thanh về đêm → đồi A1 → **đường hầm và khối bộc phá nhìn xuyên đất** (có nhãn chú thích) → chiến hào chờ giờ G (20 giờ 30) → **vụ nổ** (chớp trắng, cầu lửa, cột khói, mảnh văng, sóng xung kích, hố bom) → bộ đội xung phong (khoảng 75 người, đạn, lựu đạn, pháo yểm trợ, cháy) → giáp lá cà (địch bị hất ngã, rút lui hoặc giơ tay đầu hàng) → **rạng sáng**, cắm cờ trên đỉnh A1.
@@ -108,7 +108,7 @@ Trang riêng: `/phim-3d/doi-a1`; cũng nhúng trong bài học Điện Biên Ph�
 - Muốn tăng độ chân thực nữa cần tài nguyên ngoài: mô hình nhân vật/vũ khí có bản quyền rõ ràng hoặc video do AI tạo (ghi rõ nguồn) chèn vào các cảnh.
 
 ### Kịch bản demo thêm (1 phút)
-1. Vào bài học → cuộn tới "Phim 3D: Đồi A1" (hoặc mở `/phim-3d/doi-a1`), bấm **Xem phim 3D**, bật loa.
+1. Mở `/phim-3d/doi-a1`, bấm **Xem phim 3D**, bật loa.
 2. Để chạy tới **giờ G**: chỉ cho khán giả đường hầm xuyên đất, rồi vụ nổ.
 3. Tạm dừng lúc xung phong, bật **Camera tự do** kéo chuột xoay quanh chiến trường; bấm Toàn màn hình.
 4. Tua tới rạng sáng để xem lá cờ.
@@ -193,3 +193,44 @@ Mô hình dựng bằng mã là dạng khối có ánh sáng và vật liệu kh
 - **Tượng nhân vật cố ý không có nét mặt riêng**, và mũ, quân phục chỉ mang tính gợi ý (mỗi tượng có chú thích "Tượng cách điệu").
 - Tượng đài Chiến thắng trên đồi D1 **chưa dựng 3D** vì chưa có tư liệu tham chiếu đủ tin cậy (ảnh phù điêu thật vẫn có trong mục ảnh). Nếu có ảnh và số đo chính thống, có thể bổ sung.
 - Các chi tiết cần đối chiếu tài liệu nằm trong `toVerify` của từng mô hình (loại pháo, tải trọng xe thồ, số gian hầm, chiều dài đường hầm ~45 m, khối bộc phá ~1 tấn, hình lá cờ trên nóc hầm…).
+
+---
+
+## Bài học thứ hai: Cách mạng tháng Tám năm 1945 (GĐ5.2)
+
+Trang: `/bai-hoc/cach-mang-thang-tam-1945`. Lối vào: trang chủ, trang `/bai-hoc`, và nút "Xem bài học tương tác" trên trang sự kiện **Tổng khởi nghĩa giành chính quyền ở Hà Nội** và **Tuyên ngôn Độc lập** (trường `relatedEventSlugs`). Có sẵn chế độ trình chiếu, trắc nghiệm cuối bài (8 câu riêng + câu hỏi của hai sự kiện) và con dấu Hộ chiếu.
+
+- **Bản đồ "khởi nghĩa lan rộng theo ngày"** (`lib/battles/cach-mang-thang-tam-1945.ts`), dùng lại bộ máy bản đồ diễn biến: mỗi "cứ điểm" là một địa phương — xanh = chính quyền còn trong tay Nhật, viền đỏ nhấp nháy = đang khởi nghĩa, đỏ sao vàng = đã giành chính quyền. 7 bước: thời cơ (3–7/1945) → lệnh Tổng khởi nghĩa ở Tân Trào (13–16/8) → bốn tỉnh sớm nhất (đến 18/8) → Hà Nội (19/8) → Huế, Sài Gòn (23–25/8) → cả nước, Bảo Đại thoái vị (28–30/8) → Tuyên ngôn Độc lập (2/9).
+- Nhãn phụ (`minorLabel`) tự ẩn khi xem toàn quốc (zoom < 6) để cụm Thái Nguyên – Bắc Giang – Hải Dương – Hà Nội không đè chữ.
+- **Ảnh**: ảnh và văn bản gốc năm 1945 của Cục Văn thư và Lưu trữ nhà nước trên Wikimedia Commons (Quân lệnh số 1, diễn văn nhận sự thoái vị của Bảo Đại, bản Tuyên ngôn, mít tinh Thái Nguyên 20/8, Nhà hát Lớn 17/8), ảnh ngày nay ở Tân Trào, Nhà hát Lớn, Ba Đình, Ngọ Môn (CC BY/CC BY-SA). Tải và nén về `public/lessons/cach-mang-thang-tam/`.
+- **Video** (xác minh oEmbed 30/9/2026): `09MR7I0p7Ns` (VTV), `u7kjhRCfj2o` (Báo Quân đội nhân dân), `xRKUB3fUTJM` (VTV24 — toàn văn Tuyên ngôn).
+- Các chi tiết cần đối chiếu SGK nằm ở `toVerify` trong `lib/lessons/cach-mang-thang-tam.ts` (hiện ở mục "Ghi chú biên soạn" cuối trang).
+
+---
+
+## "Ảnh thật có chiều sâu" thay cho mô hình 3D dựng bằng mã (30/9/2026)
+
+Người dùng thấy mô hình 3D dựng bằng mã "như phim hoạt hình", muốn vẫn tương tác 3D nhưng là ảnh thật. Bài học Điện Biên Phủ nay dùng `components/photo3d` ở ba mục: ảnh lòng chảo (Kết quả), 6 hiện vật, 5 di tích ngày nay.
+
+- **Cách làm**: mỗi ảnh chụp thật có một bản đồ độ sâu (`<ảnh>-depth.webp`, ước lượng bằng Depth Anything V2 — `scripts/make-depth-maps.mjs`). Shader WebGL (không cần Three.js) lệch từng điểm ảnh theo độ sâu khi rê chuột/kéo → thị sai như nhìn vật thể 3D; khung nghiêng nhẹ theo phối cảnh, tự lắc nhẹ khi rảnh (tắt nếu "giảm chuyển động"), phóng 1,5–2,5×, toàn màn hình, phím mũi tên và +/−.
+- **Điểm chú thích** (`hotspots`, tọa độ % trong ảnh) đi theo đúng lớp sâu của chúng (`projectPoint`, có unit test khớp với shader).
+- Điểm ảnh 100% là ảnh chụp thật; chỉ chiều sâu là do máy ước lượng (ghi rõ dưới mỗi ảnh). Không xoay ra phía sau vật được như mô hình thật — muốn vậy cần mô hình quét 3D (photogrammetry) có giấy phép, hiện chưa tìm được cho các hiện vật Điện Biên Phủ.
+- Ảnh tĩnh hiện ngay (đọc được khi chưa có JS hoặc không có WebGL); WebGL chỉ dựng khi bấm "Xem ảnh 3D", mỗi thư viện một khung, tạm dừng vẽ khi cuộn khỏi màn hình.
+- Kiểm thử: `tests/unit/photo3d.test.ts`, mục ảnh 3D trong `tests/unit/lesson-data.test.ts`, `tests/e2e/photo3d.spec.ts`.
+
+### Mô hình quét 3D xoay 360° (30/9/2026)
+
+Người dùng muốn xoay 360°, xem nhiều góc độ. Từ một tấm ảnh không làm được điều đó một cách trung thực, nên bài học nhúng thêm **mô hình quét 3D của hiện vật/di tích thật** đăng công khai trên Sketchfab (tác giả cho phép nhúng; không tải file về), hiện trong cùng thư viện với nhãn **360°**:
+
+| Mục | Mô hình | Tác giả | Tải khoảng |
+|---|---|---|---|
+| Kết quả | Lòng chảo Điện Biên Phủ (địa hình + ảnh, CC BY-NC) | cdg | 6 MB |
+| Hiện vật | Trận địa pháo H6 — lựu pháo 105 mm | Atlantic Truong \| Vietnam 3D | 56 MB |
+| Hiện vật | Mũ nan của Anh hùng liệt sĩ Trần Can (1954) | SEAP VR | 24 MB |
+| Hiện vật | Đôi dép cao su của cựu TNXP Bùi Đức Tuệ | SEAP VR | 12 MB |
+| Di tích | Cụm tượng Chiến thắng Điện Biên Phủ (Nguyễn Hải) | MetaArt | 7 MB |
+
+- `components/photo3d/ScanViewer.tsx`: tải lười như video YouTube — trước khi bấm "Xoay 360°" chỉ là ảnh xem trước; `dnt=1` (không theo dõi); ghi công tác giả + link trang gốc; báo trước dung lượng, khuyên dùng Wi-Fi từ 20 MB. Đổi thẻ không tự tải mô hình khác.
+- Lựu pháo 105 mm có cả hai cách xem (nút chuyển "Xoay 360°" / "Ảnh chụp thật").
+- Trình xem Sketchfab cần GPU thật: trong trình duyệt kiểm thử tự động (SwiftShader) nó báo "model can't be displayed"; E2E chỉ kiểm tra iframe đúng địa chỉ. Đã xem tận mắt bằng Edge có GPU: mũ nan, pháo H6 hiển thị và xoay được.
+- Chưa có mô hình quét cho pháo cao xạ 37 mm, xe đạp thồ, hầm De Castries, đồi A1 → vẫn dùng ảnh thật có chiều sâu. Cách có thêm: tự quét tại bảo tàng bằng điện thoại (Polycam, KIRI Engine, Scaniverse…) rồi xuất GLB — trình xem mô hình của web đã đọc được GLB.

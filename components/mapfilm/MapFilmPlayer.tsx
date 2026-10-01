@@ -59,7 +59,8 @@ export function MapFilmPlayer({ slug, posterSrc, posterAlt, autoStart = false, d
   const [muted, setMuted] = useState(false);
   const [narration, setNarration] = useState(true);
   const [narrationAvailable, setNarrationAvailable] = useState(true);
-  const [basemap, setBasemap] = useState<Basemap>("satellite");
+  // Mặc định nền "cổ điển" (tô màu theo độ cao, kiểu bản đồ SGK): ảnh vệ tinh là cảnh NGÀY NAY, dễ bị hiểu là năm 1954.
+  const [basemap, setBasemap] = useState<Basemap>("classic");
   const [continuous, setContinuous] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   /** Giai đoạn mà người xem đã đóng thẻ "Bạn có biết?" (sang giai đoạn khác thì thẻ hiện lại). */
@@ -270,6 +271,12 @@ export function MapFilmPlayer({ slug, posterSrc, posterAlt, autoStart = false, d
                 {step.title}
                 {step.dateText && <span className="text-white/70"> · {step.dateText}</span>}
               </div>
+
+              {basemap === "satellite" && (
+                <p className="pointer-events-none absolute left-3 top-12 z-10 rounded-lg bg-black/55 px-3 py-1 text-xs text-white/85 backdrop-blur-sm" data-testid="mapfilm-satellite-note">
+                  Nền: ảnh vệ tinh ngày nay, không phải cảnh năm 1954
+                </p>
+              )}
 
               {state.freeCamera && (
                 <button

@@ -188,6 +188,7 @@ export async function getEventForEdit(id: string) {
        event_locations(location_id, location_role, is_primary),
        event_sources(source_id, source_note, confidence_note),
        event_topics(topic_id),
+       quiz_questions(id, question, choices, correct_index, explanation, media_id, sort_order),
        media_assets(${ADMIN_MEDIA_FIELDS})`,
     )
     .eq("id", id)
@@ -372,6 +373,8 @@ export async function getReadinessSnapshot(
         ...event.event_locations.map((link) => link.location_role),
         ...event.event_sources.flatMap((link) => [link.source_note, link.confidence_note]),
         ...mediaTexts(event.media_assets),
+        // Câu hỏi trắc nghiệm hiện ở trang công khai cùng sự kiện → cũng không được còn ghi chú TODO.
+        ...event.quiz_questions.flatMap((row) => [row.question, row.explanation, ...row.choices]),
       ],
       media: mediaStats(event.media_assets),
     },

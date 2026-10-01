@@ -92,3 +92,41 @@ test.describe("Bài học tương tác: Chiến dịch Điện Biên Phủ", () 
     });
   }
 });
+
+test.describe("Bài học tương tác: Cách mạng tháng Tám năm 1945", () => {
+  const CMT8 = "/bai-hoc/cach-mang-thang-tam-1945";
+
+  test("lối vào từ trang sự kiện Tổng khởi nghĩa ở Hà Nội và Tuyên ngôn Độc lập", async ({ page }) => {
+    for (const event of ["tong-khoi-nghia-gianh-chinh-quyen-o-ha-noi", "tuyen-ngon-doc-lap"]) {
+      await page.goto(`/su-kien/${event}`);
+      await page.getByRole("link", { name: /Xem bài học tương tác/ }).click();
+      await expect(page).toHaveURL(new RegExp(`${CMT8}$`));
+      await expect(page.locator("h1")).toHaveText("Cách mạng tháng Tám năm 1945");
+    }
+  });
+
+  test("bản đồ 7 bước: địa phương giành chính quyền theo đúng thứ tự ngày", async ({ page }) => {
+    await page.goto(CMT8);
+    const steps = page.getByRole("navigation", { name: "Các bước diễn biến" }).locator("button");
+    await expect(steps).toHaveCount(7);
+    const captured = page.locator(".leaflet-marker-icon .battle-sp--captured");
+
+    await steps.nth(2).click();
+    await expect(captured).toHaveCount(4, { timeout: 10_000 });
+    await expect(page.locator(".leaflet-marker-icon .battle-sp--attacked")).toHaveCount(1);
+    await steps.nth(3).click();
+    await expect(captured).toHaveCount(5, { timeout: 10_000 });
+    await steps.nth(5).click();
+    await expect(captured).toHaveCount(10, { timeout: 10_000 });
+    await expect(page.getByText("\"Làm dân một nước tự do\"")).toBeVisible();
+  });
+
+  test("trắc nghiệm bài học và trình chiếu mở được", async ({ page }) => {
+    await page.goto("/trac-nghiem/bai-hoc/cach-mang-thang-tam-1945");
+    await expect(page.locator("h1")).toHaveText("Trắc nghiệm: Cách mạng tháng Tám năm 1945");
+    await expect(page.getByRole("button", { name: "Bắt đầu" })).toBeVisible();
+    const response = await page.goto(`${CMT8}/trinh-chieu`);
+    expect(response?.status()).toBe(200);
+    await expect(page.locator("p.sr-only[aria-live]")).toContainText("Slide 1/");
+  });
+});
