@@ -2,7 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { Lightbulb, Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MapLegend } from "@/components/battle/MapLegend";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SafeImage } from "@/components/ui/SafeImage";
@@ -17,6 +18,32 @@ const BattleMap = dynamic(() => import("@/components/battle/BattleMap"), {
   ssr: false,
   loading: () => <Skeleton className="h-full w-full rounded-none" />,
 });
+
+/**
+ * Khung đã có kích thước thật chưa. Leaflet dựng trong khung đang ẩn (display: none — ví dụ chương chưa mở trên điện
+ * thoại) tính ra tọa độ NaN và báo lỗi, nên chỉ dựng bản đồ khi khung hiện ra.
+ */
+function useHasSize<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [hasSize, setHasSize] = useState(false);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    if (typeof ResizeObserver === "undefined") {
+      const frame = requestAnimationFrame(() => setHasSize(true));
+      return () => cancelAnimationFrame(frame);
+    }
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+        setHasSize(true);
+        observer.disconnect();
+      }
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, hasSize] as const;
+}
 
 /** Thời gian di chuyển giữa hai bước (cũng là thời gian bản đồ "bay" tới khung nhìn mới). */
 const MOVE_MS = 2200;
@@ -43,6 +70,7 @@ export function BattleReenactment({ scenario }: { scenario: BattleScenario }) {
   const { steps } = scenario;
   const last = steps.length - 1;
   const reducedMotion = usePrefersReducedMotion();
+  const [mapBoxRef, mapBoxHasSize] = useHasSize<HTMLDivElement>();
 
   const [motion, setMotion] = useState<Motion>({ from: 0, to: 0, t: 1, run: 0 });
   const [playing, setPlaying] = useState(false);
@@ -111,12 +139,20 @@ export function BattleReenactment({ scenario }: { scenario: BattleScenario }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
       <div className="flex min-w-0 flex-col gap-4">
-        <div
-          role="region"
-          aria-label={`Bản đồ mô phỏng ${scenario.title}`}
-          className="h-[22rem] overflow-hidden rounded-card border border-border sm:h-[30rem]"
-        >
-          <BattleMap scenario={scenario} frame={frame} camera={camera} flyDuration={reducedMotion ? 0 : MOVE_MS / 1000} />
+        <div className="relative">
+          <div
+            ref={mapBoxRef}
+            role="region"
+            aria-label={`Bản đồ mô phỏng ${scenario.title}`}
+            className="h-[22rem] overflow-hidden rounded-card border border-border sm:h-[30rem]"
+          >
+            {mapBoxHasSize ? (
+              <BattleMap scenario={scenario} frame={frame} camera={camera} flyDuration={reducedMotion ? 0 : MOVE_MS / 1000} />
+            ) : (
+              <Skeleton className="h-full w-full rounded-none" />
+            )}
+          </div>
+          <MapLegend items={scenario.legend} />
         </div>
 
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Điều khiển mô phỏng">
@@ -197,14 +233,6 @@ export function BattleReenactment({ scenario }: { scenario: BattleScenario }) {
           </>
         )}
 
-        <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground" aria-label="Chú giải">
-          {scenario.legend.map((item) => (
-            <li key={item.label} className="flex items-center gap-1.5">
-              <span className={cn(item.className, "battle-legend-swatch")} aria-hidden="true" />
-              {item.label}
-            </li>
-          ))}
-        </ul>
       </div>
 
       <div className="flex min-w-0 flex-col gap-4">

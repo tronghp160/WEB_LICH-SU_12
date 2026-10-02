@@ -1,18 +1,22 @@
-import { CalendarClock, Layers, ListChecks, Stamp } from "lucide-react";
+import { CalendarClock, Layers, ListChecks, Stamp, WalletCards } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ReviewSuggestion, ReviewTable, type LessonQuestionCounts } from "@/components/quiz/ReviewByLesson";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { SafeImage } from "@/components/ui/SafeImage";
 import { lessons } from "@/lib/lessons";
 import { getQuestionPool, getYearRounds } from "@/lib/queries/quiz";
 import { getPublishedTopics } from "@/lib/queries/topics";
 import { MIN_QUESTIONS, questionsForLesson, questionsForTopic, quizPaths } from "@/lib/quiz/sets";
+import { getCurriculum } from "@/lib/queries/sgk";
+import { questionsForSgkLesson } from "@/lib/sgk/quiz";
+import { sgkQuizPaths } from "@/lib/sgk/review";
 import { responsiveImage } from "@/lib/utils/text";
 
 export const metadata: Metadata = {
-  title: "Trắc nghiệm",
-  description: "Trắc nghiệm có ảnh tư liệu theo chủ đề và bài học, và trò chơi nhìn ảnh đoán năm — Lịch sử Việt Nam lớp 12.",
+  title: "Ôn tập",
+  description: "Ôn tập Lịch sử 12 theo từng bài SGK: trắc nghiệm có ảnh tư liệu, thẻ ghi nhớ, trò chơi nhìn ảnh đoán năm.",
 };
 
 type SetCardProps = {
@@ -56,7 +60,7 @@ function SetCard({ href, title, meta, description, image, icon }: SetCardProps) 
 }
 
 export default async function QuizHubPage() {
-  const [pool, rounds, topics] = await Promise.all([getQuestionPool(), getYearRounds(), getPublishedTopics()]);
+  const [pool, rounds, topics, curriculum] = await Promise.all([getQuestionPool(), getYearRounds(), getPublishedTopics(), getCurriculum()]);
 
   const topicSets = topics
     .map((topic) => ({ topic, count: questionsForTopic(pool, topic.slug).length }))
@@ -64,6 +68,9 @@ export default async function QuizHubPage() {
   const lessonSets = lessons
     .map((lesson) => ({ lesson, count: questionsForLesson(pool, lesson).length }))
     .filter((item) => item.count >= MIN_QUESTIONS);
+  const lessonCounts: LessonQuestionCounts = Object.fromEntries(
+    curriculum.lessons.map((lesson) => [lesson.slug, questionsForSgkLesson(pool, lesson).length]),
+  );
   const photoOf = (index: number) => {
     const photo = pool.filter((question) => question.kind === "photo-event")[index]?.image;
     return photo ? { url: photo.url, focalPoint: photo.focalPoint } : undefined;
@@ -71,9 +78,9 @@ export default async function QuizHubPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
-      <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Trắc nghiệm" }]} />
+      <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Ôn tập" }]} />
       <header className="mb-8 mt-4">
-        <h1 className="font-serif text-3xl font-bold text-foreground sm:text-4xl">Trắc nghiệm và trò chơi</h1>
+        <h1 className="font-serif text-3xl font-bold text-foreground sm:text-4xl">Ôn tập</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Mỗi lượt 10 câu, phần lớn có ảnh tư liệu. Trả lời xong mỗi câu em thấy ngay đáp án, lời giải thích và trang để đọc
           thêm. Không cần đăng nhập.
@@ -88,9 +95,21 @@ export default async function QuizHubPage() {
         </p>
       </header>
 
-      <section aria-labelledby="choi-nhanh">
+      <ReviewSuggestion counts={lessonCounts} minQuestions={MIN_QUESTIONS} />
+
+      <section aria-labelledby="theo-bai-sgk" className="mt-10">
+        <h2 id="theo-bai-sgk" className="mb-1 font-serif text-2xl font-bold text-foreground">
+          Ôn theo bài
+        </h2>
+        <p className="mb-5 text-sm text-muted-foreground">
+          Mỗi bài một bộ câu hỏi về các sự kiện trong bài. Làm sai câu nào, cuối lượt có gợi ý mục cần đọc lại.
+        </p>
+        <ReviewTable counts={lessonCounts} minQuestions={MIN_QUESTIONS} />
+      </section>
+
+      <section aria-labelledby="choi-nhanh" className="mt-12">
         <h2 id="choi-nhanh" className="mb-4 font-serif text-2xl font-bold text-foreground">
-          Chơi nhanh
+          Ôn nhanh
         </h2>
         <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {pool.length >= MIN_QUESTIONS && (
@@ -113,13 +132,20 @@ export default async function QuizHubPage() {
               icon={<CalendarClock className="h-12 w-12" aria-hidden="true" />}
             />
           )}
+          <SetCard
+            href={sgkQuizPaths.flashcards}
+            title="Thẻ ghi nhớ"
+            meta={`${lessons.reduce((sum, lesson) => sum + lesson.flashcards.length, 0)} thẻ hỏi – đáp`}
+            description="Tự hỏi – tự đáp, lật thẻ xem đáp án."
+            icon={<WalletCards className="h-12 w-12" aria-hidden="true" />}
+          />
         </ul>
       </section>
 
       {lessonSets.length > 0 && (
         <section aria-labelledby="theo-bai-hoc" className="mt-12">
           <h2 id="theo-bai-hoc" className="mb-4 font-serif text-2xl font-bold text-foreground">
-            Theo bài học
+            Theo chuyên đề tương tác
           </h2>
           <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
             {lessonSets.map(({ lesson, count }) => (
@@ -139,7 +165,7 @@ export default async function QuizHubPage() {
       {topicSets.length > 0 && (
         <section aria-labelledby="theo-chu-de" className="mt-12">
           <h2 id="theo-chu-de" className="mb-4 font-serif text-2xl font-bold text-foreground">
-            Theo chủ đề
+            Ôn cả chủ đề
           </h2>
           <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
             {topicSets.map(({ topic, count }) => (

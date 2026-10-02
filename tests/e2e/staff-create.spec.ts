@@ -127,7 +127,7 @@ test.describe.serial("UC13: admin tạo tài khoản editor mới", () => {
     await page.getByRole("button", { name: "Đăng nhập" }).click();
     await page.waitForURL(/\/quan-tri$/);
     await expect(page.locator("h1")).toContainText(`Xin chào, ${NEW_NAME}`);
-    await expect(page.getByRole("navigation", { name: "Menu khu vực nội bộ" }).locator("a")).toHaveText(["Tổng quan", "Nội dung"]);
+    await expect(page.getByRole("navigation", { name: "Menu khu vực nội bộ" }).locator("a")).toHaveText(["Tổng quan", "Nội dung", "Bài SGK"]);
 
     await page.goto("/quan-tri/noi-dung");
     await expect(page).toHaveURL(/\/quan-tri\/noi-dung$/);

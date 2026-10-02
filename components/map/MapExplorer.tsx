@@ -14,14 +14,13 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { MapLocation } from "@/lib/queries/locations";
+import { getSgkLesson, SGK_12, sgkPaths } from "@/lib/sgk/curriculum";
 import { cn } from "@/lib/utils/cn";
 import { findLocationForEvent } from "@/lib/utils/map";
-import {
-  TOPIC_FILTER_PARAM,
-  buildFilterUrl,
-  parseTopicFilter,
-  toggleTopic,
-} from "@/lib/utils/timeline";
+import { TOPIC_FILTER_PARAM, buildFilterUrl, parseTopicFilter, toggleTopic } from "@/lib/utils/timeline";
+
+/** Tham số URL lọc theo Bài SGK: /ban-do?bai=7-khang-chien-chong-phap. */
+const LESSON_FILTER_PARAM = "bai";
 
 // Leaflet cần `window` nên chỉ nạp ở trình duyệt (ssr: false — chỉ được phép trong Client Component).
 const HistoryMap = dynamic(() => import("@/components/map/HistoryMap"), {
@@ -39,6 +38,8 @@ function MapLoading() {
 
 type MapExplorerProps = {
   locations: MapLocation[];
+  /** Bài SGK → sự kiện của bài (tính ở server theo cách gán hiện hành). */
+  lessonEvents: Record<string, string[]>;
   topics: TopicFilterOption[];
 };
 
@@ -69,7 +70,7 @@ function resolveInitialFocus(
  * Trang bản đồ (UC03): bản đồ + panel (desktop: cột phải; điện thoại: bottom
  * sheet). Bộ lọc chủ đề dùng chung cách làm với dòng thời gian (`?chu-de=`).
  */
-export function MapExplorer({ locations, topics }: MapExplorerProps) {
+export function MapExplorer({ locations, topics, lessonEvents: eventsByLesson }: MapExplorerProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const radiusSearch = useRadiusSearch();
@@ -87,19 +88,35 @@ export function MapExplorer({ locations, topics }: MapExplorerProps) {
     topics.map((topic) => topic.slug),
   );
 
-  // Có lọc chủ đề: chỉ giữ địa điểm có sự kiện thuộc chủ đề đó, và chỉ liệt kê các sự kiện ấy.
+  const selectedLesson = getSgkLesson(searchParams.get(LESSON_FILTER_PARAM) ?? "");
+  const lessonEvents = selectedLesson ? new Set(eventsByLesson[selectedLesson.slug] ?? []) : null;
+
+  // Có lọc (chủ đề và/hoặc Bài SGK): chỉ giữ địa điểm có sự kiện thỏa mãn, và chỉ liệt kê các sự kiện ấy.
   const visibleLocations =
-    selectedTopics.length === 0
+    selectedTopics.length === 0 && !lessonEvents
       ? locations
       : locations.flatMap((location) => {
           const events = location.events.filter(
-            (event) => event.topicSlugs.some((slug) => selectedTopics.includes(slug)),
+            (event) =>
+              (selectedTopics.length === 0 || event.topicSlugs.some((slug) => selectedTopics.includes(slug))) &&
+              (!lessonEvents || lessonEvents.has(event.slug)),
           );
           return events.length > 0 ? [{ ...location, events }] : [];
         });
 
+  /** Ghi bộ lọc lên URL (chia sẻ được) mà không tải lại trang; giữ cả hai loại lọc. */
+  function writeUrl(topicSlugs: readonly string[], lessonSlug: string | undefined) {
+    const base = buildFilterUrl(pathname, topicSlugs);
+    const url = lessonSlug ? `${base}${base.includes("?") ? "&" : "?"}${LESSON_FILTER_PARAM}=${lessonSlug}` : base;
+    window.history.replaceState(null, "", url);
+  }
+
   function updateFilter(next: string[]) {
-    window.history.replaceState(null, "", buildFilterUrl(pathname, next));
+    writeUrl(next, selectedLesson?.slug);
+  }
+
+  function clearFilters() {
+    writeUrl([], undefined);
   }
 
   function focusLocation(slug: string) {
@@ -135,6 +152,15 @@ export function MapExplorer({ locations, topics }: MapExplorerProps) {
           onPickCenter={pickCenter}
           onSearchAround={searchAround}
         />
+
+        {/* "Di tích gần em" ngay trên bản đồ (mục 6.8) thay cho đường dẫn nhỏ khó thấy. */}
+        <Link
+          href="/di-tich-gan-em"
+          className="absolute left-14 top-2.5 z-[1000] inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/95 px-3 py-2 text-sm font-medium text-foreground shadow-card hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+        >
+          <LocateFixed className="h-4 w-4 text-accent" aria-hidden="true" />
+          Gần em
+        </Link>
 
         {picking && (
           <div
@@ -199,6 +225,38 @@ export function MapExplorer({ locations, topics }: MapExplorerProps) {
             </p>
           )}
 
+          <section aria-labelledby="map-lesson-heading" className="flex flex-col gap-2">
+            <h2 id="map-lesson-heading" className="font-serif text-lg font-semibold text-foreground">
+              Lọc theo bài
+            </h2>
+            <label htmlFor="map-lesson-filter" className="sr-only">
+              Chọn bài trong SGK
+            </label>
+            <select
+              id="map-lesson-filter"
+              value={selectedLesson?.slug ?? ""}
+              onChange={(event) => writeUrl(selectedTopics, event.target.value || undefined)}
+              className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-surface-foreground focus:outline focus:outline-2 focus:outline-gold"
+            >
+              <option value="">Tất cả các bài</option>
+              {SGK_12.map((topic) => (
+                <optgroup key={topic.slug} label={`Chủ đề ${topic.number}. ${topic.shortTitle}`}>
+                  {topic.lessons.map((lesson) => (
+                    <option key={lesson.slug} value={lesson.slug} disabled={(eventsByLesson[lesson.slug] ?? []).length === 0}>
+                      Bài {lesson.number}. {lesson.shortTitle}
+                      {(eventsByLesson[lesson.slug] ?? []).length === 0 ? " (chưa có sự kiện)" : ""}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            {selectedLesson && (
+              <Link href={sgkPaths.lesson(selectedLesson.slug)} className="text-sm font-medium text-accent hover:underline">
+                Mở Bài {selectedLesson.number} để học →
+              </Link>
+            )}
+          </section>
+
           <section aria-labelledby="map-topic-heading" className="flex flex-col gap-2">
             <h2 id="map-topic-heading" className="font-serif text-lg font-semibold text-foreground">
               Lọc theo chủ đề
@@ -221,11 +279,6 @@ export function MapExplorer({ locations, topics }: MapExplorerProps) {
             onFocusLocation={focusLocation}
           />
 
-          <Link href="/di-tich-gan-em" className="inline-flex items-center gap-1.5 text-sm font-medium text-accent underline">
-            <LocateFixed className="h-4 w-4" aria-hidden="true" />
-            Di tích gần em: tìm theo vị trí của em
-          </Link>
-
           <section aria-labelledby="map-list-heading" className="flex flex-col gap-2">
             <h2 id="map-list-heading" className="font-serif text-lg font-semibold text-foreground">
               Địa điểm ({visibleLocations.length})
@@ -233,9 +286,9 @@ export function MapExplorer({ locations, topics }: MapExplorerProps) {
             {visibleLocations.length === 0 ? (
               <EmptyState
                 title="Không có địa điểm phù hợp"
-                description="Chưa có địa điểm nào thuộc các chủ đề đã chọn."
+                description="Chưa có địa điểm nào thuộc bộ lọc đã chọn."
                 action={
-                  <Button variant="secondary" onClick={() => updateFilter([])}>
+                  <Button variant="secondary" onClick={clearFilters}>
                     Xóa bộ lọc
                   </Button>
                 }

@@ -115,6 +115,21 @@ function ZoomBand() {
   return null;
 }
 
+/**
+ * Khung bản đồ đổi kích thước (ví dụ chương đang ẩn trên điện thoại được mở ra, xoay màn hình) → báo Leaflet đo lại,
+ * nếu không bản đồ chỉ vẽ một phần ô nền.
+ */
+function ResizeWatcher() {
+  const map = useMap();
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => map.invalidateSize({ pan: false }));
+    observer.observe(map.getContainer());
+    return () => observer.disconnect();
+  }, [map]);
+  return null;
+}
+
 /** Bay tới khung nhìn của bước khi bước đổi. */
 function CameraController({ camera, flyDuration }: { camera: CameraView; flyDuration: number }) {
   const map = useMap();
@@ -158,6 +173,7 @@ export default function BattleMap({ scenario, frame, camera, flyDuration }: Batt
       <AttributionControl position="bottomright" prefix={false} />
       <CameraController camera={camera} flyDuration={flyDuration} />
       <ZoomBand />
+      <ResizeWatcher />
 
       {scenario.riverPath && (
         <Polyline

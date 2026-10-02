@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { ExternalLink, Map as MapIcon, Mountain } from "lucide-react";
+import { ExternalLink, HelpCircle, Map as MapIcon, Mountain } from "lucide-react";
 import { useState } from "react";
 import { BattleReenactment } from "@/components/battle/BattleReenactment";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -21,10 +21,49 @@ type BattleMapSectionProps = {
   mapFilm?: string;
 };
 
+/** Nút "?" mở hướng dẫn 3 dòng ngay tại bản đồ (mục 6.11) — không phải rời trang để đọc cách dùng. */
+function MapHelp({ hasFilm }: { hasFilm: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="map-help"
+        onClick={() => setOpen((value) => !value)}
+        className="inline-flex items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+      >
+        <HelpCircle className="h-4 w-4 text-gold-deep" aria-hidden="true" />
+        Cách dùng bản đồ
+      </button>
+      {open && (
+        <ol id="map-help" className="list-decimal rounded-card border border-info/40 bg-info-bg py-3 pl-8 pr-4 text-sm leading-relaxed text-foreground">
+          <li>
+            Bấm <strong>Phát</strong> để bản đồ tự chạy qua các bước, hoặc chọn một bước trong danh sách các bước để dừng lại xem kỹ.
+          </li>
+          <li>Đọc lời dẫn của mỗi bước; nút <strong>Chú giải</strong> ở góc trên bản đồ giải thích các ký hiệu (quân ta màu đỏ, quân địch màu xanh).</li>
+          <li>
+            {hasFilm
+              ? "Chọn “Bản đồ 3D như phim” để xem trên địa hình thật (máy cần hỗ trợ WebGL, tải nặng hơn)."
+              : "Kéo để di chuyển bản đồ; dùng nút + / − (hoặc chụm hai ngón trên điện thoại) để phóng to, thu nhỏ."}
+          </li>
+        </ol>
+      )}
+    </div>
+  );
+}
+
 /** Mục "Diễn biến trên bản đồ" của bài học: chuyển giữa bản đồ 2D (nhẹ, mặc định) và bản đồ 3D chạy như một thước phim. */
 export function BattleMapSection({ scenario, mapFilm }: BattleMapSectionProps) {
   const [mode, setMode] = useState<"2d" | "3d">("2d");
-  if (!mapFilm) return <BattleReenactment scenario={scenario} />;
+  if (!mapFilm) {
+    return (
+      <div className="flex flex-col gap-4">
+        <MapHelp hasFilm={false} />
+        <BattleReenactment scenario={scenario} />
+      </div>
+    );
+  }
 
   const option = (value: "2d" | "3d", label: string, Icon: typeof MapIcon) => (
     <button
@@ -56,6 +95,7 @@ export function BattleMapSection({ scenario, mapFilm }: BattleMapSectionProps) {
           </Link>
         )}
       </div>
+      <MapHelp hasFilm />
       {mode === "2d" ? (
         <BattleReenactment scenario={scenario} />
       ) : (

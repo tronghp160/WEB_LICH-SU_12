@@ -1,4 +1,4 @@
-import { ClipboardCheck, FileText, LayoutDashboard, Users, Activity, type LucideIcon } from "lucide-react";
+import { BookOpen, ClipboardCheck, FileText, LayoutDashboard, Users, Activity, type LucideIcon } from "lucide-react";
 import { STAFF_ROLES, type StaffRole } from "@/lib/utils/labels";
 
 export type AdminMenuItem = {
@@ -24,6 +24,13 @@ export const ADMIN_MENU: readonly AdminMenuItem[] = [
     icon: FileText,
     roles: ["editor", "system_admin"],
     description: "Tạo, chỉnh sửa chủ đề, sự kiện, nhân vật, địa điểm, nguồn và media.",
+  },
+  {
+    label: "Bài SGK",
+    href: "/quan-tri/bai-sgk",
+    icon: BookOpen,
+    roles: ["editor", "reviewer", "system_admin"],
+    description: "Gán sự kiện vào từng bài, từng mục của SGK Lịch sử 12.",
   },
   {
     label: "Kiểm duyệt",

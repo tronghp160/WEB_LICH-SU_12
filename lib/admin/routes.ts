@@ -18,3 +18,6 @@ export function isProtectedAdminPath(pathname: string): boolean {
   const isAdmin = path === ADMIN_HOME || path.startsWith(`${ADMIN_HOME}/`);
   return isAdmin && path !== ADMIN_LOGIN;
 }
+
+/** Trang quản trị "Bài SGK" (GĐ7): gán sự kiện vào bài/mục. */
+export const sgkAdminPath = (lessonSlug?: string) => (lessonSlug ? `/quan-tri/bai-sgk/${lessonSlug}` : "/quan-tri/bai-sgk");

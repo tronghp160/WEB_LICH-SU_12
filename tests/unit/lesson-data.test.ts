@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { depthPathFor } from "@/lib/photo3d/parallax";
 import { interpolateFrame } from "@/lib/battles/animation";
 import { cachMangThangTam1945 } from "@/lib/battles/cach-mang-thang-tam-1945";
+import { chienDichHoChiMinh1975 } from "@/lib/battles/chien-dich-ho-chi-minh-1975";
 import { dienBienPhu1954 } from "@/lib/battles/dien-bien-phu-1954";
 import { getLesson, getLessonForEvent, interactiveEntries, lessons } from "@/lib/lessons";
 import type { StrongpointStatus } from "@/lib/battles/types";
@@ -115,6 +116,30 @@ describe("kịch bản Cách mạng tháng Tám", () => {
   });
 });
 
+describe("kịch bản Chiến dịch Hồ Chí Minh", () => {
+  const byId = Object.fromEntries(chienDichHoChiMinh1975.steps.map((step) => [step.id, step.strongpoints ?? {}]));
+
+  it("diễn biến đúng thứ tự: Xuân Lộc (21/4) → vòng ngoài (26 – 28/4) → Dinh Độc Lập chỉ ở bước cuối", () => {
+    expect(byId["thoi-co"].xuanLoc).toBe("held");
+    expect(byId["xuan-loc"].xuanLoc).toBe("captured");
+    expect([byId["no-sung"].bienHoa, byId["no-sung"].dongDu]).toEqual(["attacked", "attacked"]);
+    expect(byId["tan-son-nhat"].tanSonNhat).toBe("attacked");
+    expect(byId["tong-cong-kich"].dinhDocLap).toBe("held");
+    expect(Object.values(byId["dinh-doc-lap"]).every((status) => status === "captured")).toBe(true);
+  });
+
+  it("năm cánh quân; mục tiêu nằm ở Đông Nam Bộ", () => {
+    expect(chienDichHoChiMinh1975.unitDefinitions).toHaveLength(5);
+    for (const point of chienDichHoChiMinh1975.strongpointDefinitions ?? []) {
+      const [lat, lng] = point.position;
+      expect(lat, point.id).toBeGreaterThan(10.5);
+      expect(lat, point.id).toBeLessThan(11.2);
+      expect(lng, point.id).toBeGreaterThan(106.3);
+      expect(lng, point.id).toBeLessThan(107.4);
+    }
+  });
+});
+
 describe("dữ liệu bài học", () => {
   it("tra cứu theo slug bài học và theo sự kiện (kể cả sự kiện liên quan)", () => {
     expect(getLesson("chien-dich-dien-bien-phu")?.title).toBe("Chiến dịch Điện Biên Phủ");
@@ -123,6 +148,8 @@ describe("dữ liệu bài học", () => {
     expect(getLessonForEvent("tuyen-ngon-doc-lap")?.slug).toBe("cach-mang-thang-tam-1945");
     expect(getLesson("khong-co")).toBeUndefined();
     expect(getLessonForEvent("hiep-dinh-geneve-ve-dong-duong")).toBeUndefined();
+    expect(getLessonForEvent("chien-dich-ho-chi-minh")?.slug).toBe("chien-dich-ho-chi-minh-1975");
+    expect(getLessonForEvent("tong-tien-cong-va-noi-day-tet-mau-than-1968")?.slug).toBe("tet-mau-than-1968");
   });
 
   it("slug bài học không trùng", () => {
@@ -247,6 +274,8 @@ describe("dữ liệu bài học", () => {
     expect(interactiveEntries.map((entry) => entry.href)).toEqual([
       "/bai-hoc/cach-mang-thang-tam-1945",
       "/bai-hoc/chien-dich-dien-bien-phu",
+      "/bai-hoc/tet-mau-than-1968",
+      "/bai-hoc/chien-dich-ho-chi-minh-1975",
       "/tai-hien/bach-dang-938",
     ]);
   });

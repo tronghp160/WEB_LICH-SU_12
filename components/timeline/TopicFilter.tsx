@@ -6,6 +6,8 @@ export type TopicFilterOption = {
   slug: string;
   name: string;
   eventCount: number;
+  /** Màu gáy của chủ đề SGK tương ứng (lib/sgk/curriculum). */
+  color?: string;
 };
 
 type TopicFilterProps = {
@@ -38,6 +40,9 @@ export function TopicFilter({ topics, selected, onToggle, onClear }: TopicFilter
                 : "border-border bg-surface text-surface-foreground hover:bg-muted",
             )}
           >
+            {topic.color && (
+              <span aria-hidden="true" data-topic-color={topic.color} className="h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--topic)] ring-1 ring-background" />
+            )}
             <span>{topic.name}</span>
             <span aria-hidden="true" className={isSelected ? "opacity-80" : "text-muted-foreground"}>
               {topic.eventCount}

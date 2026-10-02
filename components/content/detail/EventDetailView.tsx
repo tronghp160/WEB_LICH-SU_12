@@ -11,6 +11,7 @@ import { RichContent } from "@/components/content/RichContent";
 import { SourceList } from "@/components/content/SourceList";
 import { TopicBadge } from "@/components/content/TopicBadge";
 import { MiniMapLazy } from "@/components/map/MiniMapLazy";
+import { SgkPlacementNote } from "@/components/sgk/SgkPlacementNote";
 import { Badge } from "@/components/ui/Badge";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { getLessonForEvent } from "@/lib/lessons";
@@ -98,6 +99,7 @@ export function EventDetailView({ event, previous, next, sameTopic = [], preview
           <EventHeading event={event} />
         )}
         <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{event.summary}</p>
+        {!preview && <SgkPlacementNote eventSlug={event.slug} />}
         {lesson && (
           <Link
             href={`/bai-hoc/${lesson.slug}`}
@@ -105,7 +107,7 @@ export function EventDetailView({ event, previous, next, sameTopic = [], preview
           >
             <PlayCircle className="h-6 w-6" aria-hidden="true" />
             <span>
-              Xem bài học tương tác
+              Xem chuyên đề tương tác
               <span className="block text-sm font-normal">Bản đồ diễn biến, ảnh tư liệu, video và thẻ ghi nhớ</span>
             </span>
           </Link>

@@ -143,3 +143,26 @@ export async function getTimelineEvents(): Promise<TimelineEvent[]> {
     };
   });
 }
+
+/**
+ * Sự kiện ĐÃ CÔNG BỐ theo danh sách slug (trang Bài SGK, trang chủ đề SGK), sắp theo thời gian. Slug chưa công bố
+ * hoặc không có thì bị bỏ qua.
+ */
+export async function getEventsBySlugs(slugs: readonly string[]): Promise<RelatedEvent[]> {
+  if (slugs.length === 0) return [];
+  const supabase = await createPublicClient();
+
+  const { data, error } = await supabase
+    .from("historical_events")
+    .select(`slug, title, summary, date_text, date_precision, is_featured, start_year, curriculum_topics(name, slug), ${EVENT_CARD_MEDIA}`)
+    .eq("workflow_status", "published")
+    .in("slug", [...slugs])
+    .order("start_year", { ascending: true })
+    .order("start_date", { ascending: true, nullsFirst: false });
+
+  if (error) {
+    throw new Error(`Không tải được sự kiện của bài: ${error.message}`);
+  }
+
+  return data.map((event) => ({ ...toEventSummary(event), startYear: event.start_year }));
+}

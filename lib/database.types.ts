@@ -577,6 +577,44 @@ export type Database = {
           },
         ]
       }
+      sgk_lesson_events: {
+        Row: {
+          id: string
+          lesson_slug: string
+          section_id: string
+          event_id: string
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          lesson_slug: string
+          section_id: string
+          event_id: string
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          lesson_slug?: string
+          section_id?: string
+          event_id?: string
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sgk_lesson_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "historical_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

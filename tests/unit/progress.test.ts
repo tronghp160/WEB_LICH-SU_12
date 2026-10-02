@@ -3,10 +3,16 @@ import {
   buildStampCatalog,
   emptyProgress,
   evaluateStamps,
+  exportProgressCode,
+  importProgressCode,
   isPassing,
+  latestSgkLesson,
+  lessonCompletion,
   markLessonStudied,
+  mergeProgress,
   parseProgress,
   recordQuiz,
+  recordSectionRead,
   stampDate,
   yearsInName,
 } from "@/lib/progress/progress";
@@ -83,6 +89,71 @@ describe("markLessonStudied", () => {
     const once = markLessonStudied(emptyProgress, "dbp", day1);
     expect(markLessonStudied(once, "dbp", day2)).toBe(once);
     expect(once.lessons.dbp.studiedAt).toBe(day1.toISOString());
+  });
+});
+
+describe("tiến độ Bài SGK theo mục", () => {
+  it("dữ liệu cũ chưa có trường sgk vẫn đọc được, con dấu giữ nguyên", () => {
+    const old = { v: 1, lessons: { dbp: { studiedAt: day1.toISOString() } }, quizzes: { s: { best: 8, total: 10, attempts: 1, passedAt: day1.toISOString(), lastAt: day1.toISOString() } } };
+    const progress = parseProgress(JSON.stringify(old));
+    expect(progress.sgk).toEqual({});
+    expect(progress.quizzes.s.passedAt).toBe(day1.toISOString());
+  });
+
+  it("ghi mục đã đọc, giữ thời điểm đọc lần đầu, cập nhật mục gần nhất", () => {
+    let progress = recordSectionRead(emptyProgress, "7-khang-chien-chong-phap", "muc-1", day1);
+    progress = recordSectionRead(progress, "7-khang-chien-chong-phap", "muc-3", day2);
+    progress = recordSectionRead(progress, "7-khang-chien-chong-phap", "muc-1", day2);
+    const record = progress.sgk["7-khang-chien-chong-phap"];
+    expect(record.sections["muc-1"]).toBe(day1.toISOString());
+    expect(record.lastSection).toBe("muc-1");
+    expect(lessonCompletion(progress, "7-khang-chien-chong-phap", ["muc-1", "muc-2", "muc-3", "muc-4"])).toBe(0.5);
+    expect(parseProgress(JSON.stringify(progress))).toEqual(progress);
+  });
+
+  it("đọc lại đúng mục gần nhất thì không tạo object mới", () => {
+    const once = recordSectionRead(emptyProgress, "a", "muc-1", day1);
+    expect(recordSectionRead(once, "a", "muc-1", day2)).toBe(once);
+  });
+
+  it("bài đọc gần nhất; mục hỏng bị bỏ riêng", () => {
+    let progress = recordSectionRead(emptyProgress, "a", "muc-1", day1);
+    progress = recordSectionRead(progress, "b", "muc-2", day2);
+    expect(latestSgkLesson(progress)?.slug).toBe("b");
+    expect(latestSgkLesson(emptyProgress)).toBeUndefined();
+    const broken = parseProgress(JSON.stringify({ ...progress, sgk: { ...progress.sgk, c: { sections: 3 } } }));
+    expect(Object.keys(broken.sgk)).toEqual(["a", "b"]);
+  });
+});
+
+describe("xuất / nhập mã tiến độ", () => {
+  const school = recordSectionRead(recordQuiz(emptyProgress, "bai:7-khang-chien-chong-phap", 6, 10, day1), "7-khang-chien-chong-phap", "muc-1", day1);
+  const phone = recordSectionRead(recordQuiz(emptyProgress, "bai:7-khang-chien-chong-phap", 8, 10, day2), "7-khang-chien-chong-phap", "muc-3", day2);
+
+  it("xuất rồi nhập lại ra đúng tiến độ; mã chỉ gồm ký tự an toàn", () => {
+    const code = exportProgressCode(school);
+    expect(code).toMatch(/^LS12-[A-Za-z0-9_-]+$/);
+    expect(importProgressCode(`  ${code}
+`)).toEqual(school);
+  });
+
+  it("mã sai hoặc hỏng → null", () => {
+    expect(importProgressCode("")).toBeNull();
+    expect(importProgressCode("LS12-@@@")).toBeNull();
+    expect(importProgressCode(`LS12-${btoa(JSON.stringify({ v: 9 }))}`)).toBeNull();
+    expect(importProgressCode(btoa(JSON.stringify(school)))).toBeNull();
+  });
+
+  it("gộp hai máy: điểm cao nhất, cộng lượt, dấu sớm nhất, hợp các mục đã đọc", () => {
+    const merged = mergeProgress(school, phone);
+    const quiz = merged.quizzes["bai:7-khang-chien-chong-phap"];
+    expect(quiz.best).toBe(8);
+    expect(quiz.attempts).toBe(2);
+    expect(quiz.passedAt).toBe(day2.toISOString());
+    const lesson = merged.sgk["7-khang-chien-chong-phap"];
+    expect(Object.keys(lesson.sections).sort()).toEqual(["muc-1", "muc-3"]);
+    expect(lesson.lastSection).toBe("muc-3");
+    expect(mergeProgress(emptyProgress, school)).toEqual(school);
   });
 });
 

@@ -6,6 +6,8 @@ import { SectionErrorBoundary } from "@/components/ui/SectionErrorBoundary";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getMapLocations } from "@/lib/queries/locations";
 import { getPublishedTopics } from "@/lib/queries/topics";
+import { getCurriculum } from "@/lib/queries/sgk";
+import { legacyTopicColor, lessonEventSlugs } from "@/lib/sgk/curriculum";
 
 export const metadata: Metadata = {
   title: "Bản đồ",
@@ -14,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 async function MapContent() {
-  const [locations, topics] = await Promise.all([getMapLocations(), getPublishedTopics()]);
+  const [locations, topics, curriculum] = await Promise.all([getMapLocations(), getPublishedTopics(), getCurriculum()]);
 
   if (locations.length === 0) {
     return (
@@ -30,9 +32,10 @@ async function MapContent() {
   return (
     <MapExplorer
       locations={locations}
+      lessonEvents={Object.fromEntries(curriculum.lessons.map((lesson) => [lesson.slug, lessonEventSlugs(lesson)]))}
       topics={topics
         .filter((topic) => topic.eventCount > 0)
-        .map((topic) => ({ slug: topic.slug, name: topic.name, eventCount: topic.eventCount }))}
+        .map((topic) => ({ slug: topic.slug, name: topic.name, eventCount: topic.eventCount, color: legacyTopicColor(topic.slug) }))}
     />
   );
 }

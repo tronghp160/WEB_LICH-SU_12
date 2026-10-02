@@ -6,6 +6,10 @@
 //   mode: new    → thêm sự kiện mới ở trạng thái NHÁP (draft): phải qua kiểm duyệt trong trang quản trị mới công khai.
 //
 // Dùng: node scripts/build-content-sql.mjs [--md5 <file json slug→md5 nội dung hiện tại>]
+//       node scripts/build-content-sql.mjs --batch gd7
+//   --batch <tên>: chỉ các file có "batch: <tên>" + chủ đề mới (chu-de-<tên>.json) + địa điểm mới (dia-diem-<tên>.json)
+//                  → supabase/seed-content-<tên>.sql. Không có --batch: các file KHÔNG thuộc đợt nào → seed-content.sql
+//                  như trước (đợt mới không lẫn vào tệp đã chạy).
 // Script chỉ in SQL ra file để người phụ trách xem và duyệt; KHÔNG kết nối database.
 
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -14,7 +18,8 @@ import { parseArgs } from "node:util";
 
 const root = path.resolve(import.meta.dirname, "..");
 const contentDir = path.join(root, "supabase", "content", "su-kien");
-const { values: args } = parseArgs({ options: { md5: { type: "string" } } });
+const { values: args } = parseArgs({ options: { md5: { type: "string" }, batch: { type: "string" } } });
+const batch = args.batch;
 const currentMd5 = args.md5 ? JSON.parse(readFileSync(args.md5, "utf8")) : {};
 
 const SGK = "Sách giáo khoa Lịch sử 12";
@@ -46,7 +51,8 @@ const topicId = (slug) => `(select id from public.curriculum_topics where slug =
 const eventId = (slug) => `(select id from public.historical_events where slug = ${q(slug)})`;
 
 const files = readdirSync(contentDir).filter((file) => file.endsWith(".md")).sort();
-const items = files.map(parseFile);
+const items = files.map(parseFile).filter((item) => (batch ? item.meta.batch === batch : !item.meta.batch));
+if (items.length === 0) throw new Error(`Không có file nội dung nào${batch ? ` thuộc đợt "${batch}"` : ""}.`);
 const out = [];
 const report = [];
 
@@ -93,7 +99,13 @@ where not exists (select 1 from public.event_topics where event_id = ${eventId(m
   }
 }
 
-const locations = JSON.parse(readFileSync(path.join(root, "supabase", "content", "dia-diem-moi.json"), "utf8"));
+const locations = JSON.parse(readFileSync(path.join(root, "supabase", "content", batch ? `dia-diem-${batch}.json` : "dia-diem-moi.json"), "utf8"));
+const topics = batch ? JSON.parse(readFileSync(path.join(root, "supabase", "content", `chu-de-${batch}.json`), "utf8")) : [];
+const topicSql = topics.map(
+  (item) => `insert into public.curriculum_topics (name, slug, description, sort_order, workflow_status)
+select ${q(item.name)}, ${q(item.slug)}, ${q(item.description)}, ${Number(item.sort_order)}, 'draft'
+where not exists (select 1 from public.curriculum_topics where slug = ${q(item.slug)});`,
+);
 const locationSql = locations.map(
   (item) => `insert into public.historical_locations (name, historical_name, slug, description, latitude, longitude, accuracy_level, accuracy_note, workflow_status)
 select ${q(item.name)}, ${q(item.historical_name)}, ${q(item.slug)}, ${q(item.description)}, ${item.latitude}, ${item.longitude}, ${q(item.accuracy_level)}, ${q(item.accuracy_note)}, 'draft'
@@ -130,6 +142,34 @@ where file_url like '%/events/chien-dich-ho-chi-minh/xe-tang-dinh-doc-lap-1200.w
 commit;
 `;
 
-writeFileSync(path.join(root, "supabase", "seed-content.sql"), sql);
-console.log(report.join("\n"));
-console.log(`→ supabase/seed-content.sql (${sql.length} ký tự)`);
+if (batch) {
+  const batchSql = `-- Đợt nội dung "${batch}" (KE_HOACH_NANG_CAP_GIAO_DIEN.md, GĐ7: nội dung còn thiếu của các bài SGK).
+-- TỆP SINH TỰ ĐỘNG bởi: node scripts/build-content-sql.mjs --batch ${batch} — sửa các file .md có "batch: ${batch}" rồi chạy lại.
+-- KHÔNG phải migration: là dữ liệu, chạy SAU seed-content.sql. Sau đó chạy supabase/seed-sgk.sql để gán sự kiện vào bài.
+--
+-- Thêm ${topics.length} chủ đề, ${locations.length} địa điểm và ${items.length} sự kiện ở trạng thái NHÁP (draft): phải qua kiểm duyệt trong trang
+-- quản trị (chủ đề và địa điểm công bố TRƯỚC sự kiện) mới hiện ở trang công khai.
+-- Chỉ INSERT, mọi câu có "where not exists" nên chạy lại không tạo trùng. Không xóa, không sửa dữ liệu cũ.
+-- Nội dung cần giáo viên đối chiếu SGK: docs/du-lieu-can-kiem-chung.md, mục "Nội dung GĐ7".
+
+begin;
+
+-- ---------- Chủ đề mới (nháp) ----------
+${topicSql.join("\n\n")}
+
+-- ---------- Địa điểm mới (nháp) ----------
+${locationSql.join("\n\n")}
+
+-- ---------- Sự kiện mới (nháp) ----------
+${out.join("\n\n")}
+
+commit;
+`;
+  writeFileSync(path.join(root, "supabase", `seed-content-${batch}.sql`), batchSql);
+  console.log(report.join("\n"));
+  console.log(`→ supabase/seed-content-${batch}.sql (${batchSql.length} ký tự)`);
+} else {
+  writeFileSync(path.join(root, "supabase", "seed-content.sql"), sql);
+  console.log(report.join("\n"));
+  console.log(`→ supabase/seed-content.sql (${sql.length} ký tự)`);
+}

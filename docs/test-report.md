@@ -272,6 +272,41 @@ Trang Vận hành (`/quan-tri/van-hanh`) thực hiện lại các kiểm tra nà
 5. Reviewer vẫn có quyền ghi các bảng liên kết và `sources` (giữ nguyên theo yêu cầu); nếu muốn nghiêm hơn cần một migration riêng.
 6. Đổi mật khẩu hoặc **xóa 4 tài khoản thử** trước khi công khai bản triển khai.
 
+## 10. Nâng cấp giao diện "SGK Lịch sử 12 số" (01 – 02/10/2026)
+
+Theo `KE_HOACH_NANG_CAP_GIAO_DIEN.md`, GĐ1–7 (giữ URL cũ nên không có redirect; GĐ7 chưa làm chuyên đề Hiệp định Pa-ri).
+GĐ7 thêm: bảng `sgk_lesson_events` + trang quản trị "Bài SGK" (migration CHƯA chạy — web tự dùng khung trong code), 8 sự kiện
+nháp cho các bài còn trống, chuyên đề Tết Mậu Thân 1968 và Chiến dịch Hồ Chí Minh 1975 (unit test kịch bản bản đồ, ảnh, video). Quy ước giao diện: `docs/huong-dan-giao-dien.md`.
+Ảnh chụp sau nâng cấp (1280 / 390px, sáng / tối): `docs/screenshots/ui-v2/`.
+
+| Nhóm | Kết quả | Ghi chú |
+|---|---|---|
+| Unit test (Vitest) | **434/434** đạt, 28 file (sau GĐ7) | thêm `curriculum.test.ts` (khung 17 bài, tìm "bài 7", trắc nghiệm theo bài, ôn lại đúng mục, tìm nhanh, danh mục chuyên đề) và các ca tiến độ theo mục, mã tiến độ, gộp hai máy trong `progress.test.ts` |
+| Lint, kiểu (tsc) | sạch | |
+| E2E đầy đủ, bản production (lần 2) | **120 đạt**, 3 hỏng, 11 bỏ qua / 134 | 11 bỏ qua: bộ quản trị cần `TEST_PW`. 3 hỏng đều do test: 2 ca chờ bản đồ ở 360/768px (chuyên đề giờ hiện từng chương trên màn hình hẹp → mở bằng `#dien-bien`), 1 ca nhấn phím `/` trước khi trang chạy JS. Đã sửa test; chạy lại riêng các ca liên quan: 8/8 đạt |
+| E2E đầy đủ (lần 3) | 95 đạt, 4 hỏng, 24 không chạy / 134 | máy hết bộ nhớ giữa chừng — 4 ca 3D sập tiến trình chạy test (0xC0000142), không phải lỗi kiểm tra |
+| **E2E đầy đủ (lần 4, sau GĐ7, build sạch)** | **122 đạt**, 1 hỏng, 11 bỏ qua / 134 | ca hỏng: `photo3d.spec.ts` "bấm Xem ảnh 3D…" — nút "Phóng to" chưa đứng yên khi WebGL phần mềm (SwiftShader) chậm sau 10 phút chạy liên tục; **chạy lại riêng `photo3d.spec.ts`: 7/7 đạt** → ca chập chờn, không phải lỗi giao diện |
+| Trợ năng axe-core (`a11y.spec.ts`) | 20/20 đạt | 10 trang × sáng/tối, không lỗi serious/critical (đã sửa: màu nhấn ở giao diện tối #ea5a50 → #f07a70, tương phản 4,4 → 5,6:1) |
+
+**Lighthouse 13.5** (bản production cục bộ, Chrome headless; mobile = giả lập Moto G Power, 4G chậm):
+
+| Trang | Mobile: Hiệu năng / Trợ năng / BP / SEO | LCP mobile | CLS | Desktop: Hiệu năng / Trợ năng | JS tải (KB, nén) |
+|---|---|---:|---:|---|---:|
+| Trang chủ | 85 / 100 / 100 / 100 | 4,08 s | 0 | 96 / 100 | 258 |
+| Mục lục | 88 / 100 / 100 / 100 | 3,78 s | 0 | 100 / 100 | 253 |
+| Bài 7 | 87 / 100 / 100 / 100 | 3,95 s | 0 | 99 / 100 | 257 |
+| Chuyên đề Điện Biên Phủ | 82 / 100 / 100 / 100 | 4,69 s | 0 | 99 / 100 | 289 |
+
+So với ngân sách mục 8.4 của kế hoạch: **trợ năng 100 và CLS 0 đạt; hiệu năng mobile ≥ 85 đạt 3/4 trang** (chuyên đề 82);
+**chưa đạt** LCP mobile ≤ 2,5 s và JS ≤ 170 KB (phần lớn là khung Next.js/React dùng chung). Trong lúc đo đã sửa: hộp hướng
+dẫn lần đầu gây CLS 0,43 (đổi sang `transform`), menu kéo toàn bộ dữ liệu chuyên đề vào mọi trang (tách `lib/lessons/catalog.ts`,
+giảm ~25–30 KB mỗi trang), tên nút tìm kiếm khác chữ hiển thị, vùng bấm nhỏ ở cột công cụ.
+
+Chiều cao trang chuyên đề Điện Biên Phủ: điện thoại ≈ 13.000 px → 3.600 px mỗi chương (chương 1), máy tính ≈ 9.400 → 7.000 px.
+
+**Chưa làm:** ảnh so sánh tự động (`toHaveScreenshot`) vì dữ liệu thật thay đổi; kiểm thử với học sinh thật (mục 10.1 của kế
+hoạch) cần người tham gia.
+
 ## 9. Cơ sở dữ liệu thực tế (cho Chương 2 của báo cáo)
 
 - 10 bảng trong schema `public`, **cả 10 bật RLS**; PostGIS trong schema `extensions`; 8 trigger nghiệp vụ trong `public`.

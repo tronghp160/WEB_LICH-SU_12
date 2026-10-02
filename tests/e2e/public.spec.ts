@@ -6,14 +6,14 @@ import { hasHorizontalOverflow } from "./support";
 
 const SCREENSHOTS = "docs/screenshots";
 
-/** E1: Trang chủ → chủ đề → sự kiện → nhân vật → quay lại. */
+/** E1: Trang chủ → Bài 7 trong mục lục SGK → sự kiện → nhân vật → quay lại. */
 async function flowE1(page: Page) {
   await page.goto("/");
-  await page.locator('a[href="/chu-de/khang-chien-chong-phap"]').first().click();
-  await expect(page).toHaveURL(/\/chu-de\/khang-chien-chong-phap$/);
+  await page.locator('a[href="/bai/7-khang-chien-chong-phap"]').first().click();
+  await expect(page).toHaveURL(/\/bai\/7-khang-chien-chong-phap$/);
   await expect(page.locator("h1")).toContainText("kháng chiến chống thực dân Pháp");
 
-  await page.getByRole("link", { name: "Chiến dịch Điện Biên Phủ" }).first().click();
+  await page.getByRole("link", { name: "Chiến dịch Điện Biên Phủ", exact: true }).first().click();
   await expect(page).toHaveURL(/\/su-kien\/chien-dich-dien-bien-phu$/);
   await expect(page.locator("h1")).toHaveText("Chiến dịch Điện Biên Phủ");
 
@@ -62,7 +62,7 @@ async function flowE3(page: Page) {
 }
 
 test.describe("Luồng công khai (viewport 1280px)", () => {
-  test("E1: trang chủ → chủ đề → sự kiện → nhân vật → quay lại", async ({ page }) => {
+  test("E1: trang chủ → bài SGK → sự kiện → nhân vật → quay lại", async ({ page }) => {
     await flowE1(page);
   });
 

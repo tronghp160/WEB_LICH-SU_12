@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { markLessonStudied, parseProgress, PROGRESS_KEY, recordQuiz, type Progress } from "@/lib/progress/progress";
+import { markLessonStudied, mergeProgress, parseProgress, PROGRESS_KEY, recordQuiz, recordSectionRead, type Progress } from "@/lib/progress/progress";
 
 // Đọc/ghi tiến độ học tập trong localStorage (GĐ4.4). localStorage có thể bị chặn (chế độ riêng tư, trình duyệt
 // của trường tắt lưu trữ) → mọi thao tác bọc try/catch; hỏng thì trang vẫn chạy, chỉ không nhớ được tiến độ.
@@ -58,6 +58,15 @@ export function saveQuizResult(setId: string, score: number, total: number) {
 
 export function saveLessonStudied(slug: string) {
   update((progress) => markLessonStudied(progress, slug, new Date()));
+}
+
+export function saveSectionRead(lessonSlug: string, sectionId: string) {
+  update((progress) => recordSectionRead(progress, lessonSlug, sectionId, new Date()));
+}
+
+/** Gộp tiến độ nhập từ mã của máy khác vào tiến độ trên máy này (xuất/nhập mã tiến độ). */
+export function importProgress(incoming: Progress) {
+  update((progress) => mergeProgress(progress, incoming));
 }
 
 export function clearProgress() {

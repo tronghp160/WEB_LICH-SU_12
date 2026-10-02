@@ -52,7 +52,8 @@ export function buildSlides(lesson: Lesson): Slide[] {
         fact: step.fact,
       }),
     ),
-    { kind: "stats", title: "Kết quả", stats: lesson.results },
+    // Chuyên đề không có số liệu tổng kết (ví dụ Tết Mậu Thân) thì bỏ trang "Kết quả".
+    ...(lesson.results.length > 0 ? [{ kind: "stats", title: "Kết quả", stats: lesson.results } satisfies Slide] : []),
     { kind: "significance", title: "Ý nghĩa lịch sử", items: lesson.significance },
   ];
 

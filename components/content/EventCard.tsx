@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { SgkPlacement } from "@/lib/sgk/curriculum";
+import { sgkPaths } from "@/lib/sgk/curriculum";
 import type { ReactNode } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -16,6 +18,10 @@ export type EventCardProps = EventSummary & {
   showFeaturedBadge?: boolean;
   /** Ẩn ảnh đầu thẻ (khu vực đã có ảnh lớn khác hoặc cần danh sách gọn). */
   hideImage?: boolean;
+  /** Ẩn nhãn chủ đề (trang Bài SGK: đã biết thuộc bài nào, nhãn tên chủ đề dài chỉ gây nhiễu — V-34). */
+  hideTopic?: boolean;
+  /** Sự kiện thuộc Bài SGK nào: hiện nhãn ngắn "Bài 7" (màu chủ đề) THAY cho tên chủ đề dài (V-34). */
+  placements?: SgkPlacement[];
   /**
    * Hành động phụ dưới thẻ (ví dụ "Xem trên bản đồ"). Được nâng lên z-10 nên
    * bấm được độc lập với liên kết trải rộng của cả thẻ.
@@ -41,10 +47,15 @@ export function EventCard({
   cover,
   showFeaturedBadge = true,
   hideImage = false,
+  hideTopic = false,
+  placements,
   children,
 }: EventCardProps) {
   const showFeatured = showFeaturedBadge && isFeatured;
-  const hasBadges = showFeatured || Boolean(topicName) || datePrecision !== "exact";
+  const lessonsOfEvent = [...new Map((placements ?? []).map((item) => [item.lesson.slug, item])).values()];
+  const showLessons = lessonsOfEvent.length > 0;
+  const showTopic = !hideTopic && !showLessons && Boolean(topicName);
+  const hasBadges = showFeatured || showTopic || showLessons || datePrecision !== "exact";
 
   return (
     <Card className="group relative flex h-full flex-col gap-2 overflow-hidden p-4 transition-shadow hover:shadow-lg">
@@ -79,7 +90,18 @@ export function EventCard({
               Nổi bật
             </Badge>
           )}
-          {topicName && <TopicBadge name={topicName} slug={topicSlug} />}
+          {showTopic && topicName && <TopicBadge name={topicName} slug={topicSlug} />}
+          {lessonsOfEvent.map(({ lesson, section }) => (
+            <Link
+              key={lesson.slug}
+              href={sgkPaths.section(lesson.slug, section.id)}
+              data-topic-color={lesson.topic.color}
+              title={`Bài ${lesson.number}. ${lesson.title}`}
+              className="relative z-10 inline-flex shrink-0 items-center rounded-md border border-[var(--topic)] px-2 py-0.5 text-xs font-semibold text-[var(--topic)] hover:bg-[var(--topic)] hover:text-background"
+            >
+              Bài {lesson.number}
+            </Link>
+          ))}
           <DatePrecisionBadge precision={datePrecision} />
         </div>
       )}
