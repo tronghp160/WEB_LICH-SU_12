@@ -5,10 +5,13 @@ import { redirect } from "next/navigation";
 import { readFormValues, zodErrorState, type ActionState } from "@/lib/actions/state";
 import { getPaymentProvider, mockSecret } from "@/lib/payments/config";
 import { activateLicense } from "@/lib/payments/licenses";
+import { consumeRateLimit } from "@/lib/payments/rate-limit";
 import { paymentReasonMessage } from "@/lib/payments/order-status";
 import {
   createOrder,
   getOrderForCheckout,
+  lookupOrder,
+  type LookupResult,
   ORDER_COOKIE_MAX_AGE,
   orderCookieName,
   processWebhook,
@@ -111,9 +114,31 @@ export async function activateLicenseAction(code: string, deviceId: string): Pro
   if (typeof code !== "string" || typeof deviceId !== "string" || code.length > 64 || deviceId.length > 64) {
     return { ok: false, message: paymentReasonMessage("invalid_code") };
   }
+  // Không đếm được (chưa chạy migration / mất kết nối) thì vẫn cho kích hoạt — mã 60 bit nên dò mã không khả thi.
+  if ((await consumeRateLimit("license_activation", await clientIp())) === "limited") {
+    return { ok: false, message: "Em đã thử quá nhiều lần. Đợi khoảng 15 phút rồi thử lại nhé." };
+  }
   const result = await activateLicense(code, deviceId);
   if (!result.ok) {
     return { ok: false, message: result.reason === "unavailable" ? "Chưa kích hoạt được lúc này. Em thử lại sau ít phút nhé." : paymentReasonMessage(result.reason) };
   }
   return result;
+}
+
+export type LookupState = { status: "idle" | "error" | "found"; message?: string; result?: LookupResult; values?: Record<string, string> };
+
+/** Tra cứu đơn bằng mã đơn + email (khi mất mã kích hoạt / đổi máy). Giới hạn 5 lần / 15 phút / IP. */
+export async function lookupOrderAction(_previous: LookupState, formData: FormData): Promise<LookupState> {
+  const values = readFormValues(formData);
+  const orderCode = Number((values.don ?? "").replace(/\D/g, ""));
+  const email = (values.email ?? "").trim();
+  if (!orderCode || !email) return { status: "error", message: "Em nhập đủ mã đơn và email đã dùng khi mua nhé.", values };
+  // Không đếm được thì CHẶN: mã đơn là số tăng dần, không giới hạn được số lần thử thì không an toàn để tra cứu.
+  const limit = await consumeRateLimit("order_lookup", await clientIp());
+  if (limit === "limited") return { status: "error", message: "Em đã tra cứu quá nhiều lần. Đợi khoảng 15 phút rồi thử lại nhé.", values };
+  if (limit === "unavailable") return { status: "error", message: "Tạm thời chưa tra cứu được. Em thử lại sau ít phút nhé.", values };
+  const result = await lookupOrder(orderCode, email);
+  // Cùng một thông báo cho "sai mã đơn" và "sai email" — không cho dò xem mã đơn nào tồn tại.
+  if (!result) return { status: "error", message: "Không tìm thấy đơn khớp mã đơn và email này.", values };
+  return { status: "found", result, values: { don: String(orderCode), email } };
 }

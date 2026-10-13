@@ -18,6 +18,10 @@ export function LicenseGate({ children }: { children: ReactNode }) {
           <Link href={examPaths.activate} className="text-accent underline">
             Kích hoạt trên máy này
           </Link>
+          {" · "}Mất mã?{" "}
+          <Link href="/thanh-toan/tra-cuu" className="text-accent underline">
+            Tra cứu đơn
+          </Link>
         </p>
       </>
     );

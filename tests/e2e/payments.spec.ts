@@ -151,3 +151,57 @@ test.describe("Kích hoạt mã và làm đề luyện thi", () => {
     await expect(other.getByRole("button", { name: "Bắt đầu làm bài" })).toBeVisible();
   });
 });
+
+// GĐ5: ủng hộ và tra cứu đơn (tra cứu cần migration 20261016000000_payment_rate_limits.sql).
+test.describe("Ủng hộ và tra cứu đơn", () => {
+  test("ủng hộ 20.000đ kèm lời nhắn → trả tiền → cảm ơn; lời nhắn CHƯA lên bức tường khi chưa duyệt", async ({ page }) => {
+    const message = `ZZ KIỂM THỬ lời nhắn ${Date.now()}`;
+    await page.goto("/ung-ho");
+    await page.getByRole("button", { name: "20.000đ", exact: true }).click();
+    await page.getByLabel("Tên hiển thị (không bắt buộc)").fill("ZZ Kiểm thử");
+    await page.getByLabel("Lời nhắn (không bắt buộc)").fill(message);
+    await page.getByLabel(/Hiện tên và lời nhắn trên Bức tường cảm ơn/).check();
+    await page.getByLabel(/Em hiểu đây là khoản ủng hộ tự nguyện/).check();
+    await page.getByRole("button", { name: "Ủng hộ 20.000đ" }).click();
+    await expect(page.getByTestId("mock-amount")).toHaveText("20.000đ");
+    await page.getByRole("button", { name: /Xác nhận chuyển khoản/ }).click();
+    await expect(page.getByTestId("order-status")).toHaveText("Đã thanh toán");
+    await expect(page.getByText("Lời nhắn của em sẽ lên Bức tường cảm ơn sau khi được duyệt.", { exact: false })).toBeVisible();
+    await expect(page.getByTestId("license-code")).toHaveCount(0);
+
+    await page.goto("/ung-ho");
+    await expect(page.getByText(message)).toHaveCount(0);
+  });
+
+  test("số tiền ủng hộ ngoài khoảng cho phép → báo lỗi, không tạo đơn", async ({ page }) => {
+    await page.goto("/ung-ho");
+    await page.getByLabel("Hoặc nhập số khác (đồng)").fill("5000");
+    await page.getByLabel(/Em hiểu đây là khoản ủng hộ tự nguyện/).check();
+    await page.getByRole("button", { name: "Ủng hộ 5.000đ" }).click();
+    await expect(page.getByText(/Số tiền ủng hộ từ 10\.000đ đến 2\.000\.000đ/)).toBeVisible();
+    await expect(page).toHaveURL(/\/ung-ho$/);
+  });
+
+  test("tra cứu đơn bằng mã đơn + email: đúng thì thấy mã; sai email thì thông báo chung", async ({ page, browser }) => {
+    const email = `zz-kiem-thu-${Date.now()}@test.local`;
+    await page.goto("/luyen-thi");
+    await page.getByLabel("Email (không bắt buộc)").fill(email);
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: /Thanh toán 29\.000đ/ }).click();
+    await page.getByRole("button", { name: /Xác nhận chuyển khoản/ }).click();
+    const orderCode = (await page.getByTestId("order-code").textContent())?.trim() ?? "";
+    const code = (await page.getByTestId("license-code").textContent())?.trim() ?? "";
+
+    const other = await (await browser.newContext()).newPage();
+    await other.goto("/thanh-toan/tra-cuu");
+    await other.getByLabel("Mã đơn").fill(orderCode);
+    await other.getByLabel("Email đã nhập khi mua").fill("nguoi-khac@test.local");
+    await other.getByRole("button", { name: "Tra cứu" }).click();
+    await expect(other.locator("#tra-cuu-loi")).toHaveText("Không tìm thấy đơn khớp mã đơn và email này.");
+
+    await other.getByLabel("Email đã nhập khi mua").fill(email.toUpperCase());
+    await other.getByRole("button", { name: "Tra cứu" }).click();
+    await expect(other.getByTestId("lookup-status")).toHaveText("Đã thanh toán");
+    await expect(other.getByTestId("license-code")).toHaveText(code);
+  });
+});

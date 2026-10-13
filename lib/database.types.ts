@@ -970,6 +970,27 @@ export type Database = {
           },
         ]
       }
+      rate_limit_hits: {
+        Row: {
+          id: number
+          bucket: string
+          key_hash: string
+          created_at: string
+        }
+        Insert: {
+          id?: never
+          bucket: string
+          key_hash: string
+          created_at?: string
+        }
+        Update: {
+          id?: never
+          bucket?: string
+          key_hash?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       donation_wall: {
@@ -1004,6 +1025,10 @@ export type Database = {
       expire_stale_orders: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      consume_rate_limit: {
+        Args: { p_bucket: string; p_key_hash: string; p_window_seconds: number; p_max: number }
+        Returns: boolean
       }
       media_owner_status: {
         Args: { p_event: string | null; p_figure: string | null; p_location: string | null }

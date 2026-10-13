@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, HelpCircle } from "lucide-react";
+import { PaymentOpsSection } from "@/components/admin/payments/PaymentOpsSection";
 import { Card } from "@/components/ui/Card";
 import { overallStatusLabels, type CheckResult, type OverallStatus } from "@/lib/admin/operations";
 import { requireRole } from "@/lib/auth";
@@ -162,6 +163,8 @@ export default async function OperationsPage() {
           </p>
         )}
       </section>
+
+      <PaymentOpsSection />
 
       <section aria-labelledby="toan-ven" className="flex max-w-3xl flex-col gap-3">
         <h2 id="toan-ven" className="font-serif text-xl font-bold text-foreground">

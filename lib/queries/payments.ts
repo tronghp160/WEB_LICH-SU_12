@@ -18,3 +18,18 @@ export async function getActiveProduct(slug: string) {
   if (error) throw error;
   return data;
 }
+
+export type WallEntry = { displayName: string; message: string | null; paidAt: string | null; tier: string | null };
+
+/** Bức tường cảm ơn: view `donation_wall` chỉ lộ tên, lời nhắn ĐÃ DUYỆT, ngày, mức — không có số tiền hay email. */
+export async function getDonationWall(limit = 60): Promise<WallEntry[]> {
+  const supabase = await createPublicClient();
+  const { data, error } = await supabase.from("donation_wall").select("display_name, message, paid_at, tier").order("paid_at", { ascending: false }).limit(limit);
+  if (error) throw error;
+  return data.map((row) => ({
+    displayName: row.display_name?.trim() || "Một bạn đọc",
+    message: row.message,
+    paidAt: row.paid_at,
+    tier: row.tier,
+  }));
+}

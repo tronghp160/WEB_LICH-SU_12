@@ -205,6 +205,38 @@ export async function processWebhook(provider: PaymentProvider, request: Request
   return { ok: true };
 }
 
+export type ReconcileOutcome = "paid" | "cancelled" | "rejected" | "unchanged" | "unavailable";
+
+/**
+ * Hỏi lại cổng trạng thái thật của đơn và cập nhật theo (dùng khi webhook đến muộn / không tới, và ở nút "Đối soát"
+ * của quản trị viên). Mọi kết quả khác "đang chờ" đều được ghi nhật ký.
+ */
+export async function reconcileOrder(orderCode: number, source: "reconcile" | "admin", note?: string): Promise<ReconcileOutcome> {
+  const provider = getPaymentProvider();
+  if (!provider) return "unavailable";
+  const db = createAdminClient();
+  const status = await provider.getStatus(orderCode).catch(() => null);
+  if (!status) return "unavailable";
+  if (status.status === "pending") return "unchanged";
+  await db.from("payment_events").insert({
+    order_code: orderCode,
+    provider: provider.name,
+    source,
+    signature_ok: true,
+    status: status.status,
+    amount_vnd: status.amountVnd,
+    provider_ref: status.providerRef,
+    payload: asPayload(status.raw),
+    note: note ?? null,
+  });
+  if (status.status === "paid") {
+    const result = await markOrderPaid(db, status, provider.name);
+    return result.ok ? "paid" : "rejected";
+  }
+  await db.from("orders").update({ status: "cancelled" }).eq("order_code", orderCode).eq("status", "pending");
+  return "cancelled";
+}
+
 export type OrderView = {
   orderCode: number;
   status: OrderStatus;
@@ -242,24 +274,9 @@ export async function getOrderForBuyer(orderCode: number, token: string | undefi
   let order = await loadOrder(db, orderCode);
   if (!order || !safeEqualHex(order.access_token_hash, sha256Hex(token))) return null;
 
-  const provider = getPaymentProvider();
-  if (provider && (order.status === "pending" || order.status === "expired")) {
-    const status = await provider.getStatus(orderCode).catch(() => ({ status: "pending" as const }));
-    if (status.status !== "pending") {
-      await db.from("payment_events").insert({
-        order_code: orderCode,
-        provider: provider.name,
-        source: "reconcile",
-        signature_ok: true,
-        status: status.status,
-        amount_vnd: status.amountVnd,
-        provider_ref: status.providerRef,
-        payload: asPayload(status.raw),
-      });
-      if (status.status === "paid") await markOrderPaid(db, status, provider.name);
-      else await db.from("orders").update({ status: "cancelled" }).eq("order_code", orderCode).eq("status", "pending");
-      order = (await loadOrder(db, orderCode)) ?? order;
-    }
+  if (order.status === "pending" || order.status === "expired") {
+    const outcome = await reconcileOrder(orderCode, "reconcile");
+    if (outcome !== "unchanged") order = (await loadOrder(db, orderCode)) ?? order;
   }
 
   const product = order.products;
@@ -290,4 +307,40 @@ export async function getOrderForCheckout(orderCode: number) {
     .eq("order_code", orderCode)
     .maybeSingle();
   return data;
+}
+
+export type LookupResult = {
+  orderCode: number;
+  status: OrderStatus;
+  productName: string;
+  productKind: ProductKind;
+  amountVnd: number;
+  paidAt: string | null;
+  licenseCode: string | null;
+  licenseActive: boolean;
+};
+
+/**
+ * Tra cứu đơn khi người mua mất cookie (đổi máy, xóa dữ liệu trình duyệt): cần ĐÚNG CẢ mã đơn lẫn email đã nhập lúc mua.
+ * Gọi sau khi đã qua giới hạn số lần thử (lib/payments/rate-limit.ts) vì mã đơn là số tăng dần, dễ đoán.
+ */
+export async function lookupOrder(orderCode: number, email: string): Promise<LookupResult | null> {
+  if (!Number.isSafeInteger(orderCode) || !email) return null;
+  const db = createAdminClient();
+  const { data } = await db
+    .from("orders")
+    .select("order_code, status, amount_vnd, paid_at, buyer_email, products(name, kind), licenses(code, status)")
+    .eq("order_code", orderCode)
+    .maybeSingle();
+  if (!data?.buyer_email || data.buyer_email.trim().toLowerCase() !== email.trim().toLowerCase()) return null;
+  return {
+    orderCode: data.order_code,
+    status: data.status,
+    productName: data.products.name,
+    productKind: data.products.kind,
+    amountVnd: data.amount_vnd,
+    paidAt: data.paid_at,
+    licenseCode: data.status === "paid" ? (data.licenses?.code ?? null) : null,
+    licenseActive: data.licenses?.status === "active",
+  };
 }

@@ -9,7 +9,7 @@ import { sgkQuizPaths } from "@/lib/sgk/review";
 /** sitemap.xml: trang tĩnh, mục lục và các bài SGK, chuyên đề, và mọi sự kiện / nhân vật / địa điểm / chủ đề ĐÃ CÔNG BỐ (đọc bằng quyền khách). */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const staticPaths = ["/", "/muc-luc", "/kham-pha", "/huong-dan", "/trac-nghiem/the-ghi-nho", "/bai-hoc", "/trac-nghiem", "/trac-nghiem/tong-hop", "/trac-nghiem/doan-nam", "/dong-thoi-gian", "/ban-do", "/di-tich-gan-em", "/tra-cuu"];
+  const staticPaths = ["/", "/muc-luc", "/kham-pha", "/huong-dan", "/trac-nghiem/the-ghi-nho", "/bai-hoc", "/trac-nghiem", "/trac-nghiem/tong-hop", "/trac-nghiem/doan-nam", "/dong-thoi-gian", "/ban-do", "/di-tich-gan-em", "/tra-cuu", "/luyen-thi", "/ung-ho"];
   const entries: MetadataRoute.Sitemap = [
     ...staticPaths.map((path) => ({ url: `${base}${path}`, changeFrequency: "weekly" as const, priority: path === "/" ? 1 : 0.8 })),
     ...[...interactiveEntries, ...immersiveEntries].map((entry) => ({ url: `${base}${entry.href}`, priority: 0.9 })),

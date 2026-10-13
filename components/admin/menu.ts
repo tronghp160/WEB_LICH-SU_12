@@ -1,4 +1,4 @@
-import { BookOpen, ClipboardCheck, FileText, LayoutDashboard, Users, Activity, type LucideIcon } from "lucide-react";
+import { BookOpen, ClipboardCheck, FileText, GraduationCap, LayoutDashboard, Receipt, Users, Activity, type LucideIcon } from "lucide-react";
 import { STAFF_ROLES, type StaffRole } from "@/lib/utils/labels";
 
 export type AdminMenuItem = {
@@ -33,6 +33,13 @@ export const ADMIN_MENU: readonly AdminMenuItem[] = [
     description: "Gán sự kiện vào từng bài, từng mục của SGK Lịch sử 12.",
   },
   {
+    label: "Đề luyện thi",
+    href: "/quan-tri/de-luyen-thi",
+    icon: GraduationCap,
+    roles: ["editor", "reviewer", "system_admin"],
+    description: "Soạn đề 40 câu cho Gói luyện thi THPT, gửi duyệt và công bố.",
+  },
+  {
     label: "Kiểm duyệt",
     href: "/quan-tri/kiem-duyet",
     icon: ClipboardCheck,
@@ -45,6 +52,13 @@ export const ADMIN_MENU: readonly AdminMenuItem[] = [
     icon: Users,
     roles: ["system_admin"],
     description: "Tạo tài khoản, đổi vai trò, khóa hoặc mở khóa nhân sự.",
+  },
+  {
+    label: "Đơn hàng",
+    href: "/quan-tri/don-hang",
+    icon: Receipt,
+    roles: ["system_admin"],
+    description: "Đơn mua gói luyện thi và ủng hộ: doanh thu, nhật ký thanh toán, mã kích hoạt, duyệt lời nhắn.",
   },
   {
     label: "Vận hành",

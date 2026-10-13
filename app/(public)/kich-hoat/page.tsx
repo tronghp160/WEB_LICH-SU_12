@@ -29,6 +29,10 @@ export default function ActivatePage() {
         <Link href={examPaths.hub} className="text-accent underline">
           Xem Gói luyện thi
         </Link>
+        {" · "}Mất mã?{" "}
+        <Link href="/thanh-toan/tra-cuu" className="text-accent underline">
+          Tra cứu đơn
+        </Link>
       </p>
     </div>
   );
