@@ -4,6 +4,10 @@
 // ⚠ TẠM THỜI: file này KHÔNG do CLI sinh ra (chưa có access token Supabase).
 // Khi có điều kiện, chạy lại lệnh dưới đây để thay thế bằng bản chính thức:
 //   npx supabase gen types typescript --project-id ueolfjujjybutyuyfxha --schema public > lib/database.types.ts
+//
+// Phần thanh toán (products … exam_questions, donation_wall, mark_order_paid …, order_status, product_kind) lấy từ
+// `npx supabase gen types typescript --db-url … --schema public` chạy trên DB thật sau migration 20261015000000_payments
+// rồi định dạng lại cho khớp file này (bản CLI chưa định dạng).
 
 export type Json =
   | string
@@ -615,11 +619,392 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["product_kind"]
+          max_devices: number
+          max_vnd: number | null
+          min_vnd: number | null
+          name: string
+          price_vnd: number | null
+          slug: string
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          kind: Database["public"]["Enums"]["product_kind"]
+          max_devices?: number
+          max_vnd?: number | null
+          min_vnd?: number | null
+          name: string
+          price_vnd?: number | null
+          slug: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["product_kind"]
+          max_devices?: number
+          max_vnd?: number | null
+          min_vnd?: number | null
+          name?: string
+          price_vnd?: number | null
+          slug?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          access_token_hash: string
+          amount_vnd: number
+          buyer_email: string | null
+          checkout_url: string | null
+          client_ip_hash: string | null
+          created_at: string
+          display_name: string | null
+          expires_at: string
+          id: string
+          message: string | null
+          order_code: number
+          paid_at: string | null
+          product_id: string
+          provider: string
+          provider_ref: string | null
+          show_on_wall: boolean
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+          wall_approved: boolean
+        }
+        Insert: {
+          access_token_hash: string
+          amount_vnd: number
+          buyer_email?: string | null
+          checkout_url?: string | null
+          client_ip_hash?: string | null
+          created_at?: string
+          display_name?: string | null
+          expires_at?: string
+          id?: string
+          message?: string | null
+          order_code?: number
+          paid_at?: string | null
+          product_id: string
+          provider: string
+          provider_ref?: string | null
+          show_on_wall?: boolean
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+          wall_approved?: boolean
+        }
+        Update: {
+          access_token_hash?: string
+          amount_vnd?: number
+          buyer_email?: string | null
+          checkout_url?: string | null
+          client_ip_hash?: string | null
+          created_at?: string
+          display_name?: string | null
+          expires_at?: string
+          id?: string
+          message?: string | null
+          order_code?: number
+          paid_at?: string | null
+          product_id?: string
+          provider?: string
+          provider_ref?: string | null
+          show_on_wall?: boolean
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+          wall_approved?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_events: {
+        Row: {
+          amount_vnd: number | null
+          id: number
+          note: string | null
+          order_code: number | null
+          payload: NonNullable<Json>
+          provider: string
+          provider_ref: string | null
+          received_at: string
+          signature_ok: boolean
+          source: string
+          status: string | null
+        }
+        Insert: {
+          amount_vnd?: number | null
+          id?: never
+          note?: string | null
+          order_code?: number | null
+          payload?: NonNullable<Json>
+          provider: string
+          provider_ref?: string | null
+          received_at?: string
+          signature_ok: boolean
+          source: string
+          status?: string | null
+        }
+        Update: {
+          amount_vnd?: number | null
+          id?: never
+          note?: string | null
+          order_code?: number | null
+          payload?: NonNullable<Json>
+          provider?: string
+          provider_ref?: string | null
+          received_at?: string
+          signature_ok?: boolean
+          source?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      licenses: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          max_devices: number
+          order_id: string
+          product_id: string
+          status: string
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          max_devices: number
+          order_id: string
+          product_id: string
+          status?: string
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          max_devices?: number
+          order_id?: string
+          product_id?: string
+          status?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licenses_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "licenses_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      license_activations: {
+        Row: {
+          activated_at: string
+          device_hash: string
+          last_seen_at: string
+          license_id: string
+        }
+        Insert: {
+          activated_at?: string
+          device_hash: string
+          last_seen_at?: string
+          license_id: string
+        }
+        Update: {
+          activated_at?: string
+          device_hash?: string
+          last_seen_at?: string
+          license_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_activations_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "licenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_sets: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_min: number
+          id: string
+          product_id: string | null
+          review_note: string | null
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+          workflow_status: Database["public"]["Enums"]["content_workflow_status"]
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          product_id?: string | null
+          review_note?: string | null
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          product_id?: string | null
+          review_note?: string | null
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_sets_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_questions: {
+        Row: {
+          choices: (string)[]
+          correct_index: number
+          created_at: string
+          event_id: string | null
+          explanation: string
+          id: string
+          lesson_slug: string | null
+          position: number
+          question: string
+          set_id: string
+          source_note: string
+          updated_at: string
+        }
+        Insert: {
+          choices: (string)[]
+          correct_index: number
+          created_at?: string
+          event_id?: string | null
+          explanation: string
+          id?: string
+          lesson_slug?: string | null
+          position: number
+          question: string
+          set_id: string
+          source_note: string
+          updated_at?: string
+        }
+        Update: {
+          choices?: (string)[]
+          correct_index?: number
+          created_at?: string
+          event_id?: string | null
+          explanation?: string
+          id?: string
+          lesson_slug?: string | null
+          position?: number
+          question?: string
+          set_id?: string
+          source_note?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_questions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "historical_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_questions_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "exam_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      donation_wall: {
+        Row: {
+          display_name: string | null
+          message: string | null
+          paid_at: string | null
+          tier: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      mark_order_paid: {
+        Args: {
+          p_order_code: number
+          p_amount: number
+          p_provider: string
+          p_provider_ref: string
+          p_license_code: string
+        }
+        Returns: Json
+      }
+      activate_license: {
+        Args: { p_code: string; p_device_hash: string }
+        Returns: Json
+      }
+      get_exam_set: {
+        Args: { p_slug: string; p_code: string; p_device_hash: string }
+        Returns: Json
+      }
+      expire_stale_orders: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       media_owner_status: {
         Args: { p_event: string | null; p_figure: string | null; p_location: string | null }
         Returns: string | null
@@ -657,6 +1042,8 @@ export type Database = {
         | "needs_revision"
         | "published"
         | "hidden"
+      order_status: "pending" | "paid" | "cancelled" | "expired" | "refunded"
+      product_kind: "exam_pack" | "donation"
       staff_role: "editor" | "reviewer" | "system_admin"
     }
     CompositeTypes: {
