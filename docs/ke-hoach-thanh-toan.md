@@ -779,3 +779,28 @@ Trước khi lập kế hoạch, repo đã được rà soát: `npx tsc --noEmit
 
 **Lưu ý môi trường (không phải lỗi code):** `next build` cần tải font từ Google Fonts; máy không có mạng sẽ báo lỗi
 font. Nếu cần build offline, chuyển sang `next/font/local` với tệp font tự lưu trong repo.
+
+---
+
+## Phụ lục B — Bật cổng payOS thật (GĐ4)
+
+Code đã sẵn (`lib/payments/providers/payos.ts`, SDK `@payos/node` 2.0.5). Đã đối chiếu với SDK và tài liệu API:
+nội dung chuyển khoản tối đa **9 ký tự** với tài khoản không liên kết qua payOS (dùng `DH<mã đơn>`), `expiredAt`
+tính bằng **giây**, webhook chỉ cần trả mã 2xx. Đã kiểm thử bằng khóa giả: webhook mẫu (đơn 123) → 200, webhook bị sửa
+số tiền → 400, khóa sai khi tạo link → đơn chuyển "Đã hủy" và người mua thấy "Cổng thanh toán đang bận".
+
+> ⚠️ payOS **không có tiền ảo**: kể cả khi `PAYMENT_ENV=test`, tiền chuyển khoản là tiền thật vào tài khoản ngân hàng
+> gắn với kênh. Khi thử nên tạm hạ giá gói (sửa `products.price_vnd`, tối thiểu 1.000đ ở ràng buộc DB) rồi trả lại.
+
+1. Đăng ký tại https://my.payos.vn, tạo **Kênh thanh toán** gắn tài khoản ngân hàng, lấy Client ID, API Key, Checksum Key.
+2. Điền vào `.env.local` (máy dev) hoặc biến môi trường Vercel:
+   `PAYMENT_PROVIDER=payos`, `PAYMENT_ENV=test` (hoặc `live`), `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`,
+   `NEXT_PUBLIC_SITE_URL=<địa chỉ web>` (payOS chuyển người mua về `<địa chỉ>/thanh-toan/ket-qua`).
+3. **Chạy trên máy dev (localhost):** mua được ngay — quét QR, trả tiền, quay về trang kết quả; trang kết quả tự đối soát
+   (`paymentRequests.get`) nên KHÔNG cần webhook. Chỉ khi người mua đóng tab trước khi quay về thì cần webhook.
+4. **Webhook (khi có địa chỉ công khai, ví dụ bản deploy Vercel):**
+   `node --env-file=.env.local scripts/payos-confirm-webhook.mjs https://<tên-miền>/api/thanh-toan/webhook/payos`
+   — payOS gửi thử giao dịch mẫu; trang quản trị Đơn hàng sẽ thấy một dòng nhật ký cho đơn 123 (không có đơn này, bỏ qua).
+5. Kiểm tra trên trang Vận hành → mục Thanh toán: "Cổng payos đang bật".
+6. Muốn quay lại cổng giả lập (demo không mạng): `PAYMENT_PROVIDER=mock`, `PAYMENT_ENV=test`.
+

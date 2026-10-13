@@ -83,7 +83,7 @@ export default async function ExamPrepPage() {
         </section>
 
         <section aria-labelledby="mua-goi" className="flex flex-col gap-4 rounded-card border border-border-strong bg-surface-raised p-5 sm:p-6">
-          {config.ok && config.env === "test" && <TestModeNotice />}
+          {config.ok && config.env === "test" && <TestModeNotice provider={config.provider} />}
           <h2 id="mua-goi" className="font-serif text-xl font-semibold text-foreground">
             Mua gói
           </h2>

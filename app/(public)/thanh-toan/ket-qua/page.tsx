@@ -90,7 +90,7 @@ export default async function PaymentResultPage({ searchParams }: PageProps<"/th
   return (
     <div className="mx-auto max-w-xl px-4 pb-16 pt-10">
       <div className="flex flex-col gap-5 rounded-card border border-border bg-surface p-6 shadow-card">
-        {config.ok && config.env === "test" && <TestModeNotice />}
+        {config.ok && config.env === "test" && <TestModeNotice provider={config.provider} />}
         <h1 className="font-serif text-2xl font-bold text-foreground">Kết quả thanh toán</h1>
         {order ? (
           <>

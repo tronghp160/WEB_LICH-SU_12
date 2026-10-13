@@ -201,7 +201,10 @@ export async function processWebhook(provider: PaymentProvider, request: Request
     const result = await markOrderPaid(db, verified, provider.name);
     return { ok: true, result };
   }
-  await db.from("orders").update({ status: "cancelled" }).eq("order_code", verified.orderCode).eq("status", "pending");
+  // Giao dịch thất bại không có nghĩa người mua bỏ đơn (có thể thử lại trên cùng link) → chỉ ghi nhật ký.
+  if (verified.status === "cancelled") {
+    await db.from("orders").update({ status: "cancelled" }).eq("order_code", verified.orderCode).eq("status", "pending");
+  }
   return { ok: true };
 }
 
@@ -233,6 +236,7 @@ export async function reconcileOrder(orderCode: number, source: "reconcile" | "a
     const result = await markOrderPaid(db, status, provider.name);
     return result.ok ? "paid" : "rejected";
   }
+  if (status.status === "failed") return "unchanged";
   await db.from("orders").update({ status: "cancelled" }).eq("order_code", orderCode).eq("status", "pending");
   return "cancelled";
 }

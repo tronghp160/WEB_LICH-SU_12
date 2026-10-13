@@ -46,7 +46,7 @@ export default async function MockBankPage({ searchParams }: PageProps<"/thanh-t
   return (
     <div className="mx-auto max-w-lg px-4 pb-16 pt-10">
       <div className="flex flex-col gap-5 rounded-card border-2 border-border-strong bg-surface p-6 shadow-card">
-        <TestModeNotice />
+        <TestModeNotice provider="mock" />
         <div className="flex items-center gap-3">
           <Landmark className="h-8 w-8 text-gold-deep" aria-hidden="true" />
           <div>

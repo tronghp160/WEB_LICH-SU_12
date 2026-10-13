@@ -50,7 +50,7 @@ export default async function DonatePage() {
 
       <div className="grid gap-8 md:grid-cols-[minmax(0,24rem)_1fr]">
         <section aria-labelledby="ung-ho-form" className="flex flex-col gap-4 rounded-card border border-border-strong bg-surface-raised p-5 sm:p-6">
-          {config.ok && config.env === "test" && <TestModeNotice />}
+          {config.ok && config.env === "test" && <TestModeNotice provider={config.provider} />}
           <h2 id="ung-ho-form" className="flex items-center gap-2 font-serif text-xl font-semibold text-foreground">
             <HeartHandshake className="h-5 w-5 text-accent" aria-hidden="true" />
             Gửi ủng hộ
