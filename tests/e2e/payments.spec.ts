@@ -117,7 +117,7 @@ test.describe("Kích hoạt mã và làm đề luyện thi", () => {
     await expect(page.getByText("Đề này thuộc Gói luyện thi.")).toBeVisible();
     await page.getByLabel("Mã kích hoạt").fill("LT12-AAAA-BBBB-CCCC");
     await page.getByRole("button", { name: "Kích hoạt", exact: true }).click();
-    await expect(page.getByRole("alert")).toContainText("Mã kích hoạt không đúng");
+    await expect(page.locator("#license-error")).toContainText("Mã kích hoạt không đúng");
   });
 
   test("mua → kích hoạt ngay trên trang kết quả → đề trong gói mở khóa → làm và nộp bài", async ({ page }) => {
