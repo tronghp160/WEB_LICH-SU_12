@@ -4,6 +4,8 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { readFormValues, zodErrorState, type ActionState } from "@/lib/actions/state";
 import { getPaymentProvider, mockSecret } from "@/lib/payments/config";
+import { activateLicense } from "@/lib/payments/licenses";
+import { paymentReasonMessage } from "@/lib/payments/order-status";
 import {
   createOrder,
   getOrderForCheckout,
@@ -95,4 +97,23 @@ export async function mockBankAction(formData: FormData): Promise<void> {
     }),
   );
   redirect(outcome === "cancelled" ? `${resultPath(orderCode)}&huy=1` : resultPath(orderCode));
+}
+
+export type ActivateState =
+  | { ok: true; code: string; productSlug: string | null; validUntil: string | null; devicesUsed: number; maxDevices: number }
+  | { ok: false; message: string };
+
+/**
+ * Kích hoạt mã trên máy này. Gọi trực tiếp từ client (không qua form state) vì cần mã thiết bị trong localStorage.
+ * Mã có 60 bit ngẫu nhiên nên dò mã là không khả thi; mỗi mã còn giới hạn số thiết bị ở database.
+ */
+export async function activateLicenseAction(code: string, deviceId: string): Promise<ActivateState> {
+  if (typeof code !== "string" || typeof deviceId !== "string" || code.length > 64 || deviceId.length > 64) {
+    return { ok: false, message: paymentReasonMessage("invalid_code") };
+  }
+  const result = await activateLicense(code, deviceId);
+  if (!result.ok) {
+    return { ok: false, message: result.reason === "unavailable" ? "Chưa kích hoạt được lúc này. Em thử lại sau ít phút nhé." : paymentReasonMessage(result.reason) };
+  }
+  return result;
 }

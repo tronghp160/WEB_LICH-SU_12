@@ -6,6 +6,7 @@ import {
   BookOpen,
   Box,
   Compass,
+  GraduationCap,
   HelpCircle,
   History,
   ListChecks,
@@ -45,6 +46,7 @@ export const REVIEW_LINKS: NavLink[] = [
   { href: quizPaths.hub, label: "Trắc nghiệm theo bài", description: "10 câu có ảnh, chấm điểm ngay", icon: ListChecks },
   { href: quizPaths.all, label: "Trắc nghiệm tổng hợp", description: "Câu hỏi ngẫu nhiên cả chương trình", icon: ListChecks },
   { href: quizPaths.yearGame, label: "Nhìn ảnh đoán năm", description: "Ảnh tư liệu thật, đoán năm diễn ra", icon: Images },
+  { href: "/luyen-thi", label: "Luyện thi THPT", description: "Đề 40 câu bấm giờ, có giải thích", icon: GraduationCap },
   { href: "/ho-chieu", label: "Tiến độ học tập", description: "Hộ chiếu lịch sử: con dấu đã nhận", icon: Stamp },
 ];
 

@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { unstable_rethrow } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
+import { ExamSetList, type ExamSetCard } from "@/components/exams/ExamSetList";
+import { LicenseGate } from "@/components/exams/LicenseGate";
 import { BuyPackForm } from "@/components/payments/BuyPackForm";
 import { TestModeNotice } from "@/components/payments/TestModeNotice";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Callout } from "@/components/ui/Callout";
 import { readPaymentConfig } from "@/lib/payments/config";
 import { formatVnd } from "@/lib/payments/pricing";
+import { getPublishedExamSets } from "@/lib/queries/exams";
 import { EXAM_PACK_SLUG, getActiveProduct } from "@/lib/queries/payments";
 
 export const metadata: Metadata = {
@@ -29,13 +32,22 @@ async function loadProduct() {
   }
 }
 
+async function loadSets(): Promise<ExamSetCard[] | null> {
+  try {
+    return await getPublishedExamSets();
+  } catch (error) {
+    unstable_rethrow(error);
+    return null;
+  }
+}
+
 function formatDate(iso: string): string {
   const [year, month, day] = new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).split("-");
   return `${day}/${month}/${year}`;
 }
 
 export default async function ExamPrepPage() {
-  const product = await loadProduct();
+  const [product, sets] = await Promise.all([loadProduct(), loadSets()]);
   const config = readPaymentConfig();
   const canBuy = Boolean(product && product.price_vnd && config.ok);
 
@@ -82,7 +94,9 @@ export default async function ExamPrepPage() {
             </p>
           ) : null}
           {canBuy && product?.price_vnd ? (
-            <BuyPackForm productSlug={product.slug} priceLabel={formatVnd(product.price_vnd)} />
+            <LicenseGate>
+              <BuyPackForm productSlug={product.slug} priceLabel={formatVnd(product.price_vnd)} />
+            </LicenseGate>
           ) : (
             <Callout variant="warning" title="Tạm ngưng bán">
               Gói luyện thi hiện chưa mở bán. Em quay lại sau nhé.
@@ -90,6 +104,21 @@ export default async function ExamPrepPage() {
           )}
         </section>
       </div>
+
+      <section aria-labelledby="cac-de" className="mt-10 flex flex-col gap-4">
+        <h2 id="cac-de" className="font-serif text-2xl font-semibold text-foreground">
+          Các đề luyện thi
+        </h2>
+        {sets === null ? (
+          <Callout variant="warning" title="Chưa tải được danh sách đề">
+            Em tải lại trang sau ít phút nhé.
+          </Callout>
+        ) : sets.length === 0 ? (
+          <p className="text-muted-foreground">Các đề đang được biên soạn và kiểm duyệt. Em quay lại sau nhé.</p>
+        ) : (
+          <ExamSetList sets={sets} />
+        )}
+      </section>
     </div>
   );
 }

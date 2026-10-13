@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { ActivateLicenseForm } from "@/components/payments/ActivateLicenseForm";
 import { LicenseCodeBox } from "@/components/payments/LicenseCodeBox";
 import { PendingRefresher } from "@/components/payments/PendingRefresher";
 import { TestModeNotice } from "@/components/payments/TestModeNotice";
@@ -35,6 +36,7 @@ function StatusBody({ order }: { order: OrderView }) {
           {order.licenseCode ? (
             <>
               <LicenseCodeBox code={order.licenseCode} />
+              {order.licenseActive && <ActivateLicenseForm presetCode={order.licenseCode} />}
               <Callout variant="note" title="Hãy lưu mã lại">
                 Chụp màn hình hoặc chép mã vào nơi an toàn. Mã dùng được trên tối đa 3 thiết bị; nhập mã ở máy khác bằng trang
                 Kích hoạt.

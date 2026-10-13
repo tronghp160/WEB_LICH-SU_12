@@ -88,3 +88,66 @@ test.describe("Thanh toán bằng cổng giả lập", () => {
     expect(unknown.status()).toBe(404);
   });
 });
+
+// GĐ3: kích hoạt mã và làm đề (cần supabase/seed-exam-mau.sql: đề 1 miễn phí, đề 2 thuộc gói — mỗi đề 10 câu).
+test.describe("Kích hoạt mã và làm đề luyện thi", () => {
+  /** Làm hết đề: chọn đáp án A cho mọi câu rồi nộp bài. */
+  async function answerAllAndSubmit(page: Page) {
+    await page.getByRole("button", { name: "Bắt đầu làm bài" }).click();
+    await expect(page.getByRole("timer")).toBeVisible();
+    const total = await page.getByRole("navigation", { name: "Chuyển nhanh tới câu" }).getByRole("button").count();
+    for (let index = 0; index < total; index++) {
+      await page.getByRole("list", { name: "Các đáp án" }).getByRole("button").first().click();
+      if (index + 1 < total) await page.getByRole("button", { name: "Câu sau" }).click();
+    }
+    await page.getByRole("button", { name: "Nộp bài" }).click();
+    await expect(page.getByTestId("exam-score")).toContainText("điểm");
+    await expect(page.getByRole("heading", { name: "Đáp án và giải thích" })).toBeVisible();
+  }
+
+  test("đề miễn phí làm được ngay, không cần mã", async ({ page }) => {
+    await page.goto("/luyen-thi");
+    await page.getByRole("link", { name: /Đề luyện thi số 1/ }).click();
+    await expect(page).toHaveURL(/\/luyen-thi\/de-1$/);
+    await answerAllAndSubmit(page);
+  });
+
+  test("đề trong gói bị khóa khi chưa kích hoạt; mã sai bị từ chối", async ({ page }) => {
+    await page.goto("/luyen-thi/de-2");
+    await expect(page.getByText("Đề này thuộc Gói luyện thi.")).toBeVisible();
+    await page.getByLabel("Mã kích hoạt").fill("LT12-AAAA-BBBB-CCCC");
+    await page.getByRole("button", { name: "Kích hoạt", exact: true }).click();
+    await expect(page.getByRole("alert")).toContainText("Mã kích hoạt không đúng");
+  });
+
+  test("mua → kích hoạt ngay trên trang kết quả → đề trong gói mở khóa → làm và nộp bài", async ({ page }) => {
+    await startPurchase(page);
+    await page.getByRole("button", { name: /Xác nhận chuyển khoản/ }).click();
+    const code = (await page.getByTestId("license-code").textContent())?.trim() ?? "";
+    await page.getByRole("button", { name: "Kích hoạt trên máy này" }).click();
+    await expect(page.getByText(/Đã kích hoạt gói luyện thi trên máy này \(1\/3 thiết bị\)/)).toBeVisible();
+
+    await page.getByRole("link", { name: "Vào làm đề" }).click();
+    await expect(page.getByTestId("pack-active")).toContainText(code);
+    await page.getByRole("link", { name: /Đề luyện thi số 2/ }).click();
+    await answerAllAndSubmit(page);
+
+    // Kết quả được lưu vào tiến độ: danh sách đề hiện điểm cao nhất.
+    await page.goto("/luyen-thi");
+    await expect(page.getByRole("link", { name: /Đề luyện thi số 2/ })).toContainText("Cao nhất:");
+  });
+
+  test("nhập mã ở máy khác qua trang Kích hoạt (gõ thường, không gạch)", async ({ page, browser }) => {
+    await startPurchase(page);
+    await page.getByRole("button", { name: /Xác nhận chuyển khoản/ }).click();
+    const code = (await page.getByTestId("license-code").textContent())?.trim() ?? "";
+
+    const other = await (await browser.newContext()).newPage();
+    await other.goto("/kich-hoat");
+    await other.getByLabel("Mã kích hoạt").fill(code.replace(/-/g, "").toLowerCase());
+    await other.getByRole("button", { name: "Kích hoạt", exact: true }).click();
+    await expect(other.getByText(/Đã kích hoạt gói luyện thi trên máy này \(1\/3 thiết bị\)/)).toBeVisible();
+    await other.goto("/luyen-thi/de-2");
+    await expect(other.getByRole("button", { name: "Bắt đầu làm bài" })).toBeVisible();
+  });
+});

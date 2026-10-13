@@ -176,6 +176,8 @@ type StampCatalogInput = {
   topics: readonly { slug: string; name: string }[];
   hasAllQuiz: boolean;
   hasYearGame: boolean;
+  /** Đề luyện thi THPT đã công bố (gói luyện thi — docs/ke-hoach-thanh-toan.md, mục 7.2). */
+  exams?: readonly { slug: string; title: string }[];
 };
 
 /** Mốc năm trong tên chủ đề cho con dấu: "Cuộc kháng chiến chống thực dân Pháp (1945–1954)" → "1945–1954". */
@@ -188,7 +190,7 @@ export function yearsInName(name: string): string | undefined {
 const requirementText =`Đạt từ ${Math.round(PASS_RATIO * 10)}/10 câu`;
 
 /** Danh sách con dấu theo các bộ trắc nghiệm đang mở: bài học → chủ đề → hai bộ đặc biệt. */
-export function buildStampCatalog({ sgkLessons = [], lessons, topics, hasAllQuiz, hasYearGame }: StampCatalogInput): StampDef[] {
+export function buildStampCatalog({ sgkLessons = [], lessons, topics, hasAllQuiz, hasYearGame, exams = [] }: StampCatalogInput): StampDef[] {
   const defs: StampDef[] = [
     ...sgkLessons.map(
       (lesson): StampDef => ({
@@ -240,6 +242,16 @@ export function buildStampCatalog({ sgkLessons = [], lessons, topics, hasAllQuiz
       motto: "Đoán năm",
       href: quizPaths.yearGame,
       requirement: `Đạt từ ${Math.round(PASS_RATIO * 100)}% số điểm trò đoán năm`,
+    });
+  }
+  for (const exam of exams) {
+    defs.push({
+      setId: `luyen-thi:${exam.slug}`,
+      kind: "special",
+      title: exam.title,
+      motto: "Luyện thi",
+      href: `/luyen-thi/${exam.slug}`,
+      requirement: `Đạt từ ${Math.round(PASS_RATIO * 10)} điểm đề luyện thi`,
     });
   }
   return defs;

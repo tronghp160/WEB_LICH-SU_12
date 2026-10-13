@@ -3,6 +3,7 @@ import { Passport } from "@/components/progress/Passport";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { lessons } from "@/lib/lessons";
 import { buildStampCatalog } from "@/lib/progress/progress";
+import { getPublishedExamSets } from "@/lib/queries/exams";
 import { getQuestionPool, getYearRounds } from "@/lib/queries/quiz";
 import { getPublishedTopics } from "@/lib/queries/topics";
 import { MIN_QUESTIONS, questionsForLesson, questionsForTopic } from "@/lib/quiz/sets";
@@ -15,7 +16,14 @@ export const metadata: Metadata = {
 };
 
 export default async function PassportPage() {
-  const [pool, rounds, topics, curriculum] = await Promise.all([getQuestionPool(), getYearRounds(), getPublishedTopics(), getCurriculum()]);
+  const [pool, rounds, topics, curriculum, exams] = await Promise.all([
+    getQuestionPool(),
+    getYearRounds(),
+    getPublishedTopics(),
+    getCurriculum(),
+    // Danh sách đề luyện thi lỗi thì vẫn hiện Hộ chiếu, chỉ thiếu con dấu luyện thi.
+    getPublishedExamSets().catch(() => []),
+  ]);
 
   // Chỉ bộ trắc nghiệm đang mở (đủ câu, giống trang /trac-nghiem) mới có con dấu.
   const stamps = buildStampCatalog({
@@ -24,6 +32,7 @@ export default async function PassportPage() {
     topics: topics.filter((topic) => questionsForTopic(pool, topic.slug).length >= MIN_QUESTIONS),
     hasAllQuiz: pool.length >= MIN_QUESTIONS,
     hasYearGame: rounds.length >= MIN_QUESTIONS,
+    exams: exams.filter((exam) => exam.questionCount),
   });
 
   return (
