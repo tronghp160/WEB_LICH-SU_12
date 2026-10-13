@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // Trợ năng tự động (KE_HOACH_NANG_CAP_GIAO_DIEN.md, mục 10.2): axe-core trên các trang chính, giao diện sáng và tối.
 // Không chấp nhận lỗi mức "serious" hoặc "critical". Bỏ qua phần nền bản đồ (ô ảnh OpenStreetMap do Leaflet vẽ).
 
-const PAGES = ["/", "/muc-luc", "/muc-luc/chu-de-3", "/bai/7-khang-chien-chong-phap", "/bai-hoc/chien-dich-dien-bien-phu", "/trac-nghiem", "/ho-chieu", "/dong-thoi-gian", "/kham-pha", "/huong-dan"];
+const PAGES = ["/", "/muc-luc", "/muc-luc/chu-de-3", "/bai/7-khang-chien-chong-phap", "/bai-hoc/chien-dich-dien-bien-phu", "/trac-nghiem", "/ho-chieu", "/dong-thoi-gian", "/kham-pha", "/huong-dan", "/luyen-thi"];
 
 for (const theme of ["light", "dark"] as const) {
   test.describe(`Trợ năng (${theme === "light" ? "sáng" : "tối"})`, () => {

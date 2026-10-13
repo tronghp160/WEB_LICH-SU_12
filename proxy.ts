@@ -14,7 +14,8 @@ export const config = {
      * - _next/image (ảnh tối ưu hoá)
      * - favicon.ico
      * - ảnh .svg, .png, .jpg, .jpeg, .gif, .webp
+     * - webhook của cổng thanh toán (máy chủ cổng gọi tới, không có phiên đăng nhập để làm mới)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/thanh-toan/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
