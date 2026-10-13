@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { getSearchIndex } from "@/lib/queries/search";
 import type { QuickSearchIndex } from "@/lib/sgk/quick-search";
 import { formatLifespan } from "@/lib/utils/text";
@@ -20,7 +21,8 @@ export async function GET() {
       locations: index.locations.map((location) => ({ slug: location.slug, name: location.name, historicalName: location.historicalName })),
     };
     return Response.json(body, { headers: { "Cache-Control": "public, max-age=300, s-maxage=300" } });
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error); // tín hiệu nội bộ của Next.js (redirect, notFound, render động) phải được ném tiếp
     return Response.json({ error: "Không tải được dữ liệu tìm kiếm" }, { status: 503 });
   }
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, unstable_rethrow } from "next/navigation";
 import { ListChecks } from "lucide-react";
 import { CompactTimeline } from "@/components/content/CompactTimeline";
 import { SgkToc } from "@/components/sgk/SgkToc";
@@ -21,7 +21,8 @@ export async function generateMetadata({ params }: PageProps<"/muc-luc/[chuDe]">
 async function loadEvents(slugs: string[]): Promise<RelatedEvent[] | null> {
   try {
     return await getEventsBySlugs(slugs);
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error); // tín hiệu nội bộ của Next.js (redirect, notFound, render động) phải được ném tiếp
     return null;
   }
 }

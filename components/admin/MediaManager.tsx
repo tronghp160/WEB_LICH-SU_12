@@ -12,7 +12,7 @@ import { initialActionState } from "@/lib/actions/state";
 import type { Option } from "@/lib/queries/admin-content";
 import { createClient } from "@/lib/supabase/client";
 import { mediaEraLabels } from "@/lib/utils/labels";
-import { MEDIA_ERAS, validateImageFile, type MediaOwnerKind } from "@/lib/validation/content";
+import { MEDIA_ERAS, MEDIA_STORAGE_FOLDERS, validateImageFile, type MediaOwnerKind } from "@/lib/validation/content";
 import { resizeCommonsImage } from "@/lib/utils/text";
 
 export type MediaItemData = {
@@ -40,13 +40,6 @@ type MediaManagerProps = {
   media: MediaItemData[];
   sources: Option[];
   readOnly?: boolean;
-};
-
-/** Thư mục trong bucket `media` theo loại nội dung. */
-const STORAGE_FOLDERS: Record<MediaOwnerKind, string> = {
-  "su-kien": "events",
-  "nhan-vat": "figures",
-  "dia-diem": "locations",
 };
 
 const OWNER_NOUN: Record<MediaOwnerKind, string> = {
@@ -263,7 +256,7 @@ function AddMediaForm({ owner, sources, hasCover }: { owner: MediaOwner; sources
     try {
       const supabase = createClient();
       const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-      const path = `${STORAGE_FOLDERS[owner.kind]}/${owner.id}/${crypto.randomUUID()}.${extension}`;
+      const path = `${MEDIA_STORAGE_FOLDERS[owner.kind]}/${owner.id}/${crypto.randomUUID()}.${extension}`;
       const [size, { error }] = await Promise.all([
         readImageSize(file),
         supabase.storage.from("media").upload(path, file, { contentType: file.type, cacheControl: "31536000" }),

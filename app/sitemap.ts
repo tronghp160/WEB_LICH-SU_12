@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { unstable_rethrow } from "next/navigation";
 import { interactiveEntries, immersiveEntries } from "@/lib/lessons";
 import { createPublicClient } from "@/lib/supabase/public";
 import { siteUrl } from "@/lib/site";
@@ -37,7 +38,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         });
       }
     });
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error); // tín hiệu nội bộ của Next.js (redirect, notFound, render động) phải được ném tiếp
     // DB lỗi: vẫn trả phần trang tĩnh thay vì làm hỏng sitemap.
   }
   return entries;

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, unstable_rethrow } from "next/navigation";
 import { ArrowRight, CalendarDays, Clock, History, ListChecks, Map as MapIcon, MapPin, PenLine } from "lucide-react";
 import { EventCard } from "@/components/content/EventCard";
 import { FeatureCard } from "@/components/sgk/FeatureCard";
@@ -45,7 +45,8 @@ async function loadEvents(slugs: string[]): Promise<{ events: Map<string, Relate
   try {
     const events = await getEventsBySlugs(slugs);
     return { events: new Map(events.map((event) => [event.slug, event])), failed: false };
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error); // tín hiệu nội bộ của Next.js (redirect, notFound, render động) phải được ném tiếp
     return { events: new Map(), failed: true };
   }
 }
@@ -54,7 +55,8 @@ async function loadEvents(slugs: string[]): Promise<{ events: Map<string, Relate
 async function countQuestions(lesson: NonNullable<ReturnType<typeof getSgkLesson>>): Promise<number> {
   try {
     return questionsForSgkLesson(await getQuestionPool(), lesson).length;
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error); // tín hiệu nội bộ của Next.js (redirect, notFound, render động) phải được ném tiếp
     return 0;
   }
 }

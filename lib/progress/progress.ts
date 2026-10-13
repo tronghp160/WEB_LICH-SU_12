@@ -263,9 +263,20 @@ export function stampDate(iso: string): string {
 
 const CODE_PREFIX = "LS12-";
 
-/** Mã tiến độ để chép sang máy khác: "LS12-" + base64url của JSON (dữ liệu chỉ gồm slug và ngày giờ, toàn ký tự ASCII). */
+/**
+ * btoa/atob chỉ nhận ký tự 1 byte: mã hóa UTF-8 trước để nút "Tạo mã" không lỗi (InvalidCharacterError) nếu một khóa
+ * nào đó có dấu tiếng Việt. Dữ liệu ASCII cho ra đúng chuỗi như trước → mã đã xuất từ bản cũ vẫn nhập được.
+ */
+function utf8ToBinary(text: string): string {
+  return Array.from(new TextEncoder().encode(text), (byte) => String.fromCharCode(byte)).join("");
+}
+function binaryToUtf8(binary: string): string {
+  return new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)));
+}
+
+/** Mã tiến độ để chép sang máy khác: "LS12-" + base64url của JSON (UTF-8). */
 export function exportProgressCode(progress: Progress): string {
-  const base64 = btoa(JSON.stringify(progress));
+  const base64 = btoa(utf8ToBinary(JSON.stringify(progress)));
   return CODE_PREFIX + base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
@@ -276,7 +287,7 @@ export function importProgressCode(code: string): Progress | null {
   const body = trimmed.slice(CODE_PREFIX.length).replace(/-/g, "+").replace(/_/g, "/");
   let json: string;
   try {
-    json = atob(body + "=".repeat((4 - (body.length % 4)) % 4));
+    json = binaryToUtf8(atob(body + "=".repeat((4 - (body.length % 4)) % 4)));
   } catch {
     return null;
   }
@@ -289,8 +300,8 @@ const earlier = (a?: string, b?: string) => (a && b ? (a < b ? a : b) : (a ?? b)
 const later = (a: string, b: string) => (a > b ? a : b);
 
 /**
- * Gộp tiến độ nhập từ máy khác vào tiến độ hiện có (không ghi đè): điểm cao nhất theo tỉ lệ, cộng số lượt, giữ lần đạt
- * dấu sớm nhất; mục đã đọc lấy hợp của hai bên.
+ * Gộp tiến độ nhập từ máy khác vào tiến độ hiện có (không ghi đè): điểm cao nhất theo tỉ lệ, cộng số lượt (trừ khi là
+ * cùng một lịch sử), giữ lần đạt dấu sớm nhất; mục đã đọc lấy hợp của hai bên. Gộp lại cùng một mã nhiều lần cho cùng kết quả.
  */
 export function mergeProgress(current: Progress, incoming: Progress): Progress {
   const lessons: Progress["lessons"] = { ...current.lessons };
@@ -306,10 +317,13 @@ export function mergeProgress(current: Progress, incoming: Progress): Progress {
       continue;
     }
     const better = record.best / record.total > mine.best / mine.total ? record : mine;
+    // Cùng thời điểm lượt cuối = cùng một lịch sử (dán lại mã cũ, hoặc dán mã của chính máy này) → không cộng dồn,
+    // nếu không số lượt bị nhân đôi sau mỗi lần gộp. Hai máy khác nhau mới cộng số lượt.
+    const sameHistory = mine.lastAt === record.lastAt;
     quizzes[id] = {
       best: better.best,
       total: better.total,
-      attempts: mine.attempts + record.attempts,
+      attempts: sameHistory ? Math.max(mine.attempts, record.attempts) : mine.attempts + record.attempts,
       passedAt: earlier(mine.passedAt, record.passedAt),
       lastAt: later(mine.lastAt, record.lastAt),
     };

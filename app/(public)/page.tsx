@@ -1,4 +1,5 @@
 import { cache, Suspense } from "react";
+import { unstable_rethrow } from "next/navigation";
 import { CoachMarks } from "@/components/home/CoachMarks";
 import { FeaturedStrip } from "@/components/home/FeaturedStrip";
 import { GoalPicker } from "@/components/home/GoalPicker";
@@ -11,7 +12,8 @@ import { getHeroSlides, getOnThisDay } from "@/lib/queries/home";
 const loadHeroSlides = cache(async () => {
   try {
     return { ok: true as const, slides: await getHeroSlides() };
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error); // tín hiệu nội bộ của Next.js (redirect, notFound, render động) phải được ném tiếp
     return { ok: false as const, slides: [] };
   }
 });
@@ -19,7 +21,8 @@ const loadHeroSlides = cache(async () => {
 const loadOnThisDay = cache(async () => {
   try {
     return { ok: true as const, result: await getOnThisDay() };
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error); // tín hiệu nội bộ của Next.js (redirect, notFound, render động) phải được ném tiếp
     return { ok: false as const, result: null };
   }
 });
