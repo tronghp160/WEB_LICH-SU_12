@@ -244,7 +244,7 @@ export const SGK_12: SgkTopic[] = [
             numeral: "2",
             title: "Giai đoạn 1965–1973",
             eventSlugs: ["tong-tien-cong-va-noi-day-tet-mau-than-1968", "ha-noi-dien-bien-phu-tren-khong-1972", "hiep-dinh-paris-ve-viet-nam"],
-            featureSlugs: ["tet-mau-than-1968"],
+            featureSlugs: ["tet-mau-than-1968", "dien-bien-phu-tren-khong-1972"],
           },
           {
             id: "muc-3",

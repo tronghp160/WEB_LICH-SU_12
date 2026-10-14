@@ -1,4 +1,4 @@
-import type { BattleStep, LatLng, StrongpointStatus, UnitKind } from "@/lib/battles/types";
+import type { ArrowDefinition, BattleStep, LatLng, StrongpointStatus, UnitKind } from "@/lib/battles/types";
 import { easeInOut, lerp, smoothstep } from "@/lib/cinema/math";
 import { createRng } from "@/lib/cinema/rng";
 import { blastShake, emitterLifetime } from "@/lib/cinema/effects";
@@ -51,6 +51,11 @@ type Compiled = {
 };
 
 const cache = new WeakMap<MapFilmScript, Compiled[]>();
+
+/** Mũi tên tập kích đường không của đối phương (bản đồ 2D: "raid") vẽ như mũi tên đối phương của phim 3D. */
+function filmArrowKind(kind: ArrowDefinition["kind"]): ArrowState["kind"] {
+  return kind === "raid" ? "enemy" : kind;
+}
 
 function resolvePath(script: MapFilmScript, path: MarchAction["path"]): LatLng[] {
   if (Array.isArray(path)) return path;
@@ -283,10 +288,10 @@ export function evaluateScene(script: MapFilmScript, index: number, time: number
     const wasShown = prev?.arrows?.includes(def.id) ?? false;
     if (window) {
       const progress = easeInOut((t - window[0]) / (window[1] - window[0]));
-      if (progress > 0) arrows.push({ id: def.id, path: def.path, kind: def.kind, progress, opacity: 1 });
+      if (progress > 0) arrows.push({ id: def.id, path: def.path, kind: filmArrowKind(def.kind), progress, opacity: 1 });
     } else if (wasShown) {
       const opacity = 1 - smoothstep(0, 1.2, t);
-      if (opacity > 0.001) arrows.push({ id: def.id, path: def.path, kind: def.kind, progress: 1, opacity });
+      if (opacity > 0.001) arrows.push({ id: def.id, path: def.path, kind: filmArrowKind(def.kind), progress: 1, opacity });
     }
   }
   for (const extra of scene.extraArrows ?? []) {

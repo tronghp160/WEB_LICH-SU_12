@@ -275,6 +275,7 @@ describe("dữ liệu bài học", () => {
       "/bai-hoc/cach-mang-thang-tam-1945",
       "/bai-hoc/chien-dich-dien-bien-phu",
       "/bai-hoc/tet-mau-than-1968",
+      "/bai-hoc/dien-bien-phu-tren-khong-1972",
       "/bai-hoc/chien-dich-ho-chi-minh-1975",
       "/tai-hien/bach-dang-938",
     ]);
