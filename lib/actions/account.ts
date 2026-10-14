@@ -6,7 +6,7 @@ import { RECOVERY_COOKIE, SIGNUP_EMAIL_COOKIE, hasRecoveryMark, readSignUpEmail,
 import { PASSWORD_SET_FLAG, loginMethods } from "@/lib/auth/identities";
 import { ensureLearnerProfile } from "@/lib/auth/learner";
 import { profileDefaults } from "@/lib/auth/oauth";
-import { isGoogleAuthEnabled } from "@/lib/auth/providers";
+import { getAuthSettings, isGoogleAuthEnabled } from "@/lib/auth/providers";
 import {
   ACCOUNT_HOME,
   ACCOUNT_ORDERS,
@@ -96,6 +96,12 @@ export async function signUpAction(_previous: SignUpState, formData: FormData): 
   if (data?.session && data.user) {
     await ensureLearnerProfile(supabase, data.user);
     redirect(next);
+  }
+
+  // Tắt "Confirm email" mà email đã có tài khoản: không có email nào được gửi, đưa tới trang "kiểm tra email" là sai.
+  // Báo thẳng (khi tắt xác nhận, Supabase vốn đã lộ việc email tồn tại qua chính lỗi này).
+  if (error?.code === "user_already_exists" && (await getAuthSettings()).autoconfirm) {
+    return { values, fieldErrors: { email: "Email này đã có tài khoản. Em đăng nhập, hoặc dùng “Quên mật khẩu” nếu không nhớ." } };
   }
 
   (await cookies()).set(SIGNUP_EMAIL_COOKIE, parsed.data.email, shortCookie(30 * 60));
