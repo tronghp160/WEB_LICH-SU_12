@@ -4,7 +4,7 @@ import type { BattleScenario, LatLng, StrongpointStatus, UnitState } from "@/lib
 // của quân dân miền Bắc (viết cứng, không lưu database). Nội dung viết lại theo khung SGK Lịch sử 12 (Kết nối tri thức),
 // Bài 8; không chép nguyên văn. Các chi tiết cần đối chiếu nằm ở `toVerify` trong lib/lessons/dien-bien-phu-tren-khong.ts.
 //
-// "Cứ điểm": căn cứ không quân Mỹ (xanh) và nơi bị ném bom (viền đỏ nhấp nháy = đang bị tập kích). Tốp B-52 và lực lượng
+// "Cứ điểm": căn cứ không quân Mỹ (xanh) và nơi của ta bị ném bom (đỏ, viền vàng nhấp nháy = đang bị tập kích). Tốp B-52 và lực lượng
 // phòng không: vị trí minh họa. Hai xác B-52 tiêu biểu đặt ở vị trí gần đúng. Đường bay vẽ phác, không phải hành trình thật.
 
 const PHOTO = "/lessons/dien-bien-phu-tren-khong";
@@ -28,7 +28,8 @@ const CHUOM: LatLng = [21.215, 105.85];
 /** Hồ Hữu Tiệp (phường Ngọc Hà, Hà Nội). */
 const HUU_TIEP: LatLng = [21.0412, 105.8236];
 
-const REGION = { center: [16.6, 123.5] as LatLng, zoom: 4 };
+// Zoom 3: thấy cùng lúc Thái Lan, Hà Nội và đảo Guam kể cả trên điện thoại (zoom 4 làm Guam / Hà Nội rơi ra ngoài khung).
+const REGION = { center: [16.6, 123] as LatLng, zoom: 3 };
 const NORTH = { center: [21.05, 106.15] as LatLng, zoom: 8 };
 const HANOI = { center: [21.022, 105.84] as LatLng, zoom: 13 };
 
@@ -79,11 +80,11 @@ export const dienBienPhuTrenKhong1972: BattleScenario = {
   strongpointDefinitions: [
     { id: "andersen", label: "Guam", name: "Căn cứ không quân An-đéc-xen của Mỹ trên đảo Guam", position: PLACES.andersen },
     { id: "uTapao", label: "U Ta-pao", name: "Căn cứ không quân U Ta-pao (Thái Lan)", position: PLACES.uTapao },
-    { id: "haNoi", label: "Hà Nội", name: "Hà Nội", position: PLACES.haNoi },
-    { id: "haiPhong", label: "Hải Phòng", name: "Hải Phòng", position: PLACES.haiPhong },
-    { id: "thaiNguyen", label: "Thái Nguyên", name: "Thái Nguyên", position: PLACES.thaiNguyen, minorLabel: true },
-    { id: "bachMai", label: "Bệnh viện Bạch Mai", name: "Bệnh viện Bạch Mai", position: PLACES.bachMai, minorLabel: true },
-    { id: "khamThien", label: "Phố Khâm Thiên", name: "Phố Khâm Thiên", position: PLACES.khamThien, minorLabel: true },
+    { id: "haNoi", label: "Hà Nội", name: "Hà Nội", position: PLACES.haNoi, side: "ours" },
+    { id: "haiPhong", label: "Hải Phòng", name: "Hải Phòng", position: PLACES.haiPhong, side: "ours" },
+    { id: "thaiNguyen", label: "Thái Nguyên", name: "Thái Nguyên", position: PLACES.thaiNguyen, minorLabel: true, side: "ours" },
+    { id: "bachMai", label: "Bệnh viện Bạch Mai", name: "Bệnh viện Bạch Mai", position: PLACES.bachMai, minorLabel: true, side: "ours" },
+    { id: "khamThien", label: "Phố Khâm Thiên", name: "Phố Khâm Thiên", position: PLACES.khamThien, minorLabel: true, side: "ours" },
   ],
   arrowDefinitions: [
     { id: "raidGuam", kind: "raid", path: [PLACES.andersen, [16.6, 132], [19.3, 117.5], [20.6, 109.6], RAID_POSITION.guam] },
@@ -91,7 +92,7 @@ export const dienBienPhuTrenKhong1972: BattleScenario = {
   ],
   legend: [
     { className: "battle-sp battle-sp--held", label: "Căn cứ không quân của Mỹ" },
-    { className: "battle-sp battle-sp--attacked", label: "Nơi đang bị B-52 ném bom" },
+    { className: "battle-sp battle-sp--ours battle-sp--attacked", label: "Nơi của ta đang bị B-52 ném bom" },
     { className: "battle-legend-raid", label: "Đường bay tập kích của B-52 (vẽ phác)" },
     { className: "battle-unit battle-unit--invader-aircraft", label: "Tốp máy bay B-52 (vị trí minh họa)" },
     { className: "battle-unit battle-unit--invader-aircraft battle-unit--sunk", label: "B-52 bị bắn rơi (hai chiếc tiêu biểu)" },

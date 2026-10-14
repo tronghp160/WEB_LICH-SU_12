@@ -131,3 +131,44 @@ test.describe("Chuyên đề tương tác: Cách mạng tháng Tám năm 1945", 
     await expect(page.locator("p.sr-only[aria-live]")).toContainText("Slide 1/");
   });
 });
+
+test.describe("Chuyên đề tương tác: Hà Nội – Điện Biên Phủ trên không", () => {
+  const LESSON_1972 = "/bai-hoc/dien-bien-phu-tren-khong-1972";
+
+  test("bản đồ 8 bước: đường bay B-52, nơi bị ném bom, B-52 bị bắn rơi", async ({ page }) => {
+    await page.goto(LESSON_1972);
+    await expect(page.locator("h1")).toHaveText("Hà Nội – Điện Biên Phủ trên không");
+    const steps = page.getByRole("navigation", { name: "Các bước diễn biến" }).locator("button");
+    await expect(steps).toHaveCount(8);
+    const downed = page.locator(".leaflet-marker-icon .battle-unit--invader-aircraft.battle-unit--sunk");
+    const attacked = page.locator(".leaflet-marker-icon .battle-sp--attacked");
+
+    await steps.nth(1).click();
+    await expect(page.locator("path.battle-arrow--raid")).toHaveCount(2, { timeout: 10_000 });
+    await expect(downed).toHaveCount(1);
+    await expect(attacked).toHaveCount(1);
+    await steps.nth(3).click();
+    await expect(attacked).toHaveCount(3, { timeout: 10_000 });
+    await expect(page.getByText("Tội ác bị cả thế giới lên án")).toBeVisible();
+    await steps.nth(5).click();
+    await expect(downed).toHaveCount(2, { timeout: 10_000 });
+  });
+
+  test("sự kiện còn nháp: không có nút dẫn tới trang sự kiện (tránh 404), vẫn có lối về Bài 8", async ({ page }) => {
+    await page.goto(LESSON_1972);
+    await expect(page.getByRole("link", { name: /Xem trang sự kiện/ })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Về Bài 8" })).toHaveAttribute("href", /\/bai\/8-/);
+  });
+
+  test("trắc nghiệm bài học và trình chiếu mở được; không tràn ngang ở 360px", async ({ page }) => {
+    await page.goto("/trac-nghiem/bai-hoc/dien-bien-phu-tren-khong-1972");
+    await expect(page.locator("h1")).toHaveText("Trắc nghiệm: Hà Nội – Điện Biên Phủ trên không");
+    const response = await page.goto(`${LESSON_1972}/trinh-chieu`);
+    expect(response?.status()).toBe(200);
+    await expect(page.locator("p.sr-only[aria-live]")).toContainText("Slide 1/");
+    await page.setViewportSize({ width: 360, height: 900 });
+    await page.goto(`${LESSON_1972}#dien-bien`);
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+    expect(await hasHorizontalOverflow(page)).toBe(false);
+  });
+});

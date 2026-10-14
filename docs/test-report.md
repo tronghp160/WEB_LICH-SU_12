@@ -581,3 +581,27 @@ ca chủ tài khoản, cascade đạt; dọn còn 0 tài khoản thử.** Trư�
 
 **Còn chờ cấu hình tay / người dùng:** kiểm tay Google G1–G7 (mục 13–14, cần bật Google + *Manual linking*); SMTP +
 email mã kích hoạt (cần tên miền, Q4); chạy `tests/rls/learner.mjs` và E2E cấp quyền nhân sự với `TEST_PW`.
+
+## 18. Chuyên đề tương tác "Hà Nội – Điện Biên Phủ trên không" (14 – 15/10/2026)
+
+GĐ5.2 (bài thứ 3 trong `KE_HOACH_CAI_TIEN`): `/bai-hoc/dien-bien-phu-tren-khong-1972`. Viết cứng trong mã (không migration).
+Bản đồ 8 bước từ bối cảnh (10/1972) tới Hiệp định Pa-ri; 3 video kênh chính thống (QPVN, Báo QĐND, Báo Nhân Dân — kiểm bằng
+oEmbed); 10 ảnh Wikimedia Commons (phạm vi công cộng / CC0 / CC BY / CC BY-SA, mỗi ảnh ≤ 250 KB); 8 câu trắc nghiệm; số liệu
+ghi "theo số liệu của ta". Các chi tiết cần đối chiếu SGK bản in nằm ở `toVerify` (hiện trong "Ghi chú biên soạn").
+
+- **Bộ máy bản đồ** (dùng chung, bài cũ không đổi): loại đơn vị `invader-aircraft` (✈; bị bắn rơi → xám ✕), mũi tên `raid`
+  (đường bay địch, xanh nét chấm), điểm `side: "ours"` (nơi của ta bị tiến công: đỏ thẫm, viền vàng — trước đây mọi "cứ điểm"
+  đều tô màu đối phương). Phim bản đồ 3D quy đổi `raid` → `enemy`.
+- **Sự kiện 12/1972 trong database còn là bản nháp** → nút "Xem trang sự kiện" ở cuối chuyên đề tự ẩn (tránh 404), tự hiện
+  trong vòng 1 giờ sau khi sự kiện được công bố (`lib/queries/published-event.ts`, trang vẫn dựng tĩnh).
+- **Sửa lỗi trợ năng có sẵn:** chữ tiêu đề khung "Bạn có biết?" (`--gold-deep` trên nền `--muted`) chỉ đạt 4,4:1 ở giao
+  diện sáng; bài mới lộ ra vì có khung này ngay bước đầu. Đổi `--gold-deep` (sáng) `#85652b` → `#7a5c24` (5,1:1); token chỉ
+  dùng cho chữ / nét vẽ.
+- Lỗi tìm thấy khi tự xem ảnh chụp: bước toàn cảnh ở zoom 4 làm Guam / Hà Nội rơi khỏi khung (điện thoại chỉ thấy
+  Philippines) → zoom 3.
+
+| Nhóm | Kết quả |
+|---|---|
+| Unit test | **625/625** (bộ `lesson-data.test.ts` có sẵn bắt 2 ảnh quá 250 KB → đã nén lại) |
+| Lint, tsc, build | sạch; thêm `● /bai-hoc/dien-bien-phu-tren-khong-1972` (+ trình chiếu) |
+| E2E `lesson`, `battle`, `presentation`, `a11y`, `sgk` (bản production) | **86/86** — thêm 3 ca: bản đồ 8 bước (2 đường bay, nơi bị ném bom 1 → 3, B-52 bị bắn rơi 1 → 2), không có nút tới sự kiện nháp nhưng có lối về Bài 8, trắc nghiệm + trình chiếu mở được, 360 px không tràn; trợ năng thêm trang mới × sáng/tối |

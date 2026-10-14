@@ -73,7 +73,7 @@ export const dienBienPhuTrenKhongLesson: Lesson = {
   copy: {
     cardDescription: "Bản đồ đường bay B-52 và 12 ngày đêm đánh trả, ảnh tư liệu năm 1972, xác B-52 giữa lòng Hà Nội, video và thẻ ghi nhớ.",
     mapTitle: "Xem 12 ngày đêm trên bản đồ",
-    mapHint: "Bản đồ đi từ các căn cứ B-52 ở Guam, Thái Lan tới bầu trời Hà Nội; nơi đang bị ném bom có viền đỏ nhấp nháy, B-52 bị bắn rơi có dấu ✕.",
+    mapHint: "Bản đồ đi từ các căn cứ B-52 ở Guam, Thái Lan tới bầu trời Hà Nội; nơi của ta đang bị ném bom có viền vàng nhấp nháy, B-52 bị bắn rơi có dấu ✕.",
     videoTitle: "Video tư liệu",
     resultsTitle: "Vì sao gọi là \"Điện Biên Phủ trên không\"?",
     todayTitle: "Chứng tích 12 ngày đêm ngày nay",

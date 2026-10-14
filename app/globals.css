@@ -28,7 +28,7 @@
   --gold: light-dark(#b08d57, #c9a36d);
   --gold-foreground: light-dark(#2b2622, #1c1815);
   /* Vàng đồng đậm dùng cho CHỮ trên nền sáng (--gold gốc chỉ đạt ~2.8:1, dưới chuẩn AA 4.5:1). */
-  --gold-deep: light-dark(#85652b, #c9a36d);
+  --gold-deep: light-dark(#7a5c24, #c9a36d); /* sáng: 5,1:1 trên nền --muted (#85652b cũ chỉ 4,4:1 — lỗi axe ở khung "Bạn có biết?") */
   /* Xanh "trả lời đúng" (trắc nghiệm GĐ4): 5.8:1 trên nền giấy. Trả lời sai dùng --accent. */
   --success: light-dark(#2e6b37, #7ec48b);
   --success-bg: light-dark(#e6f1e7, #18261a);
@@ -499,6 +499,16 @@ path.battle-stake--exposed {
   color: #ffd54a;
   font-size: 11px;
   line-height: 1;
+}
+
+/* Điểm của ta bị đối phương tiến công (Hà Nội bị B-52 ném bom): nền màu của ta, viền nhấp nháy giữ nguyên. */
+.battle-sp--ours {
+  background: var(--battle-ours-deep);
+}
+
+.battle-sp--ours.battle-sp--attacked {
+  border-color: #ffd54a;
+  outline-color: #ffd54a;
 }
 
 .battle-sp__label {

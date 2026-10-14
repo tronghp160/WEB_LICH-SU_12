@@ -38,6 +38,11 @@ export type StrongpointDefinition = {
   position: LatLng;
   /** Nhãn phụ: ẩn khi xem toàn quốc (zoom < 6) để các điểm gần nhau không đè chữ lên nhau. */
   minorLabel?: boolean;
+  /**
+   * Điểm của TA bị đối phương tiến công (vd. Hà Nội bị B-52 ném bom): tô màu của ta thay vì màu đối phương. Mặc định là
+   * cứ điểm / mục tiêu của đối phương.
+   */
+  side?: "ours";
 };
 
 /**

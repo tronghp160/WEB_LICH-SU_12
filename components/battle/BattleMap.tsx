@@ -54,12 +54,12 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
 }
 
-/** Cứ điểm: ô vuông theo trạng thái + nhãn ngắn (A1, C1...). */
-function getStrongpointIcon(label: string, status: StrongpointStatus, minorLabel = false): L.DivIcon {
-  return cachedIcon(`sp:${label}:${status}:${minorLabel}`, () =>
+/** Cứ điểm: ô vuông theo trạng thái + nhãn ngắn (A1, C1...); `ours` = điểm của ta bị tiến công (tô màu của ta). */
+function getStrongpointIcon(label: string, status: StrongpointStatus, minorLabel = false, ours = false): L.DivIcon {
+  return cachedIcon(`sp:${label}:${status}:${minorLabel}:${ours}`, () =>
     L.divIcon({
       className: "map-marker",
-      html: `<span class="battle-sp battle-sp--${status}"><span class="battle-sp__label${minorLabel ? " battle-sp__label--minor" : ""}">${escapeHtml(label)}</span></span>`,
+      html: `<span class="battle-sp battle-sp--${status}${ours ? " battle-sp--ours" : ""}"><span class="battle-sp__label${minorLabel ? " battle-sp__label--minor" : ""}">${escapeHtml(label)}</span></span>`,
       iconSize: [18, 18],
       iconAnchor: [9, 9],
     }),
@@ -273,7 +273,7 @@ export default function BattleMap({ scenario, frame, camera, flyDuration }: Batt
           <Marker
             key={point.id}
             position={point.position}
-            icon={getStrongpointIcon(point.label, state.status, point.minorLabel)}
+            icon={getStrongpointIcon(point.label, state.status, point.minorLabel, point.side === "ours")}
             opacity={state.opacity}
             title={point.name}
             interactive={false}
