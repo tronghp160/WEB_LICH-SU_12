@@ -7,6 +7,7 @@ import { BuyPackForm } from "@/components/payments/BuyPackForm";
 import { TestModeNotice } from "@/components/payments/TestModeNotice";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Callout } from "@/components/ui/Callout";
+import { summarizeExamPack } from "@/lib/exams/pack";
 import { readPaymentConfig } from "@/lib/payments/config";
 import { formatVnd } from "@/lib/payments/pricing";
 import { getPublishedExamSets } from "@/lib/queries/exams";
@@ -14,11 +15,11 @@ import { EXAM_PACK_SLUG, getActiveProduct } from "@/lib/queries/payments";
 
 export const metadata: Metadata = {
   title: "Luyện thi tốt nghiệp THPT môn Lịch sử",
-  description: "Gói 10 đề luyện 40 câu bấm giờ theo cấu trúc đề thi, có giải thích từng câu. Nội dung SGK trên web vẫn miễn phí.",
+  description: "Đề luyện thi tốt nghiệp THPT môn Lịch sử bấm giờ theo cấu trúc đề thi, có giải thích từng câu. Nội dung SGK trên web vẫn miễn phí.",
 };
 
+// Dòng đầu (số đề / số câu / thời gian) dựng từ các đề ĐÃ CÔNG BỐ — lib/exams/pack.ts.
 const BENEFITS = [
-  "10 đề × 40 câu, bấm giờ 50 phút như phòng thi",
   "Giải thích từng câu, kèm liên kết về bài SGK để đọc lại",
   "Con dấu “Luyện thi” trong Hộ chiếu khi đạt từ 7 điểm",
 ];
@@ -49,7 +50,9 @@ function formatDate(iso: string): string {
 export default async function ExamPrepPage() {
   const [product, sets] = await Promise.all([loadProduct(), loadSets()]);
   const config = readPaymentConfig();
-  const canBuy = Boolean(product && product.price_vnd && config.ok);
+  // Chỉ bán khi đếm được và có ít nhất một đề trả phí đã công bố — không bán gói rỗng.
+  const pack = sets ? summarizeExamPack(sets) : null;
+  const canBuy = Boolean(product && product.price_vnd && config.ok && pack?.sellable);
 
   return (
     <div className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6">
@@ -69,8 +72,8 @@ export default async function ExamPrepPage() {
             Gói gồm những gì?
           </h2>
           <ul className="mt-4 flex flex-col gap-3">
-            {BENEFITS.map((benefit) => (
-              <li key={benefit} className="flex items-start gap-2 text-foreground">
+            {[pack?.headline ?? "Đề luyện bấm giờ theo cấu trúc đề thi", ...BENEFITS].map((benefit, index) => (
+              <li key={benefit} className="flex items-start gap-2 text-foreground" data-testid={index === 0 ? "pack-headline" : undefined}>
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-gold-deep" aria-hidden="true" />
                 {benefit}
               </li>
@@ -99,7 +102,9 @@ export default async function ExamPrepPage() {
             </LicenseGate>
           ) : (
             <Callout variant="warning" title="Tạm ngưng bán">
-              Gói luyện thi hiện chưa mở bán. Em quay lại sau nhé.
+              {pack && !pack.sellable
+                ? "Các đề trong gói đang được biên soạn, gói sẽ mở bán khi có đề. Em làm thử đề miễn phí bên dưới nhé."
+                : "Gói luyện thi hiện chưa mở bán. Em quay lại sau nhé."}
             </Callout>
           )}
         </section>

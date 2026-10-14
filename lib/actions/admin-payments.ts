@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import type { ActionState } from "@/lib/actions/state";
+import { generateLicenseCode } from "@/lib/payments/license";
 import { reconcileOrder } from "@/lib/payments/orders";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -135,6 +136,45 @@ export async function adminRecordRefundAction(_previous: ActionState, formData: 
   if (order.licenses?.status === "active") await db.from("licenses").update({ status: "revoked" }).eq("id", order.licenses.id);
   await logAdmin(db, orderCode, order.provider, "record_refund", staff.id);
   return done(orderCode, "Đã ghi nhận hoàn tiền và thu hồi mã (nếu có).");
+}
+
+const LATE_PAYMENT_ERRORS: Record<string, string> = {
+  not_found: "Không tìm thấy đơn hàng.",
+  invalid_status: "Chỉ xử lý được đơn đang ở trạng thái Đã hủy.",
+  no_late_payment: "Chưa có nhật ký cổng báo tiền về cho đơn này — không cấp mã.",
+  amount_mismatch: "Số tiền cổng báo về khác số tiền của đơn — kiểm tra sao kê và xử lý ngoài hệ thống.",
+};
+
+/**
+ * Tiền về SAU KHI đơn đã hủy (nhật ký `paid_after_cancelled`): quản trị viên xác nhận đã nhận tiền → đơn chuyển sang
+ * Đã thanh toán và cấp mã như thanh toán bình thường. Hàm SQL admin_resolve_late_payment (migration
+ * 20261017000000_late_payment.sql) tự kiểm bằng chứng và số tiền; trùng mã (xác suất ~0) thì sinh mã khác.
+ */
+export async function adminResolveLatePaymentAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await requireRole(["system_admin"]);
+  const orderCode = readOrderCode(formData);
+  if (!orderCode) return fail("Mã đơn không hợp lệ.");
+  const db = createAdminClient();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { data, error } = await db.rpc("admin_resolve_late_payment", {
+      p_order_code: orderCode,
+      p_staff_id: staff.id,
+      p_note: "Xác nhận ở trang chi tiết đơn",
+      p_license_code: generateLicenseCode(),
+    });
+    if (error?.code === "23505") continue;
+    if (error) return fail("Không xử lý được đơn (đã chạy migration 20261017000000_late_payment.sql chưa?). Thử lại sau.");
+    const result = data as { ok: boolean; already?: boolean; reason?: string; license_code?: string | null };
+    if (!result.ok) return fail(LATE_PAYMENT_ERRORS[result.reason ?? ""] ?? "Không xử lý được đơn này.");
+    if (result.already) return done(orderCode, "Đơn đã ở trạng thái Đã thanh toán từ trước.");
+    return done(
+      orderCode,
+      result.license_code
+        ? `Đã xác nhận tiền về và cấp mã ${result.license_code}. Gửi mã này cho người mua (email trong đơn, nếu có).`
+        : "Đã xác nhận tiền về — đơn chuyển sang Đã thanh toán.",
+    );
+  }
+  return fail("Không sinh được mã kích hoạt. Thử lại.");
 }
 
 /** Duyệt / gỡ lời nhắn ủng hộ trên Bức tường cảm ơn (chỉ với người ủng hộ đã chọn "hiện trên bức tường"). */

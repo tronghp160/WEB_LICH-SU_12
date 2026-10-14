@@ -7,6 +7,7 @@ import { generateLicenseCode } from "@/lib/payments/license";
 import type { OrderStatus } from "@/lib/payments/order-status";
 import { paymentDescription, resolveOrderAmount } from "@/lib/payments/pricing";
 import type { PaymentProvider, ProductKind, VerifiedPayment } from "@/lib/payments/types";
+import type { RequestClient } from "@/lib/request-client";
 import { siteUrl } from "@/lib/site";
 import type { Json } from "@/lib/database.types";
 
@@ -22,7 +23,7 @@ export const orderCookieName = (orderCode: number) => `${ORDER_COOKIE_PREFIX}${o
 
 export const resultPath = (orderCode: number) => `/thanh-toan/ket-qua?don=${orderCode}`;
 
-/** Tối đa số đơn đang chờ cho một IP trong 10 phút (chống spam tạo đơn). */
+/** Tối đa số đơn đang chờ cho một người gửi (IP hoặc cookie định danh) trong 10 phút (chống spam tạo đơn). */
 const MAX_PENDING_PER_IP = 5;
 
 export type CreateOrderInput = {
@@ -32,7 +33,8 @@ export type CreateOrderInput = {
   displayName?: string | null;
   message?: string | null;
   showOnWall?: boolean;
-  clientIp: string | null;
+  /** Người gửi (lib/request-client.ts): IP đáng tin cho cổng thanh toán + khóa chống spam tạo đơn. */
+  client: RequestClient;
 };
 
 export type CreateOrderResult = { ok: true; orderCode: number; token: string; checkoutUrl: string } | { ok: false; error: string };
@@ -56,18 +58,17 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   const amount = resolveOrderAmount(product, input.requestedVnd);
   if (!amount.ok) return { ok: false, error: amount.error };
 
-  const ipHash = input.clientIp ? saltedHash(config.hashSalt, input.clientIp) : null;
-  if (ipHash) {
-    const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-    const { count } = await db
-      .from("orders")
-      .select("id", { count: "exact", head: true })
-      .eq("client_ip_hash", ipHash)
-      .eq("status", "pending")
-      .gte("created_at", since);
-    if ((count ?? 0) >= MAX_PENDING_PER_IP) {
-      return { ok: false, error: "Em đã tạo nhiều đơn chưa thanh toán. Đợi khoảng 10 phút rồi thử lại nhé." };
-    }
+  // Cột client_ip_hash lưu băm của khóa người gửi (IP đáng tin hoặc cookie định danh), không lưu IP thô.
+  const ipHash = saltedHash(config.hashSalt, input.client.key);
+  const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { count } = await db
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("client_ip_hash", ipHash)
+    .eq("status", "pending")
+    .gte("created_at", since);
+  if ((count ?? 0) >= MAX_PENDING_PER_IP) {
+    return { ok: false, error: "Em đã tạo nhiều đơn chưa thanh toán. Đợi khoảng 10 phút rồi thử lại nhé." };
   }
 
   const isDonation = product.kind === "donation";
@@ -98,7 +99,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
       returnUrl: `${siteUrl()}${resultPath(order.order_code)}`,
       cancelUrl: `${siteUrl()}${resultPath(order.order_code)}&huy=1`,
       expiresAt: new Date(order.expires_at),
-      buyerIp: input.clientIp ?? "127.0.0.1",
+      buyerIp: input.client.ip ?? "127.0.0.1",
     });
     await db
       .from("orders")

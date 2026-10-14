@@ -74,7 +74,7 @@ describe("mã kích hoạt", () => {
 
 describe("máy trạng thái đơn hàng", () => {
   it("chỉ các chuyển trạng thái trong kế hoạch là hợp lệ", () => {
-    const allowed = new Set(["pending>paid", "pending>cancelled", "pending>expired", "expired>paid", "paid>refunded"]);
+    const allowed = new Set(["pending>paid", "pending>cancelled", "pending>expired", "expired>paid", "paid>refunded", "cancelled>paid"]);
     for (const from of ORDER_STATUSES) {
       for (const to of ORDER_STATUSES) {
         expect(canTransition(from, to), `${from} → ${to}`).toBe(allowed.has(`${from}>${to}`));
@@ -82,9 +82,9 @@ describe("máy trạng thái đơn hàng", () => {
     }
   });
 
-  it("không quay lại pending, đơn đã hủy / đã hoàn tiền là trạng thái cuối", () => {
+  it("không quay lại pending, đơn đã hoàn tiền là trạng thái cuối; đơn đã hủy chỉ còn đường tiền về muộn", () => {
     for (const from of ORDER_STATUSES) expect(ORDER_TRANSITIONS[from]).not.toContain("pending");
-    expect(isFinalStatus("cancelled")).toBe(true);
+    expect(ORDER_TRANSITIONS.cancelled).toEqual(["paid"]);
     expect(isFinalStatus("refunded")).toBe(true);
     expect(isFinalStatus("paid")).toBe(false);
   });

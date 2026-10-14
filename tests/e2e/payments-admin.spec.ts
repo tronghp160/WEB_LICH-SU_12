@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
-import { TEST_PW, asUser, login } from "./support";
+import { TEST_PW, asUser, login, signedMockPaidWebhook } from "./support";
 
 // GĐ5 (docs/ke-hoach-thanh-toan.md, mục 10): quản trị đơn hàng và soạn / kiểm duyệt đề luyện thi trên DB thật.
 // Cần TEST_PW (mật khẩu chung tài khoản @test.local) và server chạy cổng giả lập (PAYMENT_PROVIDER=mock, PAYMENT_ENV=test).
@@ -68,6 +68,37 @@ test.describe.serial("Quản trị đơn hàng", () => {
     await page.reload();
     await expect(page.getByText("Đã hoàn tiền").first()).toBeVisible();
     await expect(page.getByTestId("event-log")).toContainText("Ghi nhận hoàn tiền");
+    await context.close();
+  });
+
+  test("tiền về sau khi đơn đã hủy → quản trị viên xác nhận → cấp mã, người mua thấy mã", async ({ browser, request }) => {
+    const buyer = await (await browser.newContext()).newPage();
+    await buyer.goto("/luyen-thi");
+    await buyer.getByRole("checkbox").check();
+    await buyer.getByRole("button", { name: /Thanh toán 29\.000đ/ }).click();
+    await buyer.getByRole("button", { name: "Hủy giao dịch" }).click();
+    await expect(buyer).toHaveURL(/\/thanh-toan\/ket-qua\?don=\d+&huy=1$/);
+    const orderCode = Number(new URL(buyer.url()).searchParams.get("don"));
+    await expect(buyer.getByTestId("order-status")).toHaveText("Đã hủy");
+
+    // Cổng báo tiền về muộn (chữ ký đúng): đơn vẫn hủy, chỉ ghi nhật ký.
+    const webhook = signedMockPaidWebhook(orderCode, 29000);
+    const response = await request.post("/api/thanh-toan/webhook/mock", { headers: webhook.headers, data: webhook.body });
+    expect(response.ok()).toBe(true);
+
+    const { context, page } = await staff(browser, "admin@test.local");
+    await page.goto(`/quan-tri/don-hang/${orderCode}`);
+    await expect(page.getByText("Tiền về sau khi đơn đã hủy — cần xử lý tay")).toBeVisible();
+    await page.getByRole("button", { name: "Xác nhận đã nhận tiền và cấp mã" }).click();
+    await expect(page.getByText(/Đã xác nhận tiền về và cấp mã LT12-/)).toBeVisible();
+    await page.reload();
+    await expect(page.getByText("Đã thanh toán").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Xác nhận đã nhận tiền và cấp mã" })).toHaveCount(0);
+    await expect(page.getByTestId("event-log")).toContainText("Quản trị viên xác nhận tiền về muộn");
+
+    // Người mua (cookie của đơn) mở lại trang kết quả → thấy mã kích hoạt.
+    await buyer.goto(`/thanh-toan/ket-qua?don=${orderCode}`);
+    await expect(buyer.getByTestId("license-code")).toHaveText(/^LT12-/);
     await context.close();
   });
 

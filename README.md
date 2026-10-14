@@ -26,7 +26,10 @@ Nội dung bám theo SGK Lịch sử 12 (bộ *Kết nối tri thức với cu�
 | Bản đồ | `/ban-do` | Địa điểm lịch sử (Leaflet), lọc theo bài, tìm theo bán kính (PostGIS), nút "Gần em" |
 | Tra cứu | `/tra-cuu` | Tìm sự kiện, nhân vật, địa điểm; gõ không dấu vẫn được |
 | Chi tiết | `/su-kien/…`, `/nhan-vat/…`, `/dia-diem/…`, `/chu-de/…` | Nội dung, ảnh có ghi công, nguồn tham khảo |
-| Quản trị | `/quan-tri` | Soạn nội dung, kiểm duyệt, quản lý nhân sự, vận hành (cần đăng nhập) |
+| Luyện thi THPT | `/luyen-thi`, `/luyen-thi/[slug]`, `/kich-hoat` | Đề bấm giờ có giải thích từng câu; đề 1 miễn phí, các đề khác trong gói trả phí (mở bằng mã kích hoạt `LT12-…`, tối đa 3 thiết bị). Trang tự ghi đúng số đề đã công bố |
+| Thanh toán | `/thanh-toan/ket-qua`, `/thanh-toan/tra-cuu` | Chuyển khoản VietQR qua payOS (hoặc cổng giả lập khi phát triển); xem lại đơn và mã bằng mã đơn + email |
+| Ủng hộ | `/ung-ho` | Ủng hộ tự nguyện, Bức tường cảm ơn (lời nhắn được duyệt trước khi hiện) |
+| Quản trị | `/quan-tri` | Soạn nội dung, kiểm duyệt, soạn đề luyện thi, quản lý nhân sự, đơn hàng (thu hồi / mở lại mã, gỡ thiết bị, ghi nhận hoàn tiền, xử lý tiền về muộn), vận hành (cần đăng nhập) |
 
 ## Công nghệ
 
@@ -57,9 +60,16 @@ cp .env.example .env.local   # rồi điền giá trị thật
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | ✅ | Khóa công khai (đã có RLS bảo vệ) |
 | `SUPABASE_SECRET_KEY` | Cho trang Nhân sự | **Chỉ phía server**: tạo/khóa tài khoản nhân sự. Không bao giờ thêm tiền tố `NEXT_PUBLIC_` |
 | `DATABASE_URL` | Tùy chọn | Chạy migration/seed bằng Supabase CLI |
-| `NEXT_PUBLIC_SITE_URL` | Khi có tên miền | Địa chỉ web cho ảnh chia sẻ, `sitemap.xml`, `robots.txt` (trên Vercel tự lấy nếu bỏ trống) |
+| `NEXT_PUBLIC_SITE_URL` | Khi có tên miền | Địa chỉ web cho ảnh chia sẻ, `sitemap.xml`, `robots.txt` (trên Vercel tự lấy nếu bỏ trống). Với payOS phải là địa chỉ thật (người mua được chuyển về đây) |
+| `PAYMENT_PROVIDER` | Cho thanh toán | `mock` (cổng giả lập, chỉ chạy khi `PAYMENT_ENV=test`) hoặc `payos` |
+| `PAYMENT_ENV` | Cho thanh toán | `test` (hiện nhãn "Môi trường thử nghiệm") hoặc `live` |
+| `MOCK_PAYMENT_SECRET` | Khi dùng `mock` | Bí mật ký webhook của cổng giả lập (≥ 32 ký tự ngẫu nhiên) |
+| `PAYMENT_HASH_SALT` | Cho thanh toán | Muối băm IP / mã thiết bị (không lưu giá trị thô) |
+| `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY` | Khi dùng `payos` | **Chỉ phía server**. Hướng dẫn: Phụ lục B `docs/ke-hoach-thanh-toan.md` |
+| `TRUST_PROXY` | Tùy chọn | Đặt `1` chỉ khi tự host sau reverse proxy đáng tin; trên Vercel để trống |
 
-Lấy các giá trị trong Supabase Dashboard → *Project Settings → API* (và *Connect* cho `DATABASE_URL`).
+Lấy các giá trị Supabase trong Dashboard → *Project Settings → API* (và *Connect* cho `DATABASE_URL`). Mọi biến thanh
+toán đều **chỉ phía server** (không có tiền tố `NEXT_PUBLIC_`).
 
 ### Tạo database
 
@@ -78,6 +88,11 @@ npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-content.sql
 npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-quiz.sql
 # 6. GĐ7 nâng cấp giao diện: bảng gán sự kiện vào bài SGK, nội dung mới (nháp), dữ liệu gán ban đầu
 #    supabase/migrations/20261001000000_sgk_lesson_events.sql → supabase/seed-content-gd7.sql → supabase/seed-sgk.sql
+# 7. Thanh toán (docs/ke-hoach-thanh-toan.md):
+#    migrations/20261015000000_payments.sql → supabase/seed-payments.sql (gói, ủng hộ, 10 đề nháp)
+#    → supabase/seed-exam-mau.sql (đề mẫu 1 miễn phí + 2 trong gói, đã công bố)
+#    → migrations/20261016000000_payment_rate_limits.sql → migrations/20261017000000_late_payment.sql
+#    Kiểm thử (tự hoàn tác): supabase/tests/payments.sql, supabase/tests/late_payment.sql
 ```
 
 > `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands
@@ -112,8 +127,9 @@ npm run build && npm start   # bản production
 | Unit test | `npm test` |
 | Lint, kiểu | `npm run lint`, `npx tsc --noEmit` |
 | E2E (cần bản build và tài khoản thử) | `TEST_PW='…' npm run test:e2e` |
-| Phân quyền RLS trên DB thật | `TEST_PW='…' node tests/rls/matrix.mjs` |
-| Ràng buộc CSDL | chạy `supabase/tests/constraints.sql` (tự hoàn tác) |
+| Phân quyền RLS trên DB thật | `TEST_PW='…' node tests/rls/matrix.mjs`, `TEST_PW='…' node tests/rls/payments.mjs` (thanh toán) |
+| Ràng buộc CSDL | chạy `supabase/tests/constraints.sql`, `payments.sql`, `late_payment.sql` (tự hoàn tác) |
+| E2E thanh toán | `E2E_BASE_URL=http://localhost:3200 TEST_PW='…' npx playwright test tests/e2e/payments.spec.ts tests/e2e/payments-admin.spec.ts` (server chạy `PAYMENT_PROVIDER=mock`, `PAYMENT_ENV=test`) |
 
 Kết quả chi tiết: [`docs/test-report.md`](docs/test-report.md).
 

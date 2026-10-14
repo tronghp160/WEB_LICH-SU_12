@@ -11,7 +11,7 @@ insert into public.products (slug, kind, name, description, price_vnd, max_devic
 values (
   'goi-luyen-thi-2027', 'exam_pack',
   'Gói Luyện thi tốt nghiệp THPT – Lịch sử (năm học 2026–2027)',
-  '10 đề luyện 40 câu bấm giờ theo cấu trúc đề thi, có giải thích từng câu và liên kết về bài SGK.',
+  'Đề luyện thi tốt nghiệp THPT môn Lịch sử bấm giờ theo cấu trúc đề thi, có giải thích từng câu và liên kết về bài SGK. Gói cập nhật dần đến 10 đề; đề mới thêm vào tự mở cho người đã mua.',
   29000, 3, '2027-07-31 23:59:59+07'
 )
 on conflict (slug) do nothing;

@@ -9,6 +9,7 @@ import {
   adminReconcileAction,
   adminRecordRefundAction,
   adminRemoveDeviceAction,
+  adminResolveLatePaymentAction,
   adminRestoreLicenseAction,
   adminRevokeLicenseAction,
   adminWallAction,
@@ -44,6 +45,7 @@ const NOTE_LABELS: Record<string, string> = {
   restore_license: "Mở lại mã",
   remove_device: "Gỡ thiết bị",
   record_refund: "Ghi nhận hoàn tiền",
+  resolve_late_payment: "Quản trị viên xác nhận tiền về muộn và cấp quyền",
   wall_approve: "Duyệt lời nhắn",
   wall_hide: "Gỡ lời nhắn",
 };
@@ -65,6 +67,8 @@ export default async function OrderDetailPage({ params }: PageProps<"/quan-tri/d
   const activations = license?.license_activations ?? [];
   const fields = { don: String(order.order_code) };
   const isDonation = order.products.kind === "donation";
+  // Tiền về sau khi đơn đã hủy (cổng gửi, chữ ký đúng) → cho quản trị viên xác nhận và cấp quyền.
+  const latePayment = order.status === "cancelled" && events.some((event) => event.note === "paid_after_cancelled" && event.signature_ok);
 
   return (
     <div className="flex flex-col gap-8">
@@ -103,7 +107,22 @@ export default async function OrderDetailPage({ params }: PageProps<"/quan-tri/d
         </dl>
         {/* Thông báo giữ ở khung: sau đối soát / hoàn tiền, trạng thái đơn đổi và nút vừa bấm biến mất. */}
         <ActionNoticeScope className="mt-4 flex flex-col gap-3">
+          {latePayment && (
+            <p role="alert" className="flex items-start gap-2 text-sm text-accent">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              Cổng báo tiền đã về sau khi đơn bị hủy. Đối chiếu sao kê; nếu đúng đã nhận tiền thì xác nhận để cấp quyền cho người mua.
+            </p>
+          )}
           <div className="flex flex-wrap gap-4">
+            {latePayment && (
+              <OrderActionButton
+                action={adminResolveLatePaymentAction}
+                label={isDonation ? "Xác nhận đã nhận tiền" : "Xác nhận đã nhận tiền và cấp mã"}
+                confirm="Chỉ bấm khi sao kê ngân hàng đã có khoản tiền này. Đơn sẽ chuyển sang Đã thanh toán. Tiếp tục?"
+                fields={fields}
+                variant="primary"
+              />
+            )}
             {(order.status === "pending" || order.status === "expired") && (
               <OrderActionButton action={adminReconcileAction} label="Đối soát với cổng" fields={fields} />
             )}

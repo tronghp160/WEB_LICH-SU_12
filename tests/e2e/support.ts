@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createHmac } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import type { Page } from "@playwright/test";
@@ -42,6 +43,16 @@ export function adminApi(): SupabaseClient {
   return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+}
+
+/**
+ * Webhook "đã thanh toán" của cổng giả lập, ký đúng bằng MOCK_PAYMENT_SECRET trong .env.local (như lib/payments/providers/
+ * mock.ts) — để giả cảnh cổng báo tiền về vào lúc tùy ý (ví dụ sau khi đơn đã hủy). KHÔNG in bí mật.
+ */
+export function signedMockPaidWebhook(orderCode: number, amount: number): { body: string; headers: Record<string, string> } {
+  const body = JSON.stringify({ orderCode, amount, status: "paid", transactionId: `E2E-LATE-${orderCode}-${Date.now()}` });
+  const signature = createHmac("sha256", readEnv().MOCK_PAYMENT_SECRET ?? "").update(body).digest("hex");
+  return { body, headers: { "content-type": "application/json", "x-mock-signature": signature } };
 }
 
 /** Xóa tài khoản Auth theo email (hồ sơ `staff_profiles` xóa theo nhờ ON DELETE CASCADE). */
