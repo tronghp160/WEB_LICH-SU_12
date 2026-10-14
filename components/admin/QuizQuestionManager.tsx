@@ -2,6 +2,7 @@
 
 import { ListPlus, Trash2 } from "lucide-react";
 import { useActionState, useState } from "react";
+import { ActionNoticeScope, useNoticeAction } from "@/components/admin/ActionNotice";
 import { Field, FormMessage } from "@/components/admin/forms/Field";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -111,7 +112,9 @@ function QuestionFields({
 
 function QuestionItem({ eventId, item, index, media, readOnly }: { eventId: string; item: QuizQuestionData; index: number; media: QuizMediaOption[]; readOnly?: boolean }) {
   const [updateState, updateAction, updating] = useActionState(updateQuizQuestionAction, initialActionState);
-  const [deleteState, deleteAction, deleting] = useActionState(deleteQuizQuestionAction, initialActionState);
+  // Xóa xong thì mục này (cùng thông báo bên trong) biến mất → báo kết quả lên khung danh sách.
+  const remove = useNoticeAction(deleteQuizQuestionAction);
+  const [deleteState, deleteAction, deleting] = useActionState(remove.action, initialActionState);
 
   return (
     <li className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4">
@@ -140,7 +143,7 @@ function QuestionItem({ eventId, item, index, media, readOnly }: { eventId: stri
         >
           <input type="hidden" name="event_id" value={eventId} />
           <input type="hidden" name="question_id" value={item.id} />
-          <FormMessage state={deleteState} />
+          {!remove.scoped && <FormMessage state={deleteState} />}
           <Button type="submit" size="sm" variant="ghost" disabled={deleting} className="text-accent">
             <Trash2 className="h-4 w-4" aria-hidden="true" />
             {deleting ? "Đang xóa…" : "Xóa câu hỏi"}
@@ -189,15 +192,17 @@ export function QuizQuestionManager({ eventId, questions, media, readOnly }: Qui
         Ngoài các câu hỏi này, trang trắc nghiệm còn tự sinh câu hỏi từ ảnh, năm và địa điểm của sự kiện. Chỉ dùng chi tiết
         đã có trong nội dung sự kiện và đã kiểm chứng. Câu hỏi được duyệt cùng sự kiện.
       </p>
-      {questions.length > 0 ? (
-        <ol className="m-0 flex list-none flex-col gap-3 p-0">
-          {questions.map((item, index) => (
-            <QuestionItem key={item.id} eventId={eventId} item={item} index={index} media={media} readOnly={readOnly} />
-          ))}
-        </ol>
-      ) : (
-        <p className="text-sm text-muted-foreground">Chưa có câu hỏi soạn tay nào.</p>
-      )}
+      <ActionNoticeScope className="flex flex-col gap-3">
+        {questions.length > 0 ? (
+          <ol className="m-0 flex list-none flex-col gap-3 p-0">
+            {questions.map((item, index) => (
+              <QuestionItem key={item.id} eventId={eventId} item={item} index={index} media={media} readOnly={readOnly} />
+            ))}
+          </ol>
+        ) : (
+          <p className="text-sm text-muted-foreground">Chưa có câu hỏi soạn tay nào.</p>
+        )}
+      </ActionNoticeScope>
       {!readOnly && <AddQuestionForm eventId={eventId} media={media} />}
     </div>
   );

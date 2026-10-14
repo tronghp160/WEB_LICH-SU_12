@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { unstable_rethrow } from "next/navigation";
 import { pickCardCover, type CardMediaRow } from "@/lib/media";
 import { createPublicClient } from "@/lib/supabase/public";
 import { DEFAULT_SHARE_IMAGE } from "@/lib/site";
@@ -56,7 +57,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ loai
         "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
       },
     });
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error); // tín hiệu nội bộ của Next.js (redirect, notFound, render động) phải được ném tiếp
     return fallback;
   }
 }

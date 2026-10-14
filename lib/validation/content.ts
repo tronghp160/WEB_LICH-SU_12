@@ -322,6 +322,16 @@ export const MEDIA_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as con
 export const MEDIA_OWNER_KINDS = ["su-kien", "nhan-vat", "dia-diem"] as const;
 export type MediaOwnerKind = (typeof MEDIA_OWNER_KINDS)[number];
 
+/**
+ * Thư mục trong bucket `media` theo loại nội dung (`<thư mục>/<id nội dung>/<tệp>`). Dùng chung cho nơi tải ảnh lên
+ * (MediaManager) và nơi dọn tệp khi xóa nội dung (deleteContentAction) để hai bên không lệch nhau.
+ */
+export const MEDIA_STORAGE_FOLDERS: Record<MediaOwnerKind, string> = {
+  "su-kien": "events",
+  "nhan-vat": "figures",
+  "dia-diem": "locations",
+};
+
 /** Ảnh tư liệu năm đó / ảnh chụp ngày nay / tranh, ảnh minh họa (khớp CHECK media_assets.era). */
 export const MEDIA_ERAS = ["historical", "today", "illustration"] as const;
 

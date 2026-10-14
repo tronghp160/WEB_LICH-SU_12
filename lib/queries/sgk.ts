@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_rethrow } from "next/navigation";
 import {
   applyAssignments,
   flattenLessons,
@@ -40,7 +41,8 @@ export const getCurriculum = cache(async (): Promise<Curriculum> => {
     if (assignments.length === 0) return fromCode();
     const topics = applyAssignments(SGK_12, assignments);
     return { topics, lessons: flattenLessons(topics), source: "database" };
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error); // tín hiệu nội bộ của Next.js (redirect, notFound, render động) phải được ném tiếp
     return fromCode();
   }
 });

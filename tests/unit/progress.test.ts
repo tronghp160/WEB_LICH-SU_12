@@ -155,6 +155,22 @@ describe("xuất / nhập mã tiến độ", () => {
     expect(lesson.lastSection).toBe("muc-3");
     expect(mergeProgress(emptyProgress, school)).toEqual(school);
   });
+
+  it("dán lại cùng một mã (hoặc mã của chính máy này) không nhân đôi số lượt", () => {
+    const once = mergeProgress(school, phone);
+    const twice = mergeProgress(once, phone);
+    expect(twice.quizzes["bai:7-khang-chien-chong-phap"].attempts).toBe(2);
+    expect(mergeProgress(school, school)).toEqual(school);
+    const code = exportProgressCode(school);
+    expect(mergeProgress(school, importProgressCode(code)!)).toEqual(school);
+  });
+
+  it("mã tiến độ vẫn tạo và đọc được khi khóa có dấu tiếng Việt", () => {
+    const accented = recordQuiz(emptyProgress, "chủ-đề:thử", 7, 10, day1);
+    const code = exportProgressCode(accented);
+    expect(code).toMatch(/^LS12-[A-Za-z0-9_-]+$/);
+    expect(importProgressCode(code)).toEqual(accented);
+  });
 });
 
 describe("con dấu", () => {

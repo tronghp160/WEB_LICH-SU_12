@@ -12,6 +12,7 @@ import { isUuid } from "@/lib/queries/admin-content";
 import { createClient } from "@/lib/supabase/server";
 import type { DbErrorLike } from "@/lib/utils/db-errors";
 import type { WorkflowStatus } from "@/lib/utils/labels";
+import { MEDIA_STORAGE_FOLDERS, type MediaOwnerKind } from "@/lib/validation/content";
 
 // Quản trị nội dung (UC14) — CHỈ quản trị viên; chạy bằng phiên của admin nên RLS `admin_all` áp dụng.
 // Ưu tiên ẨN hơn xóa cứng; xóa cứng bị khóa ngoại chặn nếu còn được nơi khác dùng.
@@ -43,6 +44,22 @@ function removeRow(db: Db, kind: ContentKind, id: string): PromiseLike<Result> {
       return db.from("historical_figures").delete().eq("id", id).select("id");
     case "dia-diem":
       return db.from("historical_locations").delete().eq("id", id).select("id");
+  }
+}
+
+/**
+ * Dọn tệp ảnh trong Storage của một nội dung vừa xóa (`<thư mục>/<id>/…`). Dòng media_assets đã bị cascade xóa theo,
+ * nên tệp không dọn sẽ nằm lại vĩnh viễn. `list()` trả tối đa 100 tệp mỗi lần → lặp tới khi hết.
+ * Lỗi dọn không làm hỏng thao tác xóa (nội dung đã xóa xong).
+ */
+async function removeStoredMedia(db: Db, kind: MediaOwnerKind, id: string): Promise<void> {
+  const folder = `${MEDIA_STORAGE_FOLDERS[kind]}/${id}`;
+  const PAGE = 100;
+  for (let round = 0; round < 50; round++) {
+    const { data: files, error } = await db.storage.from("media").list(folder, { limit: PAGE });
+    if (error || !files || files.length === 0) return;
+    const { error: removeError } = await db.storage.from("media").remove(files.map((file) => `${folder}/${file.name}`));
+    if (removeError || files.length < PAGE) return;
   }
 }
 
@@ -86,7 +103,8 @@ export async function adminHideAction(_previous: ActionState, formData: FormData
 
 /**
  * Xóa vĩnh viễn (có hộp thoại xác nhận ở giao diện). Khóa ngoại chặn khi còn được nơi khác dùng → thông báo rõ.
- * Xóa sự kiện cascade các liên kết/ảnh trong DB; tệp ảnh trong Storage được dọn theo (không làm hỏng thao tác nếu lỗi).
+ * Xóa sự kiện / nhân vật / địa điểm cascade các liên kết và dòng ảnh trong DB; tệp ảnh trong Storage được dọn theo
+ * (không làm hỏng thao tác nếu lỗi).
  */
 export async function deleteContentAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
   await requireRole(["system_admin"]);
@@ -104,11 +122,9 @@ export async function deleteContentAction(_previous: ActionState, formData: Form
     return { status: "error", message: "Không xóa được: nội dung không còn tồn tại hoặc bạn không có quyền.", values: target.values };
   }
 
-  if (target.kind === "su-kien") {
-    const { data: files } = await supabase.storage.from("media").list(`events/${target.id}`);
-    if (files && files.length > 0) {
-      await supabase.storage.from("media").remove(files.map((file) => `events/${target.id}/${file.name}`));
-    }
+  // Chủ đề không có ảnh; sự kiện, nhân vật, địa điểm đều có thư mục ảnh riêng.
+  if (target.kind !== "chu-de") {
+    await removeStoredMedia(supabase, target.kind, target.id);
   }
 
   revalidatePath(contentPaths.list(target.kind));

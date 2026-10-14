@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, unstable_rethrow } from "next/navigation";
 import { EventDetailView } from "@/components/content/detail/EventDetailView";
 import { getEventDetail } from "@/lib/queries/event-detail";
 import { getTimelineEvents, type TimelineEvent } from "@/lib/queries/events";
@@ -31,7 +31,8 @@ export async function generateMetadata({ params }: EventPageProps): Promise<Meta
 async function loadTimelineQuietly(): Promise<TimelineEvent[]> {
   try {
     return await getTimelineEvents();
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error); // tín hiệu nội bộ của Next.js (redirect, notFound, render động) phải được ném tiếp
     return [];
   }
 }

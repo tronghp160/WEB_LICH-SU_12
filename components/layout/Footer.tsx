@@ -61,6 +61,10 @@ export function Footer() {
               Hướng dẫn sử dụng
             </Link>
             {" · "}
+            <Link href="/ung-ho" className={linkClass}>
+              Ủng hộ dự án
+            </Link>
+            {" · "}
             Dữ liệu bản đồ ©{" "}
             <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className={linkClass}>
               OpenStreetMap contributors

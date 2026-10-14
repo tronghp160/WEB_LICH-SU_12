@@ -2,6 +2,7 @@
 
 import { ImagePlus, Trash2, Upload } from "lucide-react";
 import { useActionState, useState } from "react";
+import { ActionNoticeScope, useNoticeAction } from "@/components/admin/ActionNotice";
 import { Field, FormMessage } from "@/components/admin/forms/Field";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -12,7 +13,7 @@ import { initialActionState } from "@/lib/actions/state";
 import type { Option } from "@/lib/queries/admin-content";
 import { createClient } from "@/lib/supabase/client";
 import { mediaEraLabels } from "@/lib/utils/labels";
-import { MEDIA_ERAS, validateImageFile, type MediaOwnerKind } from "@/lib/validation/content";
+import { MEDIA_ERAS, MEDIA_STORAGE_FOLDERS, validateImageFile, type MediaOwnerKind } from "@/lib/validation/content";
 import { resizeCommonsImage } from "@/lib/utils/text";
 
 export type MediaItemData = {
@@ -40,13 +41,6 @@ type MediaManagerProps = {
   media: MediaItemData[];
   sources: Option[];
   readOnly?: boolean;
-};
-
-/** Thư mục trong bucket `media` theo loại nội dung. */
-const STORAGE_FOLDERS: Record<MediaOwnerKind, string> = {
-  "su-kien": "events",
-  "nhan-vat": "figures",
-  "dia-diem": "locations",
 };
 
 const OWNER_NOUN: Record<MediaOwnerKind, string> = {
@@ -164,7 +158,9 @@ function MediaMetaFields({
 /** Một ảnh đã có: xem trước, sửa thông tin và ghi công, hoặc xóa. */
 function MediaItem({ item, owner, sources, readOnly }: { item: MediaItemData; owner: MediaOwner; sources: Option[]; readOnly?: boolean }) {
   const [updateState, updateAction, updating] = useActionState(updateMediaAction, initialActionState);
-  const [deleteState, deleteAction, deleting] = useActionState(deleteMediaAction, initialActionState);
+  // Xóa xong thì mục này (cùng thông báo bên trong) biến mất → báo kết quả lên khung danh sách.
+  const remove = useNoticeAction(deleteMediaAction);
+  const [deleteState, deleteAction, deleting] = useActionState(remove.action, initialActionState);
 
   return (
     <li className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4 sm:flex-row">
@@ -206,7 +202,7 @@ function MediaItem({ item, owner, sources, readOnly }: { item: MediaItemData; ow
           >
             <input type="hidden" name="media_id" value={item.id} />
             <OwnerFields owner={owner} />
-            <FormMessage state={deleteState} />
+            {!remove.scoped && <FormMessage state={deleteState} />}
             <Button type="submit" size="sm" variant="ghost" disabled={deleting} className="text-accent">
               <Trash2 className="h-4 w-4" aria-hidden="true" />
               {deleting ? "Đang xóa…" : "Xóa ảnh"}
@@ -263,7 +259,7 @@ function AddMediaForm({ owner, sources, hasCover }: { owner: MediaOwner; sources
     try {
       const supabase = createClient();
       const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-      const path = `${STORAGE_FOLDERS[owner.kind]}/${owner.id}/${crypto.randomUUID()}.${extension}`;
+      const path = `${MEDIA_STORAGE_FOLDERS[owner.kind]}/${owner.id}/${crypto.randomUUID()}.${extension}`;
       const [size, { error }] = await Promise.all([
         readImageSize(file),
         supabase.storage.from("media").upload(path, file, { contentType: file.type, cacheControl: "31536000" }),
@@ -371,15 +367,17 @@ function AddMediaForm({ owner, sources, hasCover }: { owner: MediaOwner; sources
 export function MediaManager({ owner, media, sources, readOnly }: MediaManagerProps) {
   return (
     <div className="flex flex-col gap-4">
-      {media.length > 0 ? (
-        <ul className="flex flex-col gap-4">
-          {media.map((item) => (
-            <MediaItem key={item.id} item={item} owner={owner} sources={sources} readOnly={readOnly} />
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-muted-foreground">Chưa có ảnh nào cho {OWNER_NOUN[owner.kind]} này.</p>
-      )}
+      <ActionNoticeScope className="flex flex-col gap-3">
+        {media.length > 0 ? (
+          <ul className="flex flex-col gap-4">
+            {media.map((item) => (
+              <MediaItem key={item.id} item={item} owner={owner} sources={sources} readOnly={readOnly} />
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">Chưa có ảnh nào cho {OWNER_NOUN[owner.kind]} này.</p>
+        )}
+      </ActionNoticeScope>
       {!readOnly && <AddMediaForm owner={owner} sources={sources} hasCover={media.some((item) => item.is_cover)} />}
     </div>
   );
