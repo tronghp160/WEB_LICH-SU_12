@@ -52,11 +52,12 @@ async function learner(tag) {
   return { id, email, client };
 }
 
+// Đăng nhập nhân sự TRƯỚC khi tạo tài khoản thử: sai TEST_PW thì dừng ngay, không bỏ lại tài khoản rác.
+const withStaff = Boolean(process.env.TEST_PW);
+const staff = withStaff ? { Editor: await as("editor@test.local"), Admin: await as("admin@test.local") } : {};
 await cleanup();
 const A = await learner("a");
 const B = await learner("b");
-const withStaff = Boolean(process.env.TEST_PW);
-const staff = withStaff ? { Editor: await as("editor@test.local"), Admin: await as("admin@test.local") } : {};
 
 // Dữ liệu tham chiếu (đọc bằng khóa bí mật — chỉ để lấy id, không sửa gì).
 const one = async (query) => (await query).data?.[0] ?? null;
