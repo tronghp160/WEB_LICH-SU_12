@@ -1,3 +1,4 @@
+import { ProgressSync } from "@/components/account/ProgressSync";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileTabBar } from "@/components/layout/MobileTabBar";
@@ -20,6 +21,8 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
         <Footer />
       </div>
       <MobileTabBar />
+      {/* Đồng bộ tiến độ với tài khoản khi đã đăng nhập (client, không làm trang tĩnh thành động). */}
+      <ProgressSync />
     </>
   );
 }

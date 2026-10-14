@@ -6,7 +6,8 @@ import { markLessonStudied, mergeProgress, parseProgress, PROGRESS_KEY, recordQu
 // Đọc/ghi tiến độ học tập trong localStorage (GĐ4.4). localStorage có thể bị chặn (chế độ riêng tư, trình duyệt
 // của trường tắt lưu trữ) → mọi thao tác bọc try/catch; hỏng thì trang vẫn chạy, chỉ không nhớ được tiến độ.
 
-const CHANGE_EVENT = "ls12:tien-do-doi";
+/** Phát mỗi khi tiến độ trên máy đổi trong tab này (ProgressSync nghe để đẩy lên tài khoản). */
+export const CHANGE_EVENT = "ls12:tien-do-doi";
 
 let cached: { raw: string | null; value: Progress } | null = null;
 
@@ -67,6 +68,16 @@ export function saveSectionRead(lessonSlug: string, sectionId: string) {
 /** Gộp tiến độ nhập từ mã của máy khác vào tiến độ trên máy này (xuất/nhập mã tiến độ). */
 export function importProgress(incoming: Progress) {
   update((progress) => mergeProgress(progress, incoming));
+}
+
+/** Tiến độ hiện có trên máy (đọc ngay, ngoài React) — cho ProgressSync. */
+export function readProgress(): Progress {
+  return getSnapshot();
+}
+
+/** Thay toàn bộ tiến độ trên máy bằng bản đã gộp với tài khoản (ProgressSync). Không đổi gì thì không phát sự kiện. */
+export function replaceProgress(next: Progress) {
+  update(() => next);
 }
 
 export function clearProgress() {

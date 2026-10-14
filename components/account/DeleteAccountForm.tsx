@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { AccountField, FormError } from "@/components/account/AccountField";
+import { forgetSyncOwner } from "@/components/account/ProgressSync";
 import { Button } from "@/components/ui/Button";
 import { deleteAccountAction, type DeleteAccountState } from "@/lib/actions/account";
 
@@ -10,7 +11,8 @@ export function DeleteAccountForm({ email }: { email: string }) {
   const [state, formAction, pending] = useActionState<DeleteAccountState, FormData>(deleteAccountAction, {});
 
   return (
-    <form action={formAction} noValidate className="flex flex-col gap-4">
+    // Máy không còn thuộc tài khoản sắp xóa: tạo tài khoản mới trên máy này thì tiến độ trên máy vẫn được gộp vào.
+    <form action={formAction} onSubmit={forgetSyncOwner} noValidate className="flex flex-col gap-4">
       <FormError id="xoa-tai-khoan-loi" message={state.error} />
       <AccountField
         id="confirmEmail"

@@ -500,3 +500,109 @@ test.describe.serial("Tài khoản và Bảo mật (B4)", () => {
     await page.waitForURL(/\/dang-nhap\?next=/);
   });
 });
+
+// Đồng bộ tiến độ — giai đoạn B5 (docs/ke-hoach-tai-khoan.md, mục 7.1, 12: E2E (7)).
+const passedQuiz = (setId: string, minute: number) => {
+  const time = new Date(Date.UTC(2026, 9, 14, 8, minute)).toISOString();
+  return { v: 1, lessons: {}, sgk: {}, quizzes: { [setId]: { best: 9, total: 10, attempts: 1, passedAt: time, lastAt: time } } };
+};
+
+async function setLocalProgress(page: Page, progress: unknown): Promise<void> {
+  await page.evaluate((value) => {
+    localStorage.setItem("ls12:tien-do", JSON.stringify(value));
+    window.dispatchEvent(new Event("ls12:tien-do-doi"));
+  }, progress);
+}
+
+const localQuizIds = (page: Page) =>
+  page.evaluate(() => Object.keys((JSON.parse(localStorage.getItem("ls12:tien-do") ?? "{}") as { quizzes?: object }).quizzes ?? {}).sort());
+
+const userIds = new Map<string, string>();
+
+async function serverQuizIds(email: string): Promise<string[]> {
+  // listUsers chậm → nhớ user id, vì hàm này được gọi lặp trong expect.poll.
+  if (!userIds.has(email)) userIds.set(email, await userIdOf(email));
+  const { data } = await adminApi().from("learner_progress").select("data").eq("user_id", userIds.get(email)!).maybeSingle();
+  return Object.keys((data?.data as { quizzes?: object } | undefined)?.quizzes ?? {}).sort();
+}
+
+test.describe.serial("Đồng bộ tiến độ (B5)", () => {
+  test.afterAll(cleanupLearners);
+
+  test("(7) học khi chưa đăng nhập → đăng nhập: gộp vào tài khoản, có thông báo; máy thứ hai thấy cùng con dấu", async ({ page, browser }) => {
+    const email = await createLearner({ name: "ZZ Đồng Bộ E2E" });
+    await page.goto("/ho-chieu");
+    await setLocalProgress(page, passedQuiz("tong-hop", 1));
+    await expect(page.getByRole("button", { name: "Tạo mã tiến độ" })).toBeVisible();
+
+    await signIn(page, email, PASSWORD, "/dang-nhap?next=%2Fho-chieu");
+    await page.waitForURL(/\/ho-chieu$/);
+    await expect(page.locator("#dong-bo-thong-bao")).toContainText("Đã gộp tiến độ trên máy này vào tài khoản (1 con dấu)");
+    await expect(page.getByTestId("ho-chieu-dong-bo")).toContainText("ZZ Đồng Bộ E2E");
+    await expect(page.getByRole("button", { name: "Tạo mã tiến độ" })).toHaveCount(0);
+    const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+    expect(axe.violations.filter((violation) => violation.impact === "serious" || violation.impact === "critical").map((violation) => violation.id)).toEqual([]);
+    await expect.poll(() => serverQuizIds(email)).toEqual(["tong-hop"]);
+
+    // Máy thứ hai đã có tiến độ riêng (chưa đăng nhập) → đăng nhập: thấy cả hai, tài khoản cũng có cả hai.
+    const other = await browser.newContext();
+    const phone = await other.newPage();
+    await phone.goto("/ho-chieu");
+    await setLocalProgress(phone, passedQuiz("doan-nam", 2));
+    await signIn(phone, email, PASSWORD, "/dang-nhap?next=%2Fho-chieu");
+    await phone.waitForURL(/\/ho-chieu$/);
+    await expect(phone.locator("header").first().getByRole("link", { name: "Hộ chiếu lịch sử: 2 con dấu" })).toBeVisible();
+    await expect.poll(() => localQuizIds(phone)).toEqual(["doan-nam", "tong-hop"]);
+    await expect.poll(() => serverQuizIds(email)).toEqual(["doan-nam", "tong-hop"]);
+
+    // Máy đầu tải lại → nhận con dấu từ máy kia; đăng nhập lại lần nữa không báo "đã gộp" (máy đã thuộc tài khoản).
+    await page.reload();
+    await expect(page.locator("header").first().getByRole("link", { name: "Hộ chiếu lịch sử: 2 con dấu" })).toBeVisible();
+    await expect(page.locator("#dong-bo-thong-bao")).toHaveCount(0);
+    await other.close();
+  });
+
+  test("đang đăng nhập: tiến độ mới tự đẩy lên tài khoản (gom ~3 giây)", async ({ page }) => {
+    const email = await createLearner();
+    await signIn(page, email, PASSWORD, "/dang-nhap?next=%2Fho-chieu");
+    await page.waitForURL(/\/ho-chieu$/);
+    await expect(page.getByTestId("ho-chieu-dong-bo")).toBeVisible();
+
+    await setLocalProgress(page, passedQuiz("tong-hop", 3));
+    await expect.poll(() => serverQuizIds(email), { timeout: 15_000 }).toEqual(["tong-hop"]);
+
+    // Vừa học xong (chưa hết 3 giây gom) đã đăng xuất máy dùng chung → vẫn kịp lên tài khoản, máy được xóa sạch.
+    await page.goto("/tai-khoan");
+    await setLocalProgress(page, { ...passedQuiz("tong-hop", 3), quizzes: { ...passedQuiz("tong-hop", 3).quizzes, ...passedQuiz("doan-nam", 6).quizzes } });
+    await signOut(page, { shared: true });
+    expect(await serverQuizIds(email)).toEqual(["doan-nam", "tong-hop"]);
+    expect(await localQuizIds(page)).toEqual([]);
+  });
+
+  test("máy dùng chung: người sau đăng nhập KHÔNG nhận tiến độ của người trước, và ngược lại", async ({ page }) => {
+    const first = await createLearner({ name: "ZZ Người Trước" });
+    const second = await createLearner({ name: "ZZ Người Sau" });
+
+    await signIn(page, first, PASSWORD, "/dang-nhap?next=%2Fho-chieu");
+    await page.waitForURL(/\/ho-chieu$/);
+    await setLocalProgress(page, passedQuiz("tong-hop", 4));
+    await expect.poll(() => serverQuizIds(first), { timeout: 15_000 }).toEqual(["tong-hop"]);
+
+    // Quên tích "máy dùng chung": tiến độ của người trước vẫn nằm trên máy.
+    await page.goto("/tai-khoan");
+    await signOut(page);
+    expect(await localQuizIds(page)).toEqual(["tong-hop"]);
+
+    await signIn(page, second, PASSWORD, "/dang-nhap?next=%2Fho-chieu");
+    await page.waitForURL(/\/ho-chieu$/);
+    await expect.poll(() => localQuizIds(page)).toEqual([]);
+    await expect(page.locator("#dong-bo-thong-bao")).toHaveCount(0);
+    expect(await serverQuizIds(second)).toEqual([]);
+    expect(await serverQuizIds(first)).toEqual(["tong-hop"]);
+  });
+
+  test("/api/tien-do: chưa đăng nhập → 401", async ({ request }) => {
+    expect((await request.get("/api/tien-do")).status()).toBe(401);
+    expect((await request.put("/api/tien-do", { data: passedQuiz("tong-hop", 5) })).status()).toBe(401);
+  });
+});

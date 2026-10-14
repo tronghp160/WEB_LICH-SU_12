@@ -9,7 +9,9 @@ import { Button, LinkButton } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Tabs } from "@/components/ui/Tabs";
+import { loginPath } from "@/lib/auth/routes";
 import { clearProgress, useProgress } from "@/lib/hooks/useProgress";
+import { useSession } from "@/lib/hooks/useSession";
 import { evaluateStamps, lessonCompletion, stampDate, type Progress, type Stamp, type StampDef } from "@/lib/progress/progress";
 import { SGK_12, sgkLessons, sgkPaths } from "@/lib/sgk/curriculum";
 
@@ -100,11 +102,13 @@ function StampCard({ stamp }: { stamp: Stamp }) {
 }
 
 /**
- * "Hộ chiếu lịch sử" (GĐ4.4): con dấu cho mỗi bộ trắc nghiệm đạt từ 7/10, danh sách bài học đã đọc hết. Dữ liệu chỉ
- * nằm trong localStorage của trình duyệt này — không đăng nhập, không gửi lên máy chủ.
+ * "Hộ chiếu lịch sử" (GĐ4.4): con dấu cho mỗi bộ trắc nghiệm đạt từ 7/10, danh sách bài học đã đọc hết. Dữ liệu nằm
+ * trong localStorage; đã đăng nhập thì ProgressSync đồng bộ với tài khoản (B5) và mục chép mã tiến độ được ẩn.
  */
 export function Passport({ stamps: defs, lessons }: PassportProps) {
   const progress = useProgress();
+  const session = useSession();
+  const signedIn = session.status === "signed-in";
   const [confirming, setConfirming] = useState(false);
 
   if (!progress) {
@@ -216,45 +220,66 @@ export function Passport({ stamps: defs, lessons }: PassportProps) {
         ]}
       />
 
-      <ProgressTransfer />
+      {signedIn ? (
+        <section aria-labelledby="dong-bo" className="flex flex-col gap-2 rounded-card border border-border bg-surface p-5" data-testid="ho-chieu-dong-bo">
+          <h2 id="dong-bo" className="flex items-center gap-2 font-serif text-lg font-bold text-foreground">
+            <Check className="h-5 w-5 text-success" aria-hidden="true" />
+            Tiến độ đã đồng bộ với tài khoản
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Hộ chiếu tự lưu vào tài khoản <strong className="text-foreground">{session.name}</strong>. Đăng nhập ở máy khác là thấy
+            đủ con dấu — không cần chép mã tiến độ.
+          </p>
+        </section>
+      ) : (
+        <ProgressTransfer />
+      )}
 
-      <section aria-labelledby="luu-tru" className="flex flex-col gap-3 border-t border-border pt-6 text-sm text-muted-foreground">
-        <h2 id="luu-tru" className="font-serif text-lg font-bold text-foreground">
-          Hộ chiếu được lưu ở đâu?
-        </h2>
-        <p>
-          Chỉ trong trình duyệt trên máy này — không cần đăng nhập và không gửi lên máy chủ. Nếu em dùng máy khác, chế độ ẩn
-          danh, hoặc xóa dữ liệu trình duyệt thì hộ chiếu sẽ bắt đầu lại từ đầu.
-        </p>
-        {hasAnything &&
-          (confirming ? (
-            <div className="flex flex-wrap items-center gap-3" role="group" aria-label="Xác nhận xóa tiến độ">
-              <span className="font-medium text-foreground">Xóa toàn bộ con dấu và tiến độ trên máy này?</span>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => {
-                  clearProgress();
-                  setConfirming(false);
-                }}
-              >
-                <Trash2 className="h-4 w-4" aria-hidden="true" />
-                Xóa hết
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
-                <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                Giữ lại
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <Button variant="ghost" size="sm" onClick={() => setConfirming(true)}>
-                <Trash2 className="h-4 w-4" aria-hidden="true" />
-                Xóa tiến độ trên máy này
-              </Button>
-            </div>
-          ))}
-      </section>
+      {!signedIn && (
+        <section aria-labelledby="luu-tru" className="flex flex-col gap-3 border-t border-border pt-6 text-sm text-muted-foreground">
+          <h2 id="luu-tru" className="font-serif text-lg font-bold text-foreground">
+            Hộ chiếu được lưu ở đâu?
+          </h2>
+          <p>
+            <Link href={loginPath("/ho-chieu")} className="font-medium text-accent underline-offset-4 hover:underline">
+              Đăng nhập
+            </Link>{" "}
+            để hộ chiếu tự lưu vào tài khoản và đi theo em trên mọi máy. Khi chưa đăng nhập:
+          </p>
+          <p>
+            Chỉ trong trình duyệt trên máy này — không cần đăng nhập và không gửi lên máy chủ. Nếu em dùng máy khác, chế độ ẩn
+            danh, hoặc xóa dữ liệu trình duyệt thì hộ chiếu sẽ bắt đầu lại từ đầu.
+          </p>
+          {hasAnything &&
+            (confirming ? (
+              <div className="flex flex-wrap items-center gap-3" role="group" aria-label="Xác nhận xóa tiến độ">
+                <span className="font-medium text-foreground">Xóa toàn bộ con dấu và tiến độ trên máy này?</span>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    clearProgress();
+                    setConfirming(false);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  Xóa hết
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                  Giữ lại
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <Button variant="ghost" size="sm" onClick={() => setConfirming(true)}>
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  Xóa tiến độ trên máy này
+                </Button>
+              </div>
+            ))}
+        </section>
+      )}
     </div>
   );
 }

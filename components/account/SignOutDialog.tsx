@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { flushProgressSync } from "@/components/account/ProgressSync";
 import { Button } from "@/components/ui/Button";
 import { signOutLearnerAction } from "@/lib/actions/account";
 import { clearLicense } from "@/lib/hooks/useLicense";
@@ -56,13 +57,16 @@ export function SignOutDialog() {
       className="m-auto w-[calc(100%-2rem)] max-w-md rounded-card border border-border bg-surface p-0 text-surface-foreground shadow-2xl backdrop:bg-black/50"
     >
       <form
-        action={signOutLearnerAction}
-        onSubmit={() => {
+        action={async () => {
+          // 1. Đẩy nốt tiến độ còn chờ lên tài khoản. 2. Dừng đồng bộ rồi mới xóa — không đẩy "tiến độ trống" lên.
+          // 3. Đăng xuất ở server (Server Action tự chuyển về trang chủ).
+          await flushProgressSync();
+          markSignedOut();
           if (shared) {
             clearProgress();
             clearLicense();
           }
-          markSignedOut();
+          await signOutLearnerAction();
         }}
         className="flex flex-col gap-4 p-5 sm:p-6"
       >
@@ -84,8 +88,8 @@ export function SignOutDialog() {
               Đây là máy dùng chung (máy trường)
             </label>
             <p id="dang-xuat-may-chung-mo-ta" className="mt-1 text-muted-foreground">
-              Xóa tiến độ và mã đã lưu trên máy này. Muốn giữ tiến độ, hãy chép mã tiến độ ở trang Hộ chiếu trước; mã gói
-              luyện thi nhập lại được bất cứ lúc nào.
+              Xóa tiến độ và mã đã lưu trên máy này. Tiến độ vẫn nằm trong tài khoản — đăng nhập lại là thấy; mã gói luyện
+              thi nhập lại được bất cứ lúc nào.
             </p>
           </div>
         </div>

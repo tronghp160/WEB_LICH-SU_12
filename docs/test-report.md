@@ -421,3 +421,32 @@ chung". Học sinh mở `/quan-tri/*` → `/tai-khoan?thong-bao=khu-noi-bo` (tha
 proxy (kiểm lạc quan bằng `getClaims`) cho qua; `requireLearner` (`getUser`, hỏi máy chủ Auth) mới chặn và đưa về
 `/dang-nhap`. E2E kiểm đúng hành vi này. Đổi mật khẩu kiểm mật khẩu hiện tại bằng một client tạm không lưu phiên rồi thu
 hồi ngay — đây là lớp chặn trên giao diện; muốn chặn cả gọi API trực tiếp thì bật *Secure password change* trong Supabase.
+
+## 15. Tài khoản học sinh — giai đoạn B5: đồng bộ tiến độ (14/10/2026)
+
+`components/account/ProgressSync.tsx` (client, gắn trong layout công khai, chỉ chạy khi đã đăng nhập) + `/api/tien-do`
+(GET / PUT bằng phiên người dùng, RLS `own_*` của `learner_progress`). Khách vẫn dùng localStorage + mã `LS12-…` như cũ.
+
+- **Phép gộp riêng cho đồng bộ** (`lib/progress/sync.ts` → `joinProgress`): giống `mergeProgress` nhưng số lượt làm bài
+  lấy **max** thay vì cộng. Lý do: đồng bộ gộp đi gộp lại cùng một lịch sử (máy → tài khoản → máy); nếu cộng thì số
+  lượt nhân lên sau mỗi lần (có unit test chứng minh). Với max, phép gộp giao hoán, kết hợp, lũy đẳng. Đổi lại: hai máy
+  cùng làm một bộ đề khi chưa đồng bộ thì số lượt bị tính thiếu (điểm cao nhất, con dấu, mục đã đọc không mất).
+- **Server không ghi đè:** đọc bản đang lưu → gộp → ghi kèm điều kiện `updated_at` chưa đổi (khóa lạc quan, thử lại 3
+  lần) → hai máy ghi cùng lúc không mất phần của nhau. Giới hạn 64 KB, 30 lần ghi / phút / tài khoản (bucket
+  `progress_write`; bộ đếm hỏng thì vẫn cho ghi).
+- **Máy dùng chung:** khóa `ls12:tien-do-cua` ghi tài khoản đang giữ tiến độ trên máy. Người khác đăng nhập trên cùng máy
+  → **thay** bằng tiến độ của họ, không trộn tiến độ người trước vào tài khoản người sau.
+- **Đăng xuất:** đẩy nốt thay đổi còn chờ (tối đa 3 giây) rồi mới xóa dữ liệu máy (nếu tích "máy dùng chung") và đăng
+  xuất. Rời trang thì đẩy bằng `fetch keepalive`. Quay lại tab sau ≥ 1 phút thì tải lại bản của tài khoản.
+- **Hộ chiếu:** đã đăng nhập → "Tiến độ đã đồng bộ với tài khoản", ẩn mục chép mã tiến độ và nút xóa tiến độ trên máy
+  (xóa xong cũng bị đồng bộ trả lại); chưa đăng nhập → thêm lời mời đăng nhập.
+
+| Nhóm | Kết quả | Ghi chú |
+|---|---|---|
+| Unit test (Vitest) | **596/596** đạt, 40 file | thêm `progress-sync.test.ts` (9 ca: tính chất phép gộp, đồng bộ 5 vòng không nhân số lượt, so sánh không phụ thuộc thứ tự khóa, thông báo "đã gộp", máy dùng chung → thay chứ không trộn) và `progress-api.test.ts` (7 ca, Supabase giả: 401, tạo dòng, gộp không ghi đè, máy khác ghi chen giữa → đọc lại gộp lại, 413, 429, bộ đếm hỏng vẫn ghi, body hỏng) |
+| Lint, kiểu (tsc), `npm run build` | sạch | bảng route chỉ thêm `ƒ /api/tien-do`; mọi trang khác giữ nguyên kiểu (so bằng `diff` với bản build B4) |
+| **E2E tài khoản** (`account.spec.ts`, bản production, DB thật) | **22 đạt**, 1 bỏ qua / 23 | thêm 4 ca B5: (7) có con dấu khi chưa đăng nhập → đăng nhập → thông báo "Đã gộp … (1 con dấu)", tài khoản có con dấu, trợ năng Hộ chiếu khi đã đăng nhập; máy thứ hai có con dấu khác → đăng nhập thấy 2 con dấu, máy đầu tải lại cũng thấy 2, không báo gộp lần nữa; đang đăng nhập → tự đẩy sau ~3 giây; học xong rồi đăng xuất máy dùng chung ngay (chưa hết 3 giây) → vẫn kịp lên tài khoản, máy sạch; người sau trên cùng máy không nhận tiến độ người trước; `/api/tien-do` khi chưa đăng nhập → 401 |
+| E2E thanh toán, trợ năng | **14/14**, **42/42** đạt | một lần chạy ca "số tiền ủng hộ ngoài khoảng" đỏ ngẫu nhiên (không thấy phần tử), chạy lại đạt — cùng kiểu lỗi mạng chập chờn đã ghi ở mục 8 |
+
+**Lỗi tìm thấy khi kiểm thử:** đăng xuất ngay sau khi mở trang thì bước "đẩy nốt" không đẩy gì vì chưa tải xong bản của
+tài khoản → sửa: đẩy nốt chờ lần tải đầu xong rồi mới đẩy (E2E "học xong rồi đăng xuất ngay" bắt được lỗi này).
