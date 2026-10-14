@@ -1,26 +1,43 @@
 import "server-only";
 
-// Phương thức đăng nhập đang bật trong Supabase Auth. Google chỉ hoạt động sau khi cấu hình tay (docs/ke-hoach-tai-khoan.md,
-// mục 9.1–9.2); khi chưa bật, Supabase trả JSON lỗi thô ở /authorize → ẩn nút Google thay vì để học sinh gặp trang đó.
+// Cài đặt Supabase Auth đang bật (docs/ke-hoach-tai-khoan.md, mục 9.1–9.2) — đọc từ GET /auth/v1/settings (công khai, chỉ
+// cần khóa publishable). Google chỉ hoạt động sau khi cấu hình tay; khi chưa bật, Supabase trả JSON lỗi thô ở /authorize
+// → ẩn nút Google thay vì để học sinh gặp trang đó.
 
-/** Lưu đệm kết quả 5 phút: bật Google trong Supabase thì tối đa 5 phút sau nút mới hiện. */
+/** Lưu đệm kết quả 5 phút: đổi cài đặt trong Supabase thì tối đa 5 phút sau trang mới theo. */
 const SETTINGS_REVALIDATE_SECONDS = 300;
 
-/** GET /auth/v1/settings (công khai, chỉ cần khóa publishable). Lỗi mạng → coi như chưa bật. */
-export async function isGoogleAuthEnabled(): Promise<boolean> {
+export type AuthSettings = {
+  /** Đã bật đăng nhập Google. */
+  google: boolean;
+  /**
+   * Đã TẮT "Confirm email" (Supabase gọi là mailer_autoconfirm): đăng ký bằng email xong là vào được ngay, không gửi
+   * email xác nhận.
+   */
+  autoconfirm: boolean;
+};
+
+const UNKNOWN: AuthSettings = { google: false, autoconfirm: false };
+
+/** Lỗi mạng / thiếu cấu hình → coi như chưa bật gì (an toàn: ẩn Google, giữ luồng xác nhận email). */
+export async function getAuthSettings(): Promise<AuthSettings> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return false;
+  if (!url || !key) return UNKNOWN;
   try {
     const response = await fetch(`${url}/auth/v1/settings`, {
       headers: { apikey: key },
       next: { revalidate: SETTINGS_REVALIDATE_SECONDS },
       signal: AbortSignal.timeout(5000),
     });
-    if (!response.ok) return false;
-    const settings = (await response.json()) as { external?: { google?: unknown } };
-    return settings.external?.google === true;
+    if (!response.ok) return UNKNOWN;
+    const settings = (await response.json()) as { external?: { google?: unknown }; mailer_autoconfirm?: unknown };
+    return { google: settings.external?.google === true, autoconfirm: settings.mailer_autoconfirm === true };
   } catch {
-    return false;
+    return UNKNOWN;
   }
+}
+
+export async function isGoogleAuthEnabled(): Promise<boolean> {
+  return (await getAuthSettings()).google;
 }
