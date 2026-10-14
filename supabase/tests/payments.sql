@@ -238,7 +238,9 @@ begin
     (has_function_privilege('anon', 'public.mark_order_paid(bigint, integer, text, text, text)', 'execute')),
     (has_function_privilege('authenticated', 'public.mark_order_paid(bigint, integer, text, text, text)', 'execute')),
     (has_function_privilege('anon', 'public.activate_license(text, text)', 'execute')),
-    (has_function_privilege('anon', 'public.get_exam_set(text, text, text)', 'execute')),
+    -- Mọi bản get_exam_set (migration 20261020000000 thêm tham số p_user_id).
+    (exists (select 1 from pg_proc where pronamespace = 'public'::regnamespace and proname = 'get_exam_set'
+              and has_function_privilege('anon', oid, 'execute'))),
     (has_function_privilege('authenticated', 'public.expire_stale_orders()', 'execute'))
   ) as t(granted) where granted;
   results := results || jsonb_build_object('ca','R2','mo_ta','chỉ service_role gọi được các hàm thanh toán','ky_vong','0 quyền',

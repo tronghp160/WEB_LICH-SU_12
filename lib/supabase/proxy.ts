@@ -1,10 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { ADMIN_LOGIN, isProtectedAdminPath } from "@/lib/admin/routes";
+import { LEARNER_LOGIN, isProtectedLearnerPath, safeNext } from "@/lib/auth/routes";
 
 /**
  * Làm mới phiên đăng nhập (refresh token) trên mỗi request.
- * Chặn sớm /quan-tri/* khi chưa đăng nhập (kiểm tra lạc quan); việc kiểm tra
+ * Chặn sớm /quan-tri/* và /tai-khoan/* khi chưa đăng nhập (kiểm tra lạc quan); việc kiểm tra
  * vai trò/khóa tài khoản nằm ở requireRole() trong từng trang (lib/auth.ts).
  */
 export async function updateSession(request: NextRequest) {
@@ -47,6 +48,17 @@ export async function updateSession(request: NextRequest) {
     loginUrl.search = "";
     const redirectResponse = NextResponse.redirect(loginUrl);
     // Mang theo cookie vừa làm mới (nếu có) để không làm lệch phiên trình duyệt/server.
+    supabaseResponse.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+    return redirectResponse;
+  }
+
+  // Tương tự cho trang tài khoản học sinh: về /dang-nhap?next=<trang đang mở> (requireLearner kiểm lại ở từng trang).
+  if (!data?.claims && isProtectedLearnerPath(request.nextUrl.pathname)) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = LEARNER_LOGIN;
+    loginUrl.search = "";
+    loginUrl.searchParams.set("next", safeNext(`${request.nextUrl.pathname}${request.nextUrl.search}`));
+    const redirectResponse = NextResponse.redirect(loginUrl);
     supabaseResponse.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
     return redirectResponse;
   }

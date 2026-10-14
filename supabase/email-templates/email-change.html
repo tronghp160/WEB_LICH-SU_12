@@ -1,0 +1,18 @@
+<!--
+  Supabase → Authentication → Emails → Templates → "Change email address".
+  Tiêu đề (Subject): Xác nhận email mới — Lịch sử Việt Nam 12
+  Link → app/auth/confirm/route.ts (type=email_change). Chức năng đổi email trong trang Tài khoản làm ở giai đoạn B4.
+-->
+<div style="font-family: Arial, Helvetica, sans-serif; max-width: 520px; margin: 0 auto; color: #1f2937; line-height: 1.6">
+  <p style="font-size: 20px; font-weight: bold; margin: 0 0 16px">Lịch sử <span style="color: #b42318">Việt Nam 12</span></p>
+  <p>Chào em,</p>
+  <p>Em vừa yêu cầu đổi email đăng nhập từ <strong>{{ .Email }}</strong> sang <strong>{{ .NewEmail }}</strong>. Bấm nút dưới đây để xác nhận:</p>
+  <p style="margin: 24px 0">
+    <a
+      href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change"
+      style="background: #b42318; color: #ffffff; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: bold"
+      >Xác nhận email mới</a
+    >
+  </p>
+  <p style="font-size: 14px; color: #6b7280">Nếu em không yêu cầu, hãy bỏ qua email này và đổi mật khẩu để an toàn.</p>
+</div>

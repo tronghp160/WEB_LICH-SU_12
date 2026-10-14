@@ -348,3 +348,23 @@ Ma trận phân quyền thanh toán (chạy thật từng ô bằng phiên của
 - Mọi thao tác ghi đơn / mã / nhật ký đi qua server (service_role); không vai trò đăng nhập nào ghi trực tiếp được.
 
 **Chưa làm:** A2 (chạy payOS thật trên Vercel với giao dịch tiền thật) và phần B (tài khoản học sinh) của kế hoạch.
+
+## 12. Tài khoản học sinh — giai đoạn B1 + B2 (14/10/2026)
+
+Theo `docs/ke-hoach-tai-khoan.md`. Quyết định đã chốt: Q1 (a) nhân sự đăng nhập Google vẫn vào được khu quản trị; Q3 (a)
+không bắt đăng nhập khi mua gói; Q4 (a) mua tên miền riêng cho SMTP. Migration `20261020000000_learner_accounts.sql` đã chạy
+trên database thật ngày 14/10/2026.
+
+| Nhóm | Kết quả | Ghi chú |
+|---|---|---|
+| Unit test (Vitest) | **550/550** đạt, 36 file | thêm `account.test.ts` (45 ca): `safeNext` (`//evil.com`, `/\evil`, `/%2F%2Fevil`, URL tuyệt đối, `javascript:`, xuống dòng, quá dài, `/auth/*`, URL cùng gốc từ mẫu email), `isProtectedLearnerPath`, kiểm tra form (mật khẩu 8–72 ký tự và ≤ 72 byte, có chữ và số), dịch lỗi Auth |
+| Lint, kiểu (tsc), `npm run build` | sạch | trang tĩnh giữ nguyên (`/huong-dan`, `/dieu-khoan`, `/chinh-sach-bao-mat` vẫn ○ Static) |
+| `supabase/tests/learner_accounts.sql` (H1–H15, M1–M3, C1–C6, G1–G5, F1, P1–P2, R1, D1) | **34/34** trên DB thật | RLS chạy thật bằng role `authenticated` + `request.jwt.claims`: học sinh A không đọc / sửa được hồ sơ, tiến độ của B; biên tập viên không đọc hồ sơ học sinh; quản trị viên chỉ đọc hồ sơ; `claim_license` từ chối mã của người khác / bị thu hồi; `get_exam_set` mở đề theo tài khoản không tốn lượt thiết bị; xóa tài khoản → đơn, mã còn nhưng bỏ gắn. Trước khi trình đã thử đột biến (mở quyền đọc hồ sơ, bỏ chặn gán lại tài khoản) → 5 ca báo đỏ |
+| `supabase/tests/payments.sql` sau migration | **44/44** trên DB thật | dòng kiểm quyền `get_exam_set` sửa để đúng cả trước và sau khi thêm tham số |
+| **E2E tài khoản** (`account.spec.ts`, bản production, DB thật) | **7 đạt**, 1 bỏ qua / 8 | (1) link xác nhận email (lấy bằng `generateLink`) → `/tai-khoan`, hồ sơ được tạo, dùng lại link → trang lỗi; (2) sai mật khẩu / email lạ → cùng thông báo; tài khoản chưa xác nhận → nút gửi lại; (3) quên mật khẩu → đặt mật khẩu mới, mật khẩu cũ hết tác dụng, trang đặt lại khóa khi không có link; (4) `/tai-khoan` → đăng nhập → quay về đúng trang (giữ query), đăng xuất; (5) `next=//evil.com`, `next=https://evil.com` → `/tai-khoan`. Bỏ qua: gửi email thật qua form (cần SMTP riêng, `E2E_SMTP=1`). Tài khoản thử tự xóa: còn 0 |
+| E2E thanh toán (`payments.spec.ts`) sau migration | **14/14** đạt | mở đề bằng mã + thiết bị vẫn chạy với `get_exam_set` mới |
+| Trợ năng axe-core | 10/10 đạt | `/dang-nhap`, `/dang-ky`, `/quen-mat-khau`, `/dieu-khoan`, `/chinh-sach-bao-mat` × sáng/tối |
+
+**Chưa làm (B3–B7):** đăng nhập Google, menu tài khoản trên Header, trang tài khoản đầy đủ (bảo mật, xóa tài khoản, tải
+dữ liệu), đồng bộ tiến độ, gắn thanh toán với tài khoản trên giao diện, ma trận RLS bằng tài khoản học sinh thật. Gửi email
+thật cần cấu hình SMTP (mục 9.3 của kế hoạch).

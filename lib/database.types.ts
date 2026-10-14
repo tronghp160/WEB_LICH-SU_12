@@ -687,6 +687,7 @@ export type Database = {
           show_on_wall: boolean
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
+          user_id: string | null
           wall_approved: boolean
         }
         Insert: {
@@ -708,6 +709,7 @@ export type Database = {
           show_on_wall?: boolean
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
+          user_id?: string | null
           wall_approved?: boolean
         }
         Update: {
@@ -729,6 +731,7 @@ export type Database = {
           show_on_wall?: boolean
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
+          user_id?: string | null
           wall_approved?: boolean
         }
         Relationships: [
@@ -792,6 +795,7 @@ export type Database = {
           order_id: string
           product_id: string
           status: string
+          user_id: string | null
           valid_until: string | null
         }
         Insert: {
@@ -802,6 +806,7 @@ export type Database = {
           order_id: string
           product_id: string
           status?: string
+          user_id?: string | null
           valid_until?: string | null
         }
         Update: {
@@ -812,6 +817,7 @@ export type Database = {
           order_id?: string
           product_id?: string
           status?: string
+          user_id?: string | null
           valid_until?: string | null
         }
         Relationships: [
@@ -991,6 +997,57 @@ export type Database = {
         }
         Relationships: []
       }
+      learner_profiles: {
+        Row: {
+          agreed_at: string
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+          school: string | null
+          terms_version: string
+          updated_at: string
+        }
+        Insert: {
+          agreed_at?: string
+          avatar_url?: string | null
+          created_at?: string
+          display_name: string
+          id: string
+          school?: string | null
+          terms_version: string
+          updated_at?: string
+        }
+        Update: {
+          agreed_at?: string
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          school?: string | null
+          terms_version?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      learner_progress: {
+        Row: {
+          data: NonNullable<Json>
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data: NonNullable<Json>
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: NonNullable<Json>
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       donation_wall: {
@@ -1028,8 +1085,16 @@ export type Database = {
         Returns: Json
       }
       get_exam_set: {
-        Args: { p_slug: string; p_code: string; p_device_hash: string }
+        Args: { p_slug: string; p_code: string; p_device_hash: string; p_user_id?: string | null }
         Returns: Json
+      }
+      claim_license: {
+        Args: { p_code: string; p_user_id: string }
+        Returns: Json
+      }
+      find_auth_user_by_email: {
+        Args: { p_email: string }
+        Returns: string | null
       }
       expire_stale_orders: {
         Args: Record<PropertyKey, never>

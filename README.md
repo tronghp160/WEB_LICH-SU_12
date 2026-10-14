@@ -29,6 +29,7 @@ Nội dung bám theo SGK Lịch sử 12 (bộ *Kết nối tri thức với cu�
 | Luyện thi THPT | `/luyen-thi`, `/luyen-thi/[slug]`, `/kich-hoat` | Đề bấm giờ có giải thích từng câu; đề 1 miễn phí, các đề khác trong gói trả phí (mở bằng mã kích hoạt `LT12-…`, tối đa 3 thiết bị). Trang tự ghi đúng số đề đã công bố |
 | Thanh toán | `/thanh-toan/ket-qua`, `/thanh-toan/tra-cuu` | Chuyển khoản VietQR qua payOS (hoặc cổng giả lập khi phát triển); xem lại đơn và mã bằng mã đơn + email |
 | Ủng hộ | `/ung-ho` | Ủng hộ tự nguyện, Bức tường cảm ơn (lời nhắn được duyệt trước khi hiện) |
+| Tài khoản học sinh | `/dang-ky`, `/dang-nhap`, `/quen-mat-khau`, `/tai-khoan` | Đăng ký bằng email (xác nhận qua link), đăng nhập, đặt lại mật khẩu. Không bắt buộc: mọi bài học vẫn dùng được khi chưa đăng nhập. Đang làm tiếp theo `docs/ke-hoach-tai-khoan.md` (Google, đồng bộ tiến độ, gói theo tài khoản) |
 | Quản trị | `/quan-tri` | Soạn nội dung, kiểm duyệt, soạn đề luyện thi, quản lý nhân sự, đơn hàng (thu hồi / mở lại mã, gỡ thiết bị, ghi nhận hoàn tiền, xử lý tiền về muộn), vận hành (cần đăng nhập) |
 
 ## Công nghệ
@@ -67,6 +68,11 @@ cp .env.example .env.local   # rồi điền giá trị thật
 | `PAYMENT_HASH_SALT` | Cho thanh toán | Muối băm IP / mã thiết bị (không lưu giá trị thô) |
 | `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY` | Khi dùng `payos` | **Chỉ phía server**. Hướng dẫn: Phụ lục B `docs/ke-hoach-thanh-toan.md` |
 | `TRUST_PROXY` | Tùy chọn | Đặt `1` chỉ khi tự host sau reverse proxy đáng tin; trên Vercel để trống |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | Tùy chọn | Email liên hệ hiện ở `/dieu-khoan`, `/chinh-sach-bao-mat` |
+
+**Tài khoản học sinh** cần cấu hình tay trên Supabase (mục 9 `docs/ke-hoach-tai-khoan.md`): bật *Confirm email*; *Site
+URL* = `NEXT_PUBLIC_SITE_URL`; *Redirect URLs* thêm `<địa chỉ web>/**`; dán 3 mẫu email trong `supabase/email-templates/`;
+và **SMTP riêng** (ví dụ Resend) — SMTP mặc định của Supabase chỉ gửi tới email trong nhóm dự án, tối đa 2 email/giờ.
 
 Lấy các giá trị Supabase trong Dashboard → *Project Settings → API* (và *Connect* cho `DATABASE_URL`). Mọi biến thanh
 toán đều **chỉ phía server** (không có tiền tố `NEXT_PUBLIC_`).
@@ -93,6 +99,8 @@ npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-quiz.sql
 #    → supabase/seed-exam-mau.sql (đề mẫu 1 miễn phí + 2 trong gói, đã công bố)
 #    → migrations/20261016000000_payment_rate_limits.sql → migrations/20261017000000_late_payment.sql
 #    Kiểm thử (tự hoàn tác): supabase/tests/payments.sql, supabase/tests/late_payment.sql
+# 8. Tài khoản học sinh (docs/ke-hoach-tai-khoan.md): migrations/20261020000000_learner_accounts.sql
+#    Kiểm thử (tự hoàn tác): supabase/tests/learner_accounts.sql
 ```
 
 > `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands
@@ -128,7 +136,8 @@ npm run build && npm start   # bản production
 | Lint, kiểu | `npm run lint`, `npx tsc --noEmit` |
 | E2E (cần bản build và tài khoản thử) | `TEST_PW='…' npm run test:e2e` |
 | Phân quyền RLS trên DB thật | `TEST_PW='…' node tests/rls/matrix.mjs`, `TEST_PW='…' node tests/rls/payments.mjs` (thanh toán) |
-| Ràng buộc CSDL | chạy `supabase/tests/constraints.sql`, `payments.sql`, `late_payment.sql` (tự hoàn tác) |
+| Ràng buộc CSDL | chạy `supabase/tests/constraints.sql`, `payments.sql`, `late_payment.sql`, `learner_accounts.sql` (tự hoàn tác) |
+| E2E tài khoản học sinh | `E2E_BASE_URL=http://localhost:3200 npx playwright test tests/e2e/account.spec.ts` (cần `SUPABASE_SECRET_KEY`; tự tạo và xóa tài khoản `zz-kiem-thu-hs-*@test.local`) |
 | E2E thanh toán | `E2E_BASE_URL=http://localhost:3200 TEST_PW='…' npx playwright test tests/e2e/payments.spec.ts tests/e2e/payments-admin.spec.ts` (server chạy `PAYMENT_PROVIDER=mock`, `PAYMENT_ENV=test`) |
 
 Kết quả chi tiết: [`docs/test-report.md`](docs/test-report.md).
