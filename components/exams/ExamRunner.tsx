@@ -19,7 +19,9 @@ import {
   type ExamQuestion,
   type ExamScore,
 } from "@/lib/exams/exam";
+import { loginPath } from "@/lib/auth/routes";
 import { getDeviceId, useHydrated, useLicense } from "@/lib/hooks/useLicense";
+import { useSession } from "@/lib/hooks/useSession";
 import { saveQuizResult } from "@/lib/hooks/useProgress";
 import { getSgkLesson, sgkPaths } from "@/lib/sgk/curriculum";
 import { cn } from "@/lib/utils/cn";
@@ -29,7 +31,7 @@ const LETTERS = ["A", "B", "C", "D"];
 type Load =
   | { state: "loading" }
   | { state: "blocked"; message: string; needsActivation: boolean }
-  | { state: "ready"; questions: ExamQuestion[] };
+  | { state: "ready"; questions: ExamQuestion[]; byAccount: boolean };
 
 type Phase = "intro" | "play" | "done";
 
@@ -52,21 +54,24 @@ export function ExamRunner({ slug, title, durationMin, free }: Props) {
   const [timedOut, setTimedOut] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
+  const session = useSession();
+  // Đổi phiên (vừa đăng nhập / đăng xuất) → tải lại đề: gói gắn với tài khoản mở đề không cần mã.
+  const sessionKey = session.status === "signed-in" ? session.userId : session.status;
   const licenseCode = license?.code ?? null;
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || sessionKey === "loading") return;
     let cancelled = false;
     const headers: Record<string, string> = { [DEVICE_HEADER]: getDeviceId() };
     if (licenseCode) headers[LICENSE_HEADER] = licenseCode;
     fetch(examPaths.api(slug), { headers, cache: "no-store" })
       .then(async (response) => {
-        const body = (await response.json().catch(() => null)) as { ok?: boolean; reason?: string; questions?: ExamQuestion[] } | null;
+        const body = (await response.json().catch(() => null)) as { ok?: boolean; reason?: string; access?: string; questions?: ExamQuestion[] } | null;
         if (cancelled) return;
         if (!body?.ok || !Array.isArray(body.questions)) {
           setLoad({ state: "blocked", ...examAccessMessage(body?.reason) });
           return;
         }
-        setLoad({ state: "ready", questions: body.questions });
+        setLoad({ state: "ready", questions: body.questions, byAccount: body.access === "account" });
       })
       .catch(() => {
         if (!cancelled) setLoad({ state: "blocked", ...examAccessMessage(undefined) });
@@ -74,7 +79,7 @@ export function ExamRunner({ slug, title, durationMin, free }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [hydrated, licenseCode, slug]);
+  }, [hydrated, licenseCode, slug, sessionKey]);
 
   const questions = useMemo(() => (load.state === "ready" ? load.questions : []), [load]);
   const remainingSeconds = Math.max(0, Math.ceil((deadline - now) / 1000));
@@ -162,6 +167,14 @@ export function ExamRunner({ slug, title, durationMin, free }: Props) {
               <Link href={examPaths.hub} className="text-accent underline">
                 Xem Gói luyện thi
               </Link>
+              {session.status === "anonymous" && (
+                <>
+                  {" · "}Đã mua khi đăng nhập?{" "}
+                  <Link href={loginPath(examPaths.set(slug))} className="text-accent underline">
+                    Đăng nhập để mở đề
+                  </Link>
+                </>
+              )}
             </p>
           </>
         )}
@@ -187,6 +200,9 @@ export function ExamRunner({ slug, title, durationMin, free }: Props) {
           <li>Chọn, đổi đáp án và chuyển câu tùy ý; hết giờ bài tự nộp.</li>
           <li>Nộp bài xong mới thấy điểm, đáp án và lời giải thích từng câu.</li>
           <li>Đạt từ 7 điểm được đóng dấu vào Hộ chiếu lịch sử.</li>
+          {load.state === "ready" && load.byAccount && (
+            <li data-testid="exam-access-account">Đề mở bằng gói trong tài khoản của em — không tốn lượt thiết bị.</li>
+          )}
         </ul>
         <Button size="lg" onClick={start}>
           Bắt đầu làm bài

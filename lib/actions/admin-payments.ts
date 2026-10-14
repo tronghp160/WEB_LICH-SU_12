@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import type { ActionState } from "@/lib/actions/state";
+import { isLicenseEmailConfigured, scheduleLicenseEmail } from "@/lib/payments/email";
 import { generateLicenseCode } from "@/lib/payments/license";
 import { reconcileOrder } from "@/lib/payments/orders";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -167,10 +168,13 @@ export async function adminResolveLatePaymentAction(_previous: ActionState, form
     const result = data as { ok: boolean; already?: boolean; reason?: string; license_code?: string | null };
     if (!result.ok) return fail(LATE_PAYMENT_ERRORS[result.reason ?? ""] ?? "Không xử lý được đơn này.");
     if (result.already) return done(orderCode, "Đơn đã ở trạng thái Đã thanh toán từ trước.");
+    scheduleLicenseEmail(orderCode, result);
     return done(
       orderCode,
       result.license_code
-        ? `Đã xác nhận tiền về và cấp mã ${result.license_code}. Gửi mã này cho người mua (email trong đơn, nếu có).`
+        ? isLicenseEmailConfigured()
+          ? `Đã xác nhận tiền về và cấp mã ${result.license_code}. Mã được gửi tự động tới email trong đơn (nếu có).`
+          : `Đã xác nhận tiền về và cấp mã ${result.license_code}. Gửi mã này cho người mua (email trong đơn, nếu có).`
         : "Đã xác nhận tiền về — đơn chuyển sang Đã thanh toán.",
     );
   }

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { loginMethods } from "@/lib/auth/identities";
 import { ACCOUNT_DATA_EXPORT, loginPath } from "@/lib/auth/routes";
+import { getAccountLicenses } from "@/lib/queries/account";
 import { siteUrl } from "@/lib/site";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-// "Tải dữ liệu của em" (docs/ke-hoach-tai-khoan.md, mục 11): hồ sơ, tiến độ đã đồng bộ, đơn hàng gắn tài khoản — dạng
+// "Tải dữ liệu của em" (docs/ke-hoach-tai-khoan.md, mục 11): hồ sơ, tiến độ đã đồng bộ, đơn hàng và gói gắn tài khoản — dạng
 // JSON. Hồ sơ / tiến độ đọc bằng phiên của chính người dùng (RLS own_select). Bảng orders đóng với authenticated nên đọc
 // bằng khóa bí mật, lọc theo user id ĐÃ XÁC MINH và chỉ lấy cột không nhạy cảm (không token, không IP băm).
 
@@ -17,7 +18,7 @@ export async function GET() {
   const user = auth.user;
   if (!user) return NextResponse.redirect(new URL(loginPath(ACCOUNT_DATA_EXPORT), siteUrl()), { headers: NO_STORE });
 
-  const [profile, progress, orders] = await Promise.all([
+  const [profile, progress, orders, licenses] = await Promise.all([
     supabase.from("learner_profiles").select("display_name, school, avatar_url, terms_version, agreed_at, created_at, updated_at").eq("id", user.id).maybeSingle(),
     supabase.from("learner_progress").select("data, updated_at").eq("user_id", user.id).maybeSingle(),
     isAdminClientConfigured()
@@ -27,8 +28,9 @@ export async function GET() {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [], error: null }),
+    getAccountLicenses(user.id).catch(() => null),
   ]);
-  if (profile.error || progress.error || orders.error) {
+  if (profile.error || progress.error || orders.error || !licenses) {
     return NextResponse.json({ error: "Chưa tải được dữ liệu. Em thử lại nhé." }, { status: 500, headers: NO_STORE });
   }
 
@@ -44,6 +46,7 @@ export async function GET() {
     ho_so: profile.data,
     tien_do: progress.data,
     don_hang: orders.data ?? [],
+    goi_luyen_thi: licenses.map(({ code, productName, status, validUntil }) => ({ ma: code, goi: productName, trang_thai: status, het_han: validUntil })),
   };
 
   const day = new Date().toISOString().slice(0, 10);

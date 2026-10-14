@@ -606,3 +606,128 @@ test.describe.serial("Đồng bộ tiến độ (B5)", () => {
     expect((await request.put("/api/tien-do", { data: passedQuiz("tong-hop", 5) })).status()).toBe(401);
   });
 });
+
+// Gói luyện thi theo tài khoản — giai đoạn B6 (docs/ke-hoach-tai-khoan.md, mục 7.2, 7.3, 12: E2E (8), (9)). Cần cổng
+// giả lập (PAYMENT_PROVIDER=mock, PAYMENT_ENV=test) và supabase/seed-exam-mau.sql (đề 2 thuộc gói). Tạo đơn thử
+// provider = 'mock' — không thu tiền thật.
+const LICENSE_CODE = /^LT12-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
+
+/** /luyen-thi → mua gói → ngân hàng giả lập xác nhận → trang kết quả; trả về mã đơn + mã kích hoạt. */
+async function buyPack(page: Page): Promise<{ orderCode: number; code: string }> {
+  await page.goto("/luyen-thi");
+  await page.locator("form").filter({ hasText: "Thanh toán 29.000đ" }).getByRole("checkbox").check();
+  await page.getByRole("button", { name: /Thanh toán 29\.000đ/ }).click();
+  await expect(page).toHaveURL(/\/thanh-toan\/gia-lap\?don=\d+/);
+  const orderCode = Number(new URL(page.url()).searchParams.get("don"));
+  await page.getByRole("button", { name: /Xác nhận chuyển khoản/ }).click();
+  await expect(page).toHaveURL(new RegExp(`/thanh-toan/ket-qua\\?don=${orderCode}$`));
+  await expect(page.getByTestId("order-status")).toHaveText("Đã thanh toán");
+  const code = (await page.getByTestId("license-code").textContent())?.trim() ?? "";
+  expect(code).toMatch(LICENSE_CODE);
+  return { orderCode, code };
+}
+
+/** Mở đề 2 (thuộc gói) — kỳ vọng mở được bằng tài khoản, không có mã nào trên máy. */
+async function expectExamOpensByAccount(page: Page): Promise<void> {
+  await page.goto("/luyen-thi/de-2");
+  await expect(page.getByTestId("exam-access-account")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Bắt đầu làm bài" })).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("ls12:ban-quyen"))).toBeNull();
+}
+
+test.describe.serial("Gói luyện thi theo tài khoản (B6)", () => {
+  test.afterAll(cleanupLearners);
+
+  test("(8) đăng nhập rồi mua → gói gắn tài khoản; trình duyệt khác chỉ cần đăng nhập là mở đề", async ({ page, browser }) => {
+    const email = await createLearner({ name: "ZZ Mua Gói E2E" });
+    await signIn(page, email, PASSWORD, "/dang-nhap?next=%2Fluyen-thi");
+    await page.waitForURL(/\/luyen-thi$/);
+    await expect(page.getByTestId("mua-gan-tai-khoan")).toContainText("ZZ Mua Gói E2E");
+
+    const { orderCode, code } = await buyPack(page);
+    await expect(page.getByTestId("goi-gan-tai-khoan")).toBeVisible();
+    // Gói đã theo tài khoản → không mời kích hoạt trên máy.
+    await expect(page.getByRole("button", { name: "Kích hoạt trên máy này" })).toHaveCount(0);
+
+    const { data: order } = await adminApi().from("orders").select("user_id, buyer_email, licenses(user_id)").eq("order_code", orderCode).single();
+    const userId = await userIdOf(email);
+    expect(order).toMatchObject({ user_id: userId, buyer_email: email, licenses: { user_id: userId } });
+
+    const other = await browser.newContext();
+    const second = await other.newPage();
+    // Chưa đăng nhập: đề khóa, có lối đăng nhập.
+    await second.goto("/luyen-thi/de-2");
+    await expect(second.getByRole("link", { name: "Đăng nhập để mở đề" })).toBeVisible();
+    await signIn(second, email, PASSWORD, "/dang-nhap?next=%2Fluyen-thi");
+    await second.waitForURL(/\/luyen-thi$/);
+    await expect(second.getByTestId("pack-account")).toContainText(code);
+    await expectExamOpensByAccount(second);
+    // Chủ đơn xem được trang kết quả ở máy khác (không có cookie của đơn).
+    await second.goto(`/thanh-toan/ket-qua?don=${orderCode}`);
+    await expect(second.getByTestId("license-code")).toHaveText(code);
+    await second.goto("/tai-khoan/don-hang");
+    await expect(second.getByTestId("goi-trong-tai-khoan")).toContainText(code);
+    await expect(second.getByTestId("don-hang-cua-em")).toContainText(String(orderCode));
+    await other.close();
+  });
+
+  test("(9) mua khi chưa đăng nhập → đăng nhập → thêm mã vào tài khoản; người khác không lấy được mã đó", async ({ page, browser }) => {
+    const { orderCode, code } = await buyPack(page);
+    await expect(page.getByRole("link", { name: "Đăng nhập" }).last()).toBeVisible();
+
+    const email = await createLearner({ name: "ZZ Thêm Mã E2E" });
+    await signIn(page, email, PASSWORD, `/dang-nhap?next=${encodeURIComponent(`/thanh-toan/ket-qua?don=${orderCode}`)}`);
+    await page.waitForURL(new RegExp(`/thanh-toan/ket-qua\\?don=${orderCode}$`));
+    await page.getByRole("button", { name: "Lưu mã vào tài khoản" }).click();
+    await expect(page.locator("#them-ma-xong")).toContainText("Đã thêm mã vào tài khoản");
+    // Đơn mua lúc chưa đăng nhập vẫn KHÔNG thuộc tài khoản (chỉ mã được thêm vào).
+    const { data: order } = await adminApi().from("orders").select("user_id").eq("order_code", orderCode).single();
+    expect(order?.user_id).toBeNull();
+
+    // Thêm lại ở trang Gói và đơn hàng → "đã có".
+    await page.goto("/tai-khoan/don-hang");
+    await page.locator("#claim-code").fill(code.toLowerCase().replace(/-/g, " "));
+    await page.getByRole("button", { name: "Thêm mã vào tài khoản" }).click();
+    await expect(page.locator("#them-ma-xong")).toContainText("đã có trong tài khoản");
+    await expect(page.getByTestId("goi-trong-tai-khoan")).toContainText(code);
+
+    const other = await browser.newContext();
+    const second = await other.newPage();
+    await signIn(second, email, PASSWORD);
+    await second.waitForURL(/\/tai-khoan$/);
+    await expectExamOpensByAccount(second);
+
+    // Người khác thử thêm cùng mã → bị từ chối.
+    const stranger = await createLearner();
+    await second.context().clearCookies();
+    await signIn(second, stranger, PASSWORD, "/dang-nhap?next=%2Ftai-khoan%2Fdon-hang");
+    await second.waitForURL(/\/tai-khoan\/don-hang$/);
+    await second.locator("#claim-code").fill(code);
+    await second.getByRole("button", { name: "Thêm mã vào tài khoản" }).click();
+    await expect(second.locator("#them-ma-loi")).toContainText("tài khoản khác");
+    await other.close();
+  });
+
+  test("xóa tài khoản: gói bỏ gắn nhưng mã vẫn dùng được bằng đường mã + thiết bị", async ({ page }) => {
+    const email = await createLearner();
+    await signIn(page, email, PASSWORD, "/dang-nhap?next=%2Fluyen-thi");
+    await page.waitForURL(/\/luyen-thi$/);
+    const { orderCode, code } = await buyPack(page);
+
+    await page.goto("/tai-khoan/bao-mat");
+    await page.locator("#confirmEmail").fill(email);
+    await page.getByRole("button", { name: "Xóa vĩnh viễn tài khoản" }).click();
+    await page.waitForURL(/\/dang-nhap\?thong-bao=da-xoa-tai-khoan$/);
+
+    const { data: order } = await adminApi().from("orders").select("user_id, licenses(user_id, status)").eq("order_code", orderCode).single();
+    expect(order).toMatchObject({ user_id: null, licenses: { user_id: null, status: "active" } });
+
+    await page.goto("/kich-hoat");
+    await page.getByLabel("Mã kích hoạt").fill(code);
+    await page.getByRole("button", { name: "Kích hoạt", exact: true }).click();
+    await expect(page.getByText(/Đã kích hoạt gói luyện thi trên máy này/)).toBeVisible();
+    await page.goto("/luyen-thi/de-2");
+    await expect(page.getByRole("button", { name: "Bắt đầu làm bài" })).toBeVisible();
+    await expect(page.getByTestId("exam-access-account")).toHaveCount(0);
+  });
+});

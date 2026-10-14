@@ -41,10 +41,16 @@ export async function activateLicense(rawCode: string, deviceId: string): Promis
   };
 }
 
-export type ExamFetchResult = { ok: true; exam: ExamPayload } | { ok: false; reason: string };
+/** Đề được mở bằng gì: miễn phí, gói gắn với tài khoản đang đăng nhập, hay mã + thiết bị. */
+export type ExamAccess = "free" | "account" | "code";
 
-/** Câu hỏi của một đề: đề miễn phí trả luôn; đề trả phí cần mã còn hiệu lực và máy đã kích hoạt. */
-export async function fetchExam(slug: string, rawCode: string | null, deviceId: string | null): Promise<ExamFetchResult> {
+export type ExamFetchResult = { ok: true; exam: ExamPayload; access: ExamAccess } | { ok: false; reason: string };
+
+/**
+ * Câu hỏi của một đề: đề miễn phí trả luôn; đề trả phí mở khi tài khoản `userId` (id từ phiên đã xác minh) có gói còn
+ * hiệu lực — không tính lượt thiết bị — hoặc khi có mã còn hiệu lực và máy đã kích hoạt (docs/ke-hoach-tai-khoan.md, 7.2).
+ */
+export async function fetchExam(slug: string, rawCode: string | null, deviceId: string | null, userId: string | null = null): Promise<ExamFetchResult> {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return { ok: false, reason: "not_found" };
   const code = rawCode ? normalizeLicenseCode(rawCode) : null;
   const hash = deviceId ? deviceHash(deviceId) : null;
@@ -53,10 +59,12 @@ export async function fetchExam(slug: string, rawCode: string | null, deviceId: 
     p_slug: slug,
     p_code: code ?? "",
     p_device_hash: hash ?? "",
+    p_user_id: userId ?? undefined,
   });
   if (error || !data || typeof data !== "object" || Array.isArray(data)) return { ok: false, reason: "unavailable" };
   const result = data as Record<string, unknown>;
   if (result.ok !== true) return { ok: false, reason: typeof result.reason === "string" ? result.reason : "unavailable" };
   const exam = parseExamPayload(result);
-  return exam ? { ok: true, exam } : { ok: false, reason: "unavailable" };
+  const access: ExamAccess = result.access === "account" || result.access === "code" ? result.access : "free";
+  return exam ? { ok: true, exam, access } : { ok: false, reason: "unavailable" };
 }

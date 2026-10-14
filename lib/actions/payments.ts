@@ -21,20 +21,37 @@ import {
 } from "@/lib/payments/orders";
 import { MOCK_SIGNATURE_HEADER, signMockWebhook, verifyMockCheckoutSignature } from "@/lib/payments/providers/mock";
 import { siteUrl } from "@/lib/site";
+import { createClient } from "@/lib/supabase/server";
 import { buyPackSchema, donationSchema } from "@/lib/validation/payments";
 
 // Thanh toán phía người mua (docs/ke-hoach-thanh-toan.md, mục 7.1). Không cần đăng nhập: quyền xem đơn = token trong
-// cookie httpOnly của riêng đơn đó.
+// cookie httpOnly của riêng đơn đó. Đang đăng nhập thì đơn (và mã cấp ra) thuộc luôn tài khoản — user id lấy từ phiên đã
+// xác minh ở server, không từ form (docs/ke-hoach-tai-khoan.md, mục 7.2; quyết định Q3: không bắt đăng nhập).
 
-async function startCheckout(input: Omit<CreateOrderInput, "client">, values: Record<string, string>): Promise<ActionState> {
-  const result = await createOrder({ ...input, client: await requestClient() });
+/** Người mua đang đăng nhập (đã xác minh) — null nếu là khách. */
+async function signedInBuyer(): Promise<{ id: string; email: string | null } | null> {
+  const { data } = await (await createClient()).auth.getUser();
+  return data.user ? { id: data.user.id, email: data.user.email ?? null } : null;
+}
+
+async function startCheckout(input: Omit<CreateOrderInput, "client" | "userId">, values: Record<string, string>): Promise<ActionState> {
+  const buyer = await signedInBuyer();
+  const result = await createOrder({
+    ...input,
+    // Không nhập email thì dùng email tài khoản — để tra cứu đơn / nhận mã qua email như người nhập email.
+    buyerEmail: input.buyerEmail || buyer?.email || null,
+    userId: buyer?.id ?? null,
+    client: await requestClient(),
+  });
   if (!result.ok) return { status: "error", message: result.error, values };
 
   (await cookies()).set(orderCookieName(result.orderCode), result.token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    path: "/thanh-toan",
+    // "/" chứ không "/thanh-toan": đăng nhập từ trang kết quả (Server Action ở /dang-nhap rồi chuyển về đây) dựng trang
+    // đích ngay trong request của /dang-nhap — cookie giới hạn path /thanh-toan sẽ không đi kèm, đơn "không xem được".
+    path: "/",
     maxAge: ORDER_COOKIE_MAX_AGE,
   });
   // Ngoài try/catch: redirect() ném tín hiệu nội bộ của Next.js.

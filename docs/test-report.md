@@ -450,3 +450,45 @@ hồi ngay — đây là lớp chặn trên giao diện; muốn chặn cả gọ
 
 **Lỗi tìm thấy khi kiểm thử:** đăng xuất ngay sau khi mở trang thì bước "đẩy nốt" không đẩy gì vì chưa tải xong bản của
 tài khoản → sửa: đẩy nốt chờ lần tải đầu xong rồi mới đẩy (E2E "học xong rồi đăng xuất ngay" bắt được lỗi này).
+
+## 16. Tài khoản học sinh — giai đoạn B6: gói luyện thi theo tài khoản (14/10/2026)
+
+Không cần migration mới: cột `orders.user_id`, `licenses.user_id`, hàm `claim_license`, `get_exam_set(…, p_user_id)` và
+`mark_order_paid` (chép `user_id` sang mã) đã có từ migration B1.
+
+- **Mua khi đã đăng nhập** (quyết định Q3: không bắt đăng nhập): Server Action lấy user id từ phiên đã xác minh
+  (`getUser`), không từ form → `orders.user_id`; mã cấp ra thuộc luôn tài khoản. Để trống email thì dùng email tài khoản.
+  Form mua báo "Gói sẽ gắn với tài khoản …".
+- **Mở đề bằng tài khoản:** `/api/luyen-thi/[slug]` truyền `p_user_id` (từ `getClaims`) → đề trả phí mở ở mọi máy đã
+  đăng nhập, không cần mã, không tốn lượt thiết bị; màn hình đề ghi "Đề mở bằng gói trong tài khoản". `/luyen-thi` hiện
+  "Gói đã gắn với tài khoản" (API `/api/tai-khoan/goi`).
+- **Mua khi chưa đăng nhập → thêm mã vào tài khoản** (`claimLicenseAction` → `claim_license`, 10 lần / 15 phút): ở
+  `/tai-khoan/don-hang`, ở trang kết quả thanh toán (nút "Lưu mã vào tài khoản") và ở `/kich-hoat`. Mã của người khác,
+  bị thu hồi, hết hạn → từ chối.
+- **`/tai-khoan/don-hang`:** gói trong tài khoản + đơn đặt khi đăng nhập (đọc bằng khóa bí mật, lọc theo user id của phiên,
+  chỉ cột an toàn). Chủ đơn mở trang kết quả ở máy khác cũng xem được (không cần cookie đơn).
+- **T6 — email mã kích hoạt** (`lib/payments/email.ts`, API Resend): gửi khi `mark_order_paid` / `admin_resolve_late_payment`
+  trả `already=false` — đúng một lần mỗi đơn, nên **không cần cột `email_sent_at`** như kế hoạch dự kiến. Gửi trong
+  `after()` (sau khi đã trả lời cổng), lỗi chỉ ghi log, không ghi email / mã vào log. Chưa có `RESEND_API_KEY` +
+  `EMAIL_FROM` thì không gửi (hiện trạng: **chưa cấu hình**, chờ tên miền — Q4).
+- "Tải dữ liệu của em" thêm danh sách gói.
+
+| Nhóm | Kết quả | Ghi chú |
+|---|---|---|
+| Unit test (Vitest) | **607/607** đạt, 41 file | thêm `account-payments.test.ts` (11 ca): nội dung email (thoát HTML), chỉ hẹn gửi khi vừa cấp mã, chưa cấu hình → không gửi; lọc gói còn dùng được; `claimLicenseAction` dùng user id của phiên (bỏ `user_id` giả trong form), chuẩn hóa mã, các lý do từ chối, giới hạn tần suất |
+| Lint, kiểu (tsc), `npm run build` | sạch | bảng route chỉ thêm `ƒ /api/tai-khoan/goi`, `ƒ /tai-khoan/don-hang`; `/kich-hoat`, `/luyen-thi` giữ nguyên kiểu |
+| **E2E tài khoản** (`account.spec.ts`, bản production, DB thật, cổng giả lập) | **25 đạt**, 1 bỏ qua / 26 | thêm 3 ca B6: (8) đăng nhập → mua → `orders.user_id`, `buyer_email` = email tài khoản, mã thuộc tài khoản; trình duyệt khác chưa đăng nhập thấy "Đăng nhập để mở đề", đăng nhập → `/luyen-thi` báo gói của tài khoản, đề 2 mở bằng tài khoản (không có mã trên máy), xem được trang kết quả không cần cookie, `/tai-khoan/don-hang` có gói + đơn; (9) mua khi chưa đăng nhập → đăng nhập từ trang kết quả → lưu mã vào tài khoản (đơn vẫn không thuộc tài khoản), thêm lại → "đã có", máy khác mở đề bằng tài khoản, người khác thêm cùng mã → từ chối; xóa tài khoản → gói bỏ gắn, mã vẫn kích hoạt được bằng đường mã + thiết bị |
+| E2E thanh toán, trợ năng | **14/14**, **42/42** đạt | |
+
+**Lỗi tìm thấy khi kiểm thử (đã sửa):**
+
+1. Đăng nhập từ trang kết quả thanh toán → "Không xem được đơn hàng". Server Action đăng nhập (POST `/dang-nhap`) dựng
+   luôn trang đích trong cùng request, mà cookie xem đơn đặt `path=/thanh-toan` nên không đi kèm. Sửa: cookie đơn mới đặt
+   `path=/` (vẫn httpOnly, sameSite=lax). Đơn cũ có cookie `path=/thanh-toan` vẫn xem được khi mở trực tiếp.
+2. (B5) Đăng xuất ngay sau khi mở trang → tiến độ vừa học chưa kịp lên tài khoản (1/4 lần chạy). Nguyên nhân: `useSession`
+   chỉ báo "đã đăng nhập" sau khi tải tên hiển thị qua mạng, nên `ProgressSync` chưa chạy. Sửa: báo ngay khi đọc được
+   phiên (không qua mạng), tên cập nhật sau; bước "đẩy nốt" khi chưa tải xong bản của tài khoản thì PUT thẳng (server luôn
+   gộp) thay vì chờ GET. Chạy lại 6/6 lần đạt.
+
+**Chưa kiểm:** email mã kích hoạt gửi thật (cần Resend + tên miền); E2E quản trị `payments-admin.spec.ts` (cần
+`TEST_PW`) — B6 chỉ đổi câu thông báo sau khi xác nhận tiền về muộn.

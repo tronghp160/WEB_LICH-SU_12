@@ -97,7 +97,7 @@ export default async function ExamPrepPage() {
             </p>
           ) : null}
           {canBuy && product?.price_vnd ? (
-            <LicenseGate>
+            <LicenseGate productSlug={product.slug}>
               <BuyPackForm productSlug={product.slug} priceLabel={formatVnd(product.price_vnd)} />
             </LicenseGate>
           ) : (

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SignedInClaim } from "@/components/account/SignedInClaim";
 import { ActivateLicenseForm } from "@/components/payments/ActivateLicenseForm";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { examPaths } from "@/lib/exams/exam";
@@ -24,6 +25,7 @@ export default function ActivatePage() {
       <div className="rounded-card border border-border bg-surface p-5 shadow-card sm:p-6">
         <ActivateLicenseForm />
       </div>
+      <SignedInClaim next={examPaths.activate} />
       <p className="mt-4 text-sm text-muted-foreground">
         Chưa có mã?{" "}
         <Link href={examPaths.hub} className="text-accent underline">

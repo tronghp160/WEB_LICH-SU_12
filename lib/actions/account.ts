@@ -9,6 +9,7 @@ import { profileDefaults } from "@/lib/auth/oauth";
 import { isGoogleAuthEnabled } from "@/lib/auth/providers";
 import {
   ACCOUNT_HOME,
+  ACCOUNT_ORDERS,
   ACCOUNT_SECURITY,
   AUTH_CALLBACK,
   LEARNER_LOGIN,
@@ -18,6 +19,8 @@ import {
   safeNext,
 } from "@/lib/auth/routes";
 import { verifyCurrentPassword } from "@/lib/auth/verify-password";
+import { normalizeLicenseCode } from "@/lib/payments/license";
+import { consumeRateLimit } from "@/lib/payments/rate-limit";
 import { TERMS_VERSION } from "@/lib/legal";
 import { siteUrl } from "@/lib/site";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
@@ -424,4 +427,40 @@ export async function deleteAccountAction(_previous: DeleteAccountState, formDat
   // Người dùng đã bị xóa → Supabase trả 401/403/404 và client tự xóa cookie phiên.
   await supabase.auth.signOut({ scope: "local" });
   redirect(`${LEARNER_LOGIN}?thong-bao=da-xoa-tai-khoan`);
+}
+
+// ——— Gói luyện thi theo tài khoản (giai đoạn B6: docs/ke-hoach-tai-khoan.md, mục 7.2) ———
+
+const CLAIM_ERRORS: Record<string, string> = {
+  invalid_code: "Mã không đúng. Em kiểm tra lại từng ký tự nhé.",
+  revoked: "Mã này đã bị thu hồi. Liên hệ quản trị viên nếu em nghĩ đây là nhầm lẫn.",
+  expired: "Mã này đã hết hạn sử dụng.",
+  owned_by_other: "Mã này đã được thêm vào một tài khoản khác.",
+};
+
+export type ClaimLicenseState = { status?: "claimed" | "already"; message?: string; error?: string; code?: string };
+
+/**
+ * Thêm mã đã mua (lúc chưa đăng nhập) vào tài khoản → đăng nhập ở máy nào cũng mở được đề, không tốn lượt thiết bị.
+ * Hàm SQL claim_license (chỉ service_role) từ chối mã của người khác / bị thu hồi / hết hạn. Giới hạn 10 lần / 15 phút.
+ */
+export async function claimLicenseAction(_previous: ClaimLicenseState, formData: FormData): Promise<ClaimLicenseState> {
+  const raw = String(formData.get("code") ?? "").slice(0, 64);
+  const code = normalizeLicenseCode(raw);
+  if (!code) return { code: raw, error: CLAIM_ERRORS.invalid_code };
+
+  const { user } = await verifiedUser(String(formData.get("next") ?? "") || ACCOUNT_ORDERS);
+  // Không đếm được thì vẫn cho: mã 60 bit ngẫu nhiên nên dò mã không khả thi.
+  if ((await consumeRateLimit("license_claim", `user:${user.id}`)) === "limited") {
+    return { code: raw, error: "Em đã thử quá nhiều lần. Đợi khoảng 15 phút rồi thử lại nhé." };
+  }
+  if (!isAdminClientConfigured()) return { code: raw, error: "Chưa thêm được mã lúc này. Em thử lại sau nhé." };
+
+  const { data, error } = await createAdminClient().rpc("claim_license", { p_code: code, p_user_id: user.id });
+  const result = (data ?? {}) as { ok?: boolean; already?: boolean; reason?: string };
+  if (error || typeof result.ok !== "boolean") return { code: raw, error: "Chưa thêm được mã lúc này. Em thử lại sau nhé." };
+  if (!result.ok) return { code: raw, error: CLAIM_ERRORS[result.reason ?? ""] ?? CLAIM_ERRORS.invalid_code };
+  return result.already
+    ? { status: "already", message: "Mã này đã có trong tài khoản của em." }
+    : { status: "claimed", message: "Đã thêm mã vào tài khoản. Đăng nhập ở máy nào cũng mở được đề, không cần nhập mã." };
 }

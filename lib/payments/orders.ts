@@ -3,6 +3,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPaymentProvider, readPaymentConfig } from "@/lib/payments/config";
 import { randomToken, safeEqualHex, saltedHash, sha256Hex } from "@/lib/payments/crypto";
+import { scheduleLicenseEmail } from "@/lib/payments/email";
 import { generateLicenseCode } from "@/lib/payments/license";
 import type { OrderStatus } from "@/lib/payments/order-status";
 import { paymentDescription, resolveOrderAmount } from "@/lib/payments/pricing";
@@ -33,6 +34,11 @@ export type CreateOrderInput = {
   displayName?: string | null;
   message?: string | null;
   showOnWall?: boolean;
+  /**
+   * Tài khoản đang đăng nhập (id lấy từ phiên ĐÃ XÁC MINH ở Server Action, không từ form) — đơn và mã cấp ra thuộc tài
+   * khoản này (docs/ke-hoach-tai-khoan.md, mục 7.2). null = mua không đăng nhập như trước.
+   */
+  userId?: string | null;
   /** Người gửi (lib/request-client.ts): IP đáng tin cho cổng thanh toán + khóa chống spam tạo đơn. */
   client: RequestClient;
 };
@@ -85,6 +91,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
       display_name: isDonation ? input.displayName || null : null,
       message: isDonation ? input.message || null : null,
       show_on_wall: isDonation ? Boolean(input.showOnWall) : false,
+      user_id: input.userId ?? null,
     })
     .select("order_code, expires_at")
     .single();
@@ -200,6 +207,7 @@ export async function processWebhook(provider: PaymentProvider, request: Request
 
   if (verified.status === "paid") {
     const result = await markOrderPaid(db, verified, provider.name);
+    scheduleLicenseEmail(verified.orderCode, result);
     return { ok: true, result };
   }
   // Giao dịch thất bại không có nghĩa người mua bỏ đơn (có thể thử lại trên cùng link) → chỉ ghi nhật ký.
@@ -235,6 +243,7 @@ export async function reconcileOrder(orderCode: number, source: "reconcile" | "a
   });
   if (status.status === "paid") {
     const result = await markOrderPaid(db, status, provider.name);
+    scheduleLicenseEmail(orderCode, result);
     return result.ok ? "paid" : "rejected";
   }
   if (status.status === "failed") return "unchanged";
@@ -251,6 +260,10 @@ export type OrderView = {
   productSlug: string;
   licenseCode: string | null;
   licenseActive: boolean;
+  /** Mã đã gắn với tài khoản đang xem (mở đề bằng đăng nhập, không cần nhập mã). */
+  licenseInAccount: boolean;
+  /** Người xem đang đăng nhập và là chủ đơn. */
+  ownedByViewer: boolean;
   checkoutUrl: string | null;
   expiresAt: string;
   paidAt: string | null;
@@ -262,7 +275,7 @@ async function loadOrder(db: Db, orderCode: number) {
   const { data } = await db
     .from("orders")
     .select(
-      "order_code, status, amount_vnd, access_token_hash, checkout_url, expires_at, paid_at, show_on_wall, wall_approved, products(slug, kind, name), licenses(code, status)",
+      "order_code, status, amount_vnd, access_token_hash, user_id, checkout_url, expires_at, paid_at, show_on_wall, wall_approved, products(slug, kind, name), licenses(code, status, user_id)",
     )
     .eq("order_code", orderCode)
     .maybeSingle();
@@ -270,14 +283,18 @@ async function loadOrder(db: Db, orderCode: number) {
 }
 
 /**
- * Đơn hàng cho người mua xem — CHỈ khi token trong cookie khớp (không ai đoán `?don=100123` mà lấy được mã của người
- * khác). Đơn còn chờ thì hỏi lại cổng (đối soát) phòng khi webhook đến muộn hoặc không tới được (chạy localhost).
+ * Đơn hàng cho người mua xem — CHỈ khi token trong cookie khớp, HOẶC người đang đăng nhập là chủ đơn (`userId` lấy từ
+ * phiên đã xác minh). Không ai đoán `?don=100123` mà lấy được mã của người khác. Đơn còn chờ thì hỏi lại cổng (đối
+ * soát) phòng khi webhook đến muộn hoặc không tới được (chạy localhost).
  */
-export async function getOrderForBuyer(orderCode: number, token: string | undefined): Promise<OrderView | null> {
-  if (!token || !Number.isSafeInteger(orderCode)) return null;
+export async function getOrderForBuyer(orderCode: number, token: string | undefined, userId?: string | null): Promise<OrderView | null> {
+  if ((!token && !userId) || !Number.isSafeInteger(orderCode)) return null;
   const db = createAdminClient();
   let order = await loadOrder(db, orderCode);
-  if (!order || !safeEqualHex(order.access_token_hash, sha256Hex(token))) return null;
+  if (!order) return null;
+  const ownedByViewer = Boolean(userId && order.user_id === userId);
+  const tokenOk = Boolean(token && safeEqualHex(order.access_token_hash, sha256Hex(token)));
+  if (!tokenOk && !ownedByViewer) return null;
 
   if (order.status === "pending" || order.status === "expired") {
     const outcome = await reconcileOrder(orderCode, "reconcile");
@@ -295,6 +312,8 @@ export async function getOrderForBuyer(orderCode: number, token: string | undefi
     productSlug: product.slug,
     licenseCode: license?.code ?? null,
     licenseActive: license?.status === "active",
+    licenseInAccount: Boolean(userId && license?.user_id === userId),
+    ownedByViewer,
     checkoutUrl: order.status === "pending" ? order.checkout_url : null,
     expiresAt: order.expires_at,
     paidAt: order.paid_at,

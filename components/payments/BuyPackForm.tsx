@@ -7,11 +7,16 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { buyPackAction } from "@/lib/actions/payments";
 import { initialActionState } from "@/lib/actions/state";
+import { useSession } from "@/lib/hooks/useSession";
 
-/** Form mua gói luyện thi. Giá hiển thị lấy từ server; form chỉ gửi slug sản phẩm + email (không bắt buộc). */
+/**
+ * Form mua gói luyện thi. Giá hiển thị lấy từ server; form chỉ gửi slug sản phẩm + email (không bắt buộc). Đang đăng
+ * nhập thì gói gắn với tài khoản (server lấy user id từ phiên) và email để trống sẽ dùng email tài khoản.
+ */
 export function BuyPackForm({ productSlug, priceLabel }: { productSlug: string; priceLabel: string }) {
   const [state, formAction, pending] = useActionState(buyPackAction, initialActionState);
   const errors = state.fieldErrors ?? {};
+  const session = useSession();
 
   return (
     <form action={formAction} noValidate className="flex flex-col gap-4">
@@ -19,7 +24,11 @@ export function BuyPackForm({ productSlug, priceLabel }: { productSlug: string; 
       <Field
         name="email"
         label="Email (không bắt buộc)"
-        hint="Để tra cứu lại mã kích hoạt nếu em làm mất. Chỉ dùng cho việc này."
+        hint={
+          session.status === "signed-in"
+            ? `Để trống thì dùng email tài khoản (${session.email}). Chỉ dùng để gửi và tra cứu lại mã kích hoạt.`
+            : "Để tra cứu lại mã kích hoạt nếu em làm mất. Chỉ dùng cho việc này."
+        }
         error={errors.email}
       >
         {(props) => (
@@ -46,6 +55,11 @@ export function BuyPackForm({ productSlug, priceLabel }: { productSlug: string; 
           </p>
         )}
       </div>
+      {session.status === "signed-in" && (
+        <p className="text-sm text-foreground" data-testid="mua-gan-tai-khoan">
+          Gói sẽ gắn với tài khoản <strong>{session.name}</strong> — đăng nhập ở máy nào cũng làm được đề.
+        </p>
+      )}
       <FormMessage state={state} />
       <Button type="submit" size="lg" disabled={pending}>
         <Lock className="h-4 w-4" aria-hidden="true" />
