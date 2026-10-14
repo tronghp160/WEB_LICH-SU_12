@@ -3,7 +3,8 @@ import "server-only";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { loginPath } from "@/lib/auth/routes";
+import { profileDefaults } from "@/lib/auth/oauth";
+import { completeSignUpPath, loginPath } from "@/lib/auth/routes";
 import type { Database } from "@/lib/database.types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,6 +20,8 @@ export type Learner = {
   profile: LearnerProfile | null;
   /** Có hồ sơ nhân sự đang hoạt động (để hiện lối vào khu quản trị). */
   isStaff: boolean;
+  /** Tên gợi ý khi chưa có hồ sơ (người vào lần đầu bằng Google — trang /dang-ky/hoan-tat). */
+  suggestedName: string;
 };
 
 const text = (value: unknown, max: number): string | null => {
@@ -41,10 +44,10 @@ export async function ensureLearnerProfile(supabase: SupabaseClient<Database>, u
   const termsVersion = text(meta.terms_version, 20);
   if (!termsVersion) return null;
 
-  const displayName = text(meta.display_name, 60) ?? text(meta.full_name, 60) ?? text(meta.name, 60) ?? (user.email ?? "").split("@")[0].slice(0, 60);
+  const { displayName, avatarUrl } = profileDefaults(user);
   const { data: created, error: insertError } = await supabase
     .from("learner_profiles")
-    .insert({ id: user.id, display_name: displayName || "Học sinh", terms_version: termsVersion })
+    .insert({ id: user.id, display_name: displayName, avatar_url: avatarUrl, terms_version: termsVersion })
     .select("*")
     .single();
   if (insertError) {
@@ -69,12 +72,22 @@ export const getLearner = cache(async (): Promise<Learner | null> => {
     ensureLearnerProfile(supabase, user),
     supabase.from("staff_profiles").select("account_status").eq("id", user.id).maybeSingle(),
   ]);
-  return { id: user.id, email: user.email ?? "", profile, isStaff: staff.data?.account_status === "active" };
+  return {
+    id: user.id,
+    email: user.email ?? "",
+    profile,
+    isStaff: staff.data?.account_status === "active",
+    suggestedName: profileDefaults(user).displayName,
+  };
 });
 
-/** Bắt buộc đăng nhập; chưa đăng nhập thì về /dang-nhap?next=<trang hiện tại>. */
+/**
+ * Bắt buộc đăng nhập; chưa đăng nhập thì về /dang-nhap?next=<trang hiện tại>. Đã đăng nhập (Google lần đầu) mà chưa
+ * đồng ý điều khoản — chưa có hồ sơ, không phải nhân sự — thì về /dang-ky/hoan-tat trước.
+ */
 export async function requireLearner(next: string): Promise<Learner> {
   const learner = await getLearner();
   if (!learner) redirect(loginPath(next));
+  if (!learner.profile && !learner.isStaff) redirect(completeSignUpPath(next));
   return learner;
 }

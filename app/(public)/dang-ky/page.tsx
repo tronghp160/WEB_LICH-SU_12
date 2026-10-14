@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/account/AccountShell";
+import { GoogleButton, OrDivider } from "@/components/account/GoogleButton";
 import { SignUpForm } from "@/components/account/SignUpForm";
 import { getLearner } from "@/lib/auth/learner";
+import { isGoogleAuthEnabled } from "@/lib/auth/providers";
 import { loginPath, safeNext } from "@/lib/auth/routes";
 
 export const metadata: Metadata = {
@@ -15,6 +17,7 @@ export const metadata: Metadata = {
 export default async function SignUpPage({ searchParams }: PageProps<"/dang-ky">) {
   const next = safeNext((await searchParams).next);
   if (await getLearner()) redirect(next);
+  const google = await isGoogleAuthEnabled();
 
   return (
     <AccountShell
@@ -29,6 +32,12 @@ export default async function SignUpPage({ searchParams }: PageProps<"/dang-ky">
         </>
       }
     >
+      {google && (
+        <>
+          <GoogleButton next={next} />
+          <OrDivider />
+        </>
+      )}
       <SignUpForm next={next} />
     </AccountShell>
   );

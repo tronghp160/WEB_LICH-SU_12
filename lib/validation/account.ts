@@ -41,6 +41,9 @@ export const signUpSchema = z.object({
 });
 export type SignUpInput = z.infer<typeof signUpSchema>;
 
+/** Hoàn tất đăng ký sau khi vào lần đầu bằng Google: chỉ tên hiển thị + đồng ý (email do Google xác minh). */
+export const completeSignUpSchema = z.object({ displayName: displayNameSchema, agree });
+
 /** Đăng nhập: chỉ đối chiếu, không áp quy tắc độ mạnh (tài khoản cũ / nhân sự có thể đặt khác). */
 export const learnerSignInSchema = z.object({
   email,

@@ -192,3 +192,67 @@ test.describe.serial("Tài khoản học sinh (B2)", () => {
     await page.waitForURL(/\/tai-khoan$/);
   });
 });
+
+// Đăng nhập Google — giai đoạn B3 (mục 6.1). Google chặn trình duyệt tự động; ở đây giả lập "người vào lần đầu chưa đồng
+// ý điều khoản" bằng tài khoản có user_metadata kiểu Google (full_name, picture) mà KHÔNG có terms_version.
+test.describe.serial("Đăng nhập Google — phần kiểm tự động được (B3)", () => {
+  test.afterAll(cleanupLearners);
+
+  test("chưa đồng ý điều khoản → /dang-ky/hoan-tat (tên gợi ý từ Google) → tích đồng ý → hồ sơ có ảnh, về /tai-khoan", async ({ page }) => {
+    const email = newEmail();
+    const picture = "https://lh3.googleusercontent.com/a/zz-kiem-thu=s96-c";
+    const { data: created, error } = await adminApi().auth.admin.createUser({
+      email,
+      password: PASSWORD,
+      email_confirm: true,
+      user_metadata: { full_name: "ZZ Google E2E", picture },
+    });
+    expect(error).toBeNull();
+
+    await signIn(page, email, PASSWORD);
+    await page.waitForURL(/\/dang-ky\/hoan-tat$/);
+    await expect(page.locator("#displayName")).toHaveValue("ZZ Google E2E");
+
+    // Chưa tích đồng ý → báo lỗi, chưa tạo hồ sơ; các trang tài khoản vẫn đưa về đây.
+    await page.getByRole("button", { name: "Hoàn tất" }).click();
+    await expect(page.locator("#agree-loi")).toContainText("đồng ý");
+    await page.goto("/tai-khoan");
+    await page.waitForURL(/\/dang-ky\/hoan-tat$/);
+
+    await page.locator("#displayName").fill("ZZ Google Đã Sửa");
+    await page.locator('input[name="agree"]').check();
+    await page.getByRole("button", { name: "Hoàn tất" }).click();
+    await page.waitForURL(/\/tai-khoan$/);
+    await expect(page.getByTestId("account-name")).toHaveText("ZZ Google Đã Sửa");
+
+    const { data: profile } = await adminApi()
+      .from("learner_profiles")
+      .select("display_name, avatar_url, terms_version")
+      .eq("id", created.user!.id)
+      .single();
+    expect(profile).toEqual({ display_name: "ZZ Google Đã Sửa", avatar_url: picture, terms_version: TERMS });
+
+    // Đã có hồ sơ → mở lại trang hoàn tất thì đi thẳng tới `next`.
+    await page.goto("/dang-ky/hoan-tat?next=%2Fho-chieu");
+    await page.waitForURL(/\/ho-chieu$/);
+  });
+
+  test("hoàn tất đăng ký khi chưa đăng nhập → về /dang-nhap", async ({ page }) => {
+    await page.goto("/dang-ky/hoan-tat?next=%2Fluyen-thi");
+    await page.waitForURL(/\/dang-nhap\?next=%2Fluyen-thi$/);
+  });
+
+  test("/auth/callback: bấm Hủy ở Google, thiếu code, code giả → trang lỗi tiếng Việt", async ({ page }) => {
+    await page.goto("/auth/callback?error=access_denied&error_description=denied");
+    await page.waitForURL(/\/auth\/loi\?ly-do=google-huy$/);
+    await expect(page.locator("#auth-loi")).toContainText("hủy");
+
+    await page.goto("/auth/callback");
+    await page.waitForURL(/\/auth\/loi\?ly-do=google-loi$/);
+
+    // Không có code_verifier trong cookie (chưa từng bấm nút Google trên trình duyệt này).
+    await page.goto("/auth/callback?code=zz-khong-ton-tai&next=%2F%2Fevil.com");
+    await page.waitForURL(/\/auth\/loi\?ly-do=google-het-han$/);
+    await expect(page.locator("#auth-loi")).toContainText("trình duyệt");
+  });
+});

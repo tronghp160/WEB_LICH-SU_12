@@ -368,3 +368,26 @@ trên database thật ngày 14/10/2026.
 **Chưa làm (B3–B7):** đăng nhập Google, menu tài khoản trên Header, trang tài khoản đầy đủ (bảo mật, xóa tài khoản, tải
 dữ liệu), đồng bộ tiến độ, gắn thanh toán với tài khoản trên giao diện, ma trận RLS bằng tài khoản học sinh thật. Gửi email
 thật cần cấu hình SMTP (mục 9.3 của kế hoạch).
+
+## 13. Tài khoản học sinh — giai đoạn B3: đăng nhập Google (14/10/2026)
+
+Luồng PKCE phía server (`signInWithGoogleAction` → Google → Supabase → `/auth/callback` → `exchangeCodeForSession`). Người
+vào lần đầu bằng Google chưa có hồ sơ học sinh → `/dang-ky/hoan-tat` (tên gợi ý từ Google, tự tích đồng ý điều khoản); nhân
+sự đang hoạt động thì đi tiếp (quyết định Q1). Nút Google **chỉ hiện khi Google đã bật** trong Supabase (đọc
+`/auth/v1/settings`, lưu đệm 5 phút) — lúc kiểm thử Google **chưa bật**, nên nút đang ẩn.
+
+| Nhóm | Kết quả | Ghi chú |
+|---|---|---|
+| Unit test (Vitest) | **566/566** đạt, 37 file | thêm `auth-google.test.ts` (16 ca): `/auth/callback` với Supabase giả — có hồ sơ → `next`; `next` trỏ ra ngoài → `/tai-khoan`; lần đầu → `/dang-ky/hoan-tat?next=…`; nhân sự đang hoạt động → đi tiếp, nhân sự bị khóa → vẫn phải hoàn tất; bấm Hủy; thiếu / quá dài `code`; dùng lại link khi chưa / đang đăng nhập. Dịch lỗi, tên + ảnh gợi ý (ảnh chỉ nhận https ≤ 500 ký tự) |
+| Lint, kiểu (tsc), `npm run build` | sạch | |
+| **E2E tài khoản** (`account.spec.ts`, bản production, DB thật) | **10 đạt**, 1 bỏ qua / 11 | thêm 3 ca B3: tài khoản kiểu Google chưa đồng ý điều khoản → `/dang-ky/hoan-tat`, tên gợi ý, chưa tích → báo lỗi và `/tai-khoan` vẫn đưa về đây, tích → hồ sơ có `avatar_url` từ Google + `terms_version`; trang hoàn tất khi chưa đăng nhập → `/dang-nhap?next=…`; `/auth/callback` bấm Hủy / thiếu code / code giả → trang lỗi tiếng Việt |
+| Trợ năng axe-core | 42/42 đạt | thêm `/auth/loi?ly-do=google-huy` × sáng/tối |
+
+**Kiểm tay Google (chưa làm — cần cấu hình mục 9.1–9.2 của kế hoạch):**
+
+| # | Kịch bản | Kỳ vọng | Kết quả |
+|---|---|---|---|
+| G1 | Gmail chưa từng đăng ký → Tiếp tục với Google | `/dang-ky/hoan-tat`, tên + ảnh từ Google → Hoàn tất → `/tai-khoan` | chưa kiểm |
+| G2 | Gmail trùng email đã đăng ký bằng mật khẩu | Vào **cùng** tài khoản, không hỏi lại điều khoản | chưa kiểm |
+| G3 | Bấm "Hủy" ở màn hình Google | `/auth/loi?ly-do=google-huy` | chưa kiểm |
+| G4 | Mở lại link `/auth/callback?code=…` lần hai | Đang đăng nhập → đi tiếp; đã đăng xuất → `google-het-han` | chưa kiểm |

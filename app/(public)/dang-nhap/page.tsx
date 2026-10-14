@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/account/AccountShell";
+import { GoogleButton, OrDivider } from "@/components/account/GoogleButton";
 import { SignInForm } from "@/components/account/SignInForm";
 import { getLearner } from "@/lib/auth/learner";
+import { isGoogleAuthEnabled } from "@/lib/auth/providers";
 import { safeNext, signUpPath } from "@/lib/auth/routes";
 
 export const metadata: Metadata = {
@@ -16,6 +18,7 @@ export const metadata: Metadata = {
 export default async function SignInPage({ searchParams }: PageProps<"/dang-nhap">) {
   const next = safeNext((await searchParams).next);
   if (await getLearner()) redirect(next);
+  const google = await isGoogleAuthEnabled();
 
   return (
     <AccountShell
@@ -30,7 +33,18 @@ export default async function SignInPage({ searchParams }: PageProps<"/dang-nhap
         </>
       }
     >
+      {google && (
+        <>
+          <GoogleButton next={next} />
+          <OrDivider />
+        </>
+      )}
       <SignInForm next={next} />
+      {google && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          Em từng vào bằng Google? Hãy bấm “Tiếp tục với Google” ở trên — tài khoản tạo bằng Google chưa có mật khẩu riêng.
+        </p>
+      )}
     </AccountShell>
   );
 }

@@ -4,12 +4,20 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { RECOVERY_COOKIE, SIGNUP_EMAIL_COOKIE, hasRecoveryMark, readSignUpEmail, shortCookie } from "@/lib/auth/cookies";
 import { ensureLearnerProfile } from "@/lib/auth/learner";
-import { ACCOUNT_HOME, RESET_PASSWORD, SIGNUP_CHECK_EMAIL, safeNext } from "@/lib/auth/routes";
+import { profileDefaults } from "@/lib/auth/oauth";
+import { isGoogleAuthEnabled } from "@/lib/auth/providers";
+import { ACCOUNT_HOME, AUTH_CALLBACK, RESET_PASSWORD, SIGNUP_CHECK_EMAIL, loginPath, safeNext } from "@/lib/auth/routes";
 import { TERMS_VERSION } from "@/lib/legal";
 import { siteUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { translateLearnerAuthError } from "@/lib/utils/auth-errors";
-import { emailOnlySchema, learnerSignInSchema, newPasswordSchema, signUpSchema } from "@/lib/validation/account";
+import {
+  completeSignUpSchema,
+  emailOnlySchema,
+  learnerSignInSchema,
+  newPasswordSchema,
+  signUpSchema,
+} from "@/lib/validation/account";
 
 // Đăng ký / đăng nhập / quên mật khẩu bằng email cho HỌC SINH (docs/ke-hoach-tai-khoan.md, giai đoạn B2).
 // Nguyên tắc (mục 10): user id luôn lấy từ phiên đã xác minh; mọi `next` đi qua safeNext; đăng ký, gửi lại xác nhận,
@@ -168,6 +176,63 @@ export async function updatePasswordAction(_previous: NewPasswordState, formData
   await supabase.auth.signOut({ scope: "others" });
   (await cookies()).delete(RECOVERY_COOKIE);
   redirect(`${ACCOUNT_HOME}?thong-bao=doi-mat-khau`);
+}
+
+export type GoogleSignInState = { error?: string };
+
+/**
+ * "Tiếp tục với Google" (mục 6.1): luồng PKCE phía server — @supabase/ssr lưu code_verifier vào cookie, Google → Supabase →
+ * /auth/callback?code=…&next=…. `redirectTo` dựng từ siteUrl(), không từ header Host. Không xin scope ngoài
+ * openid/email/profile; `prompt=select_account` để máy dùng chung (máy trường) luôn hỏi chọn tài khoản.
+ */
+export async function signInWithGoogleAction(_previous: GoogleSignInState, formData: FormData): Promise<GoogleSignInState> {
+  const next = nextFrom(formData);
+  if (!(await isGoogleAuthEnabled())) return { error: translateLearnerAuthError({ code: "provider_disabled" }) };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${siteUrl()}${AUTH_CALLBACK}?next=${encodeURIComponent(next)}`,
+      queryParams: { prompt: "select_account" },
+    },
+  });
+  if (error || !data.url) return { error: translateLearnerAuthError(error ?? {}) };
+  redirect(data.url);
+}
+
+export type CompleteSignUpState = {
+  error?: string;
+  fieldErrors?: { displayName?: string; agree?: string };
+  displayName?: string;
+};
+
+/**
+ * Người vào lần đầu bằng Google đồng ý điều khoản → tạo hồ sơ học sinh (RLS own_insert, phiên của chính họ). Ảnh đại
+ * diện lấy từ Google; không lưu provider_token.
+ */
+export async function completeSignUpAction(_previous: CompleteSignUpState, formData: FormData): Promise<CompleteSignUpState> {
+  const displayName = String(formData.get("displayName") ?? "").slice(0, 100);
+  const parsed = completeSignUpSchema.safeParse({ displayName: formData.get("displayName"), agree: formData.get("agree") });
+  if (!parsed.success) {
+    const errors = parsed.error.flatten().fieldErrors;
+    return { displayName, fieldErrors: { displayName: firstError(errors, "displayName"), agree: firstError(errors, "agree") } };
+  }
+
+  const next = nextFrom(formData);
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) redirect(loginPath(next));
+
+  const { error } = await supabase.from("learner_profiles").insert({
+    id: userData.user.id,
+    display_name: parsed.data.displayName,
+    avatar_url: profileDefaults(userData.user).avatarUrl,
+    terms_version: TERMS_VERSION,
+  });
+  // 23505: đã có hồ sơ (bấm hai lần / hai thẻ) → coi như xong.
+  if (error && error.code !== "23505") return { displayName, error: "Chưa lưu được hồ sơ. Em thử lại nhé." };
+  redirect(next);
 }
 
 /** Đăng xuất trên máy này rồi về trang chủ. */

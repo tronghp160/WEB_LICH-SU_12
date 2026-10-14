@@ -6,9 +6,12 @@ export const ACCOUNT_HOME = "/tai-khoan";
 export const LEARNER_LOGIN = "/dang-nhap";
 export const LEARNER_SIGNUP = "/dang-ky";
 export const SIGNUP_CHECK_EMAIL = "/dang-ky/kiem-tra-email";
+/** Người vào lần đầu bằng Google: đồng ý điều khoản + tên hiển thị trước khi có hồ sơ học sinh. */
+export const SIGNUP_COMPLETE = "/dang-ky/hoan-tat";
 export const FORGOT_PASSWORD = "/quen-mat-khau";
 export const RESET_PASSWORD = "/dat-lai-mat-khau";
 export const AUTH_CONFIRM = "/auth/confirm";
+export const AUTH_CALLBACK = "/auth/callback";
 export const AUTH_ERROR = "/auth/loi";
 export const TERMS_PATH = "/dieu-khoan";
 export const PRIVACY_PATH = "/chinh-sach-bao-mat";
@@ -85,4 +88,10 @@ export function loginPath(next?: string): string {
 export function signUpPath(next?: string): string {
   const target = safeNext(next);
   return target === ACCOUNT_HOME ? LEARNER_SIGNUP : `${LEARNER_SIGNUP}?next=${encodeURIComponent(target)}`;
+}
+
+/** Trang hoàn tất đăng ký (Google lần đầu), mang theo đường dẫn cần quay về. */
+export function completeSignUpPath(next?: string): string {
+  const target = safeNext(next);
+  return target === ACCOUNT_HOME ? SIGNUP_COMPLETE : `${SIGNUP_COMPLETE}?next=${encodeURIComponent(target)}`;
 }

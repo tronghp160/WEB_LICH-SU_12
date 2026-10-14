@@ -29,7 +29,7 @@ Nội dung bám theo SGK Lịch sử 12 (bộ *Kết nối tri thức với cu�
 | Luyện thi THPT | `/luyen-thi`, `/luyen-thi/[slug]`, `/kich-hoat` | Đề bấm giờ có giải thích từng câu; đề 1 miễn phí, các đề khác trong gói trả phí (mở bằng mã kích hoạt `LT12-…`, tối đa 3 thiết bị). Trang tự ghi đúng số đề đã công bố |
 | Thanh toán | `/thanh-toan/ket-qua`, `/thanh-toan/tra-cuu` | Chuyển khoản VietQR qua payOS (hoặc cổng giả lập khi phát triển); xem lại đơn và mã bằng mã đơn + email |
 | Ủng hộ | `/ung-ho` | Ủng hộ tự nguyện, Bức tường cảm ơn (lời nhắn được duyệt trước khi hiện) |
-| Tài khoản học sinh | `/dang-ky`, `/dang-nhap`, `/quen-mat-khau`, `/tai-khoan` | Đăng ký bằng email (xác nhận qua link), đăng nhập, đặt lại mật khẩu. Không bắt buộc: mọi bài học vẫn dùng được khi chưa đăng nhập. Đang làm tiếp theo `docs/ke-hoach-tai-khoan.md` (Google, đồng bộ tiến độ, gói theo tài khoản) |
+| Tài khoản học sinh | `/dang-ky`, `/dang-nhap`, `/quen-mat-khau`, `/tai-khoan` | Đăng ký bằng email (xác nhận qua link) hoặc Google, đăng nhập, đặt lại mật khẩu. Nút Google chỉ hiện khi đã bật Google trong Supabase. Không bắt buộc: mọi bài học vẫn dùng được khi chưa đăng nhập. Đang làm tiếp theo `docs/ke-hoach-tai-khoan.md` (đồng bộ tiến độ, gói theo tài khoản) |
 | Quản trị | `/quan-tri` | Soạn nội dung, kiểm duyệt, soạn đề luyện thi, quản lý nhân sự, đơn hàng (thu hồi / mở lại mã, gỡ thiết bị, ghi nhận hoàn tiền, xử lý tiền về muộn), vận hành (cần đăng nhập) |
 
 ## Công nghệ
