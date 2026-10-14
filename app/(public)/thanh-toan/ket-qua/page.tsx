@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import Link from "next/link";
+import { ClaimLicenseForm } from "@/components/account/ClaimLicenseForm";
 import { ActivateLicenseForm } from "@/components/payments/ActivateLicenseForm";
 import { LicenseCodeBox } from "@/components/payments/LicenseCodeBox";
 import { PendingRefresher } from "@/components/payments/PendingRefresher";
@@ -9,11 +11,13 @@ import { LinkButton } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
 import { readPaymentConfig } from "@/lib/payments/config";
 import { orderStatusLabels, orderStatusMessages } from "@/lib/payments/order-status";
-import { getOrderForBuyer, orderCookieName, type OrderView } from "@/lib/payments/orders";
+import { getOrderForBuyer, orderCookieName, resultPath, type OrderView } from "@/lib/payments/orders";
 import { formatVnd } from "@/lib/payments/pricing";
+import { ACCOUNT_ORDERS, loginPath } from "@/lib/auth/routes";
+import { createClient } from "@/lib/supabase/server";
 
-// Kết quả thanh toán (docs/ke-hoach-thanh-toan.md, mục 9). Chỉ hiện đơn khi cookie của chính đơn đó khớp token;
-// đơn còn chờ thì đối soát với cổng (lib/payments/orders.ts) và tự tải lại mỗi 3 giây.
+// Kết quả thanh toán (docs/ke-hoach-thanh-toan.md, mục 9). Chỉ hiện đơn khi cookie của chính đơn đó khớp token, hoặc
+// người đang đăng nhập là chủ đơn (docs/ke-hoach-tai-khoan.md, mục 7.3); đơn còn chờ thì đối soát với cổng (lib/payments/orders.ts) và tự tải lại mỗi 3 giây.
 
 export const metadata: Metadata = {
   title: "Kết quả thanh toán",
@@ -24,7 +28,35 @@ function retryHref(order: OrderView): string {
   return order.productKind === "donation" ? "/ung-ho" : "/luyen-thi";
 }
 
-function StatusBody({ order }: { order: OrderView }) {
+/** Gói gắn với tài khoản → dùng ở mọi máy; chưa gắn mà đang đăng nhập → nút lưu; khách → gợi ý đăng nhập (Q3). */
+function AccountHint({ order, signedIn }: { order: OrderView; signedIn: boolean }) {
+  if (!order.licenseCode || !order.licenseActive) return null;
+  if (order.licenseInAccount) {
+    return (
+      <Callout variant="note" title="Gói đã gắn với tài khoản của em">
+        <span data-testid="goi-gan-tai-khoan">
+          Đăng nhập ở máy nào cũng mở được đề, không cần nhập mã. Xem lại ở{" "}
+          <Link href={ACCOUNT_ORDERS} className="text-accent underline">
+            Gói và đơn hàng
+          </Link>
+          .
+        </span>
+      </Callout>
+    );
+  }
+  if (signedIn) return <ClaimLicenseForm presetCode={order.licenseCode} next={resultPath(order.orderCode)} />;
+  return (
+    <p className="text-sm text-muted-foreground">
+      Có tài khoản?{" "}
+      <Link href={loginPath(resultPath(order.orderCode))} className="text-accent underline">
+        Đăng nhập
+      </Link>{" "}
+      rồi lưu mã vào tài khoản để mở đề trên mọi máy.
+    </p>
+  );
+}
+
+function StatusBody({ order, signedIn }: { order: OrderView; signedIn: boolean }) {
   switch (order.status) {
     case "paid":
       return (
@@ -36,7 +68,8 @@ function StatusBody({ order }: { order: OrderView }) {
           {order.licenseCode ? (
             <>
               <LicenseCodeBox code={order.licenseCode} />
-              {order.licenseActive && <ActivateLicenseForm presetCode={order.licenseCode} />}
+              {order.licenseActive && !order.licenseInAccount && <ActivateLicenseForm presetCode={order.licenseCode} />}
+              <AccountHint order={order} signedIn={signedIn} />
               <Callout variant="note" title="Hãy lưu mã lại">
                 Chụp màn hình hoặc chép mã vào nơi an toàn. Mã dùng được trên tối đa 3 thiết bị; nhập mã ở máy khác bằng trang
                 Kích hoạt.
@@ -84,7 +117,9 @@ export default async function PaymentResultPage({ searchParams }: PageProps<"/th
   const params = await searchParams;
   const orderCode = Number(params.don);
   const token = Number.isSafeInteger(orderCode) ? (await cookies()).get(orderCookieName(orderCode))?.value : undefined;
-  const order = await getOrderForBuyer(orderCode, token);
+  const { data: auth } = await (await createClient()).auth.getUser();
+  const userId = auth.user?.id ?? null;
+  const order = await getOrderForBuyer(orderCode, token, userId);
   const config = readPaymentConfig();
 
   return (
@@ -108,7 +143,7 @@ export default async function PaymentResultPage({ searchParams }: PageProps<"/th
                 {orderStatusLabels[order.status]}
               </dd>
             </dl>
-            <StatusBody order={order} />
+            <StatusBody order={order} signedIn={Boolean(userId)} />
           </>
         ) : (
           <Callout variant="warning" title="Không xem được đơn hàng">

@@ -60,22 +60,25 @@ export async function refreshSession(force = false): Promise<void> {
     }
     if (!force && current.status === "signed-in" && current.userId === user.id) return;
 
+    const meta = user.user_metadata ?? {};
+    const fallbackName =
+      cleanText(meta.display_name) ?? cleanText(meta.full_name) ?? cleanText((user.email ?? "").split("@")[0]) ?? "Tài khoản";
+    // Báo "đã đăng nhập" NGAY khi đọc được phiên (không qua mạng) — ProgressSync cần user id sớm, kẻo đăng xuất ngay sau
+    // khi mở trang thì không kịp đẩy tiến độ. Tên / ảnh / quyền nhân sự đọc từ hồ sơ rồi cập nhật sau.
+    if (current.status !== "signed-in" || current.userId !== user.id) {
+      set({ status: "signed-in", userId: user.id, email: user.email ?? "", name: fallbackName, avatarUrl: null, isStaff: false });
+    }
+
     const [profile, staff] = await Promise.all([
       supabase.from("learner_profiles").select("display_name, avatar_url").eq("id", user.id).maybeSingle(),
       supabase.from("staff_profiles").select("full_name, account_status").eq("id", user.id).maybeSingle(),
     ]);
     if (run !== generation) return;
-    const meta = user.user_metadata ?? {};
     set({
       status: "signed-in",
       userId: user.id,
       email: user.email ?? "",
-      name:
-        cleanText(profile.data?.display_name) ??
-        cleanText(staff.data?.full_name) ??
-        cleanText(meta.full_name) ??
-        cleanText((user.email ?? "").split("@")[0]) ??
-        "Tài khoản",
+      name: cleanText(profile.data?.display_name) ?? cleanText(staff.data?.full_name) ?? fallbackName,
       avatarUrl: profile.data?.avatar_url ?? null,
       isStaff: staff.data?.account_status === "active",
     });

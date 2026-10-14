@@ -450,3 +450,134 @@ hồi ngay — đây là lớp chặn trên giao diện; muốn chặn cả gọ
 
 **Lỗi tìm thấy khi kiểm thử:** đăng xuất ngay sau khi mở trang thì bước "đẩy nốt" không đẩy gì vì chưa tải xong bản của
 tài khoản → sửa: đẩy nốt chờ lần tải đầu xong rồi mới đẩy (E2E "học xong rồi đăng xuất ngay" bắt được lỗi này).
+
+## 16. Tài khoản học sinh — giai đoạn B6: gói luyện thi theo tài khoản (14/10/2026)
+
+Không cần migration mới: cột `orders.user_id`, `licenses.user_id`, hàm `claim_license`, `get_exam_set(…, p_user_id)` và
+`mark_order_paid` (chép `user_id` sang mã) đã có từ migration B1.
+
+- **Mua khi đã đăng nhập** (quyết định Q3: không bắt đăng nhập): Server Action lấy user id từ phiên đã xác minh
+  (`getUser`), không từ form → `orders.user_id`; mã cấp ra thuộc luôn tài khoản. Để trống email thì dùng email tài khoản.
+  Form mua báo "Gói sẽ gắn với tài khoản …".
+- **Mở đề bằng tài khoản:** `/api/luyen-thi/[slug]` truyền `p_user_id` (từ `getClaims`) → đề trả phí mở ở mọi máy đã
+  đăng nhập, không cần mã, không tốn lượt thiết bị; màn hình đề ghi "Đề mở bằng gói trong tài khoản". `/luyen-thi` hiện
+  "Gói đã gắn với tài khoản" (API `/api/tai-khoan/goi`).
+- **Mua khi chưa đăng nhập → thêm mã vào tài khoản** (`claimLicenseAction` → `claim_license`, 10 lần / 15 phút): ở
+  `/tai-khoan/don-hang`, ở trang kết quả thanh toán (nút "Lưu mã vào tài khoản") và ở `/kich-hoat`. Mã của người khác,
+  bị thu hồi, hết hạn → từ chối.
+- **`/tai-khoan/don-hang`:** gói trong tài khoản + đơn đặt khi đăng nhập (đọc bằng khóa bí mật, lọc theo user id của phiên,
+  chỉ cột an toàn). Chủ đơn mở trang kết quả ở máy khác cũng xem được (không cần cookie đơn).
+- **T6 — email mã kích hoạt** (`lib/payments/email.ts`, API Resend): gửi khi `mark_order_paid` / `admin_resolve_late_payment`
+  trả `already=false` — đúng một lần mỗi đơn, nên **không cần cột `email_sent_at`** như kế hoạch dự kiến. Gửi trong
+  `after()` (sau khi đã trả lời cổng), lỗi chỉ ghi log, không ghi email / mã vào log. Chưa có `RESEND_API_KEY` +
+  `EMAIL_FROM` thì không gửi (hiện trạng: **chưa cấu hình**, chờ tên miền — Q4).
+- "Tải dữ liệu của em" thêm danh sách gói.
+
+| Nhóm | Kết quả | Ghi chú |
+|---|---|---|
+| Unit test (Vitest) | **607/607** đạt, 41 file | thêm `account-payments.test.ts` (11 ca): nội dung email (thoát HTML), chỉ hẹn gửi khi vừa cấp mã, chưa cấu hình → không gửi; lọc gói còn dùng được; `claimLicenseAction` dùng user id của phiên (bỏ `user_id` giả trong form), chuẩn hóa mã, các lý do từ chối, giới hạn tần suất |
+| Lint, kiểu (tsc), `npm run build` | sạch | bảng route chỉ thêm `ƒ /api/tai-khoan/goi`, `ƒ /tai-khoan/don-hang`; `/kich-hoat`, `/luyen-thi` giữ nguyên kiểu |
+| **E2E tài khoản** (`account.spec.ts`, bản production, DB thật, cổng giả lập) | **25 đạt**, 1 bỏ qua / 26 | thêm 3 ca B6: (8) đăng nhập → mua → `orders.user_id`, `buyer_email` = email tài khoản, mã thuộc tài khoản; trình duyệt khác chưa đăng nhập thấy "Đăng nhập để mở đề", đăng nhập → `/luyen-thi` báo gói của tài khoản, đề 2 mở bằng tài khoản (không có mã trên máy), xem được trang kết quả không cần cookie, `/tai-khoan/don-hang` có gói + đơn; (9) mua khi chưa đăng nhập → đăng nhập từ trang kết quả → lưu mã vào tài khoản (đơn vẫn không thuộc tài khoản), thêm lại → "đã có", máy khác mở đề bằng tài khoản, người khác thêm cùng mã → từ chối; xóa tài khoản → gói bỏ gắn, mã vẫn kích hoạt được bằng đường mã + thiết bị |
+| E2E thanh toán, trợ năng | **14/14**, **42/42** đạt | |
+
+**Lỗi tìm thấy khi kiểm thử (đã sửa):**
+
+1. Đăng nhập từ trang kết quả thanh toán → "Không xem được đơn hàng". Server Action đăng nhập (POST `/dang-nhap`) dựng
+   luôn trang đích trong cùng request, mà cookie xem đơn đặt `path=/thanh-toan` nên không đi kèm. Sửa: cookie đơn mới đặt
+   `path=/` (vẫn httpOnly, sameSite=lax). Đơn cũ có cookie `path=/thanh-toan` vẫn xem được khi mở trực tiếp.
+2. (B5) Đăng xuất ngay sau khi mở trang → tiến độ vừa học chưa kịp lên tài khoản (1/4 lần chạy). Nguyên nhân: `useSession`
+   chỉ báo "đã đăng nhập" sau khi tải tên hiển thị qua mạng, nên `ProgressSync` chưa chạy. Sửa: báo ngay khi đọc được
+   phiên (không qua mạng), tên cập nhật sau; bước "đẩy nốt" khi chưa tải xong bản của tài khoản thì PUT thẳng (server luôn
+   gộp) thay vì chờ GET. Chạy lại 6/6 lần đạt.
+
+**Chưa kiểm:** email mã kích hoạt gửi thật (cần Resend + tên miền); E2E quản trị `payments-admin.spec.ts` (cần
+`TEST_PW`) — B6 chỉ đổi câu thông báo sau khi xác nhận tiền về muộn.
+
+## 17. Tài khoản học sinh — giai đoạn B7: kiểm thử phân quyền, cấp quyền nhân sự, hoàn thiện (14/10/2026)
+
+- **`tests/rls/learner.mjs`** — chạy THẬT trên database bằng phiên học sinh (2 tài khoản thử tạo bằng Admin API, xóa ở
+  cuối). Học sinh = khách với mọi dữ liệu nội bộ; lệnh ghi / gọi hàm chỉ tính "bị chặn" khi lỗi đúng là thiếu quyền
+  (`42501`) — lỗi dữ liệu (thiếu cột…) ghi ⚠ để không đạt nhầm; kiểm trước rằng dữ liệu tham chiếu có thật (bảng không
+  trống). Có `TEST_PW` thì thêm cột Editor / Admin.
+- **"Cấp quyền cho tài khoản đã có"** ở trang Nhân sự (mục 7.4): `find_auth_user_by_email` (chỉ service_role, gọi SAU
+  `requireRole(["system_admin"])`) → chèn `staff_profiles` bằng phiên admin (RLS `admin_manage_staff`). Không tạo mật
+  khẩu. "Tạo nhân sự mới" với email đã có giờ gợi ý dùng form này. `Field` thêm `idPrefix` để hai form cùng trang không
+  trùng id.
+- README (tính năng, biến môi trường, cấu hình Google / Manual linking, lệnh kiểm thử), ảnh chụp
+  `docs/screenshots/tai-khoan-*.png` (7 ảnh, chụp lại bằng `node scripts/chup-anh-tai-khoan.mjs`).
+- **Không làm:** CAPTCHA (tùy chọn) — cần khóa Cloudflare Turnstile / hCaptcha và bật *Attack protection* trong Supabase;
+  hiện dựa vào giới hạn có sẵn của Supabase Auth.
+
+**Kết quả `TEST_PW=… node tests/rls/learner.mjs`** (database thật, 14/10/2026):
+
+| Thao tác | Khách | Học sinh | Editor | Admin |
+|---|:-:|:-:|:-:|:-:|
+| Đọc sự kiện `published` | ✅ | ✅ | ✅ | ✅ |
+| Đọc sự kiện chưa công bố | ❌ | ❌ | ✅ | ✅ |
+| Tạo sự kiện | ❌ | ❌ | ✅ | ✅ |
+| Sửa sự kiện `published` (sự kiện thử) | ❌ | ❌ | ❌ | ✅ |
+| Thêm `sources` | ❌ | ❌ | ✅ | ✅ |
+| Đọc `staff_profiles` (của người khác) | ❌ | ❌ | ❌ | ✅ |
+| Tự chèn hồ sơ nhân sự cho mình (leo quyền) | ❌ | ❌ | ❌ | ✅ * |
+| `current_staff_role()` trả vai trò | ❌ | ❌ | ✅ | ✅ |
+| Tải ảnh lên Storage `media` | ❌ | ❌ | ✅ | ✅ |
+| Đọc câu hỏi đề `exam_questions` | ❌ | ❌ | ✅ | ✅ |
+| Sửa đề nháp `exam_sets` (ghi lại đúng tiêu đề cũ) | ❌ | ❌ | ✅ | ✅ |
+| Đọc `orders` | ❌ | ❌ | ❌ | ✅ |
+| Đọc `licenses` | ❌ | ❌ | ❌ | ✅ |
+| Tạo đơn trực tiếp | ❌ | ❌ | ❌ | ❌ |
+| Gọi `claim_license` | ❌ | ❌ | ❌ | ❌ |
+| Gọi `get_exam_set` (tự khai user id) | ❌ | ❌ | ❌ | ❌ |
+| Gọi `find_auth_user_by_email` | ❌ | ❌ | ❌ | ❌ |
+| Gọi `consume_rate_limit` | ❌ | ❌ | ❌ | ❌ |
+| Đọc hồ sơ học sinh B | ❌ | ❌ | ❌ | ✅ |
+| Sửa hồ sơ học sinh B | ❌ | ❌ | ❌ | ❌ |
+| Đọc tiến độ học sinh B | ❌ | ❌ | ❌ | ❌ |
+| Ghi tiến độ cho B | ❌ | ❌ | ❌ | ❌ |
+
+\* Chỉ quản trị viên được ghi `staff_profiles`; dòng của chính admin đã có nên lệnh dừng ở trùng khóa (RLS đã cho qua).
+
+**Cột Khách và Học sinh giống hệt nhau ở mọi dòng** — tài khoản học sinh không có quyền nội bộ nào. Cột nhân sự khớp ma
+trận Phase 13 (`tests/rls/matrix.mjs`). Lần chạy này 84/88 ô khớp: 4 ô lệch đều ở dòng "Sửa đề" vì kỳ vọng ghi sai
+trong kịch bản (biên tập viên được sửa đề nháp theo policy `editor_manage_editable`) — đã sửa kỳ vọng và cố định đề thử là
+đề nháp; chạy lại không có `TEST_PW` 44/44.
+
+**Sự cố khi kiểm thử (đã xử lý):** lần chạy đầu với `TEST_PW`, kịch bản bản trước dùng một sự kiện **thật** đã công bố cho
+dòng "Sửa sự kiện `published`" → cột Admin (được phép) đổi tóm tắt sự kiện `dai-hoi-dang-lan-thu-vi` thành "x", và cột
+Editor / Admin để lại 2 sự kiện + 2 nguồn thử. Đã khôi phục tóm tắt gốc từ `supabase/seed.sql`, xóa dữ liệu thử, rồi sửa
+kịch bản: lệnh sửa chỉ nhắm vào sự kiện thử do kịch bản tự tạo hoặc ghi lại đúng giá trị cũ, dọn cả sự kiện / nguồn / tệp
+Storage thử; lỗi ném ra ghi ⚠ chứ không tính "bị chặn".
+
+Chủ tài khoản: ✅ đọc / sửa hồ sơ của mình, ✅ đọc / ghi tiến độ của mình, ✅ không đổi được id hồ sơ sang người khác, ✅
+không tự xóa hồ sơ (chỉ xóa theo tài khoản), ✅ xóa tài khoản → hồ sơ + tiến độ xóa theo. **22/22 thao tác (44/44 ô), 5/5
+ca chủ tài khoản, cascade đạt; dọn còn 0 tài khoản thử.** Trước đó, lần chạy đầu phát hiện chính kịch bản kiểm thử có ô "đạt nhầm"
+(slug sản phẩm sai → lệnh chèn ném lỗi, bị tính là "bị chặn") — đã sửa bằng kiểm tiền điều kiện và yêu cầu mã `42501`.
+
+| Nhóm | Kết quả | Ghi chú |
+|---|---|---|
+| Unit test (Vitest) | **612/612** đạt, 42 file | thêm `staff-grant.test.ts` (5 ca): `requireRole(["system_admin"])` chạy trước mọi tra cứu, kiểm dữ liệu, email chuẩn hóa, chèn hồ sơ không mật khẩu, chưa có tài khoản → gợi ý tạo mới, đã là nhân sự (23505) |
+| Lint, kiểu (tsc), `npm run build` | sạch | bảng route không đổi so với B6 |
+| Header bảo mật (bản production) | đạt | trang `/tai-khoan/*`, `/dang-nhap`, `/dat-lai-mat-khau`: `Cache-Control: private, no-cache, no-store`, `robots noindex`; `/api/tien-do`, `/api/tai-khoan/goi`: `private, no-store`; `robots.txt` chặn `/tai-khoan`, `/auth/`, `/dat-lai-mat-khau`; chưa đăng nhập vào `/tai-khoan/*` → 307 về `/dang-nhap?next=…` |
+| E2E tài khoản / thanh toán / trợ năng | **25 + 14 + 42 = 81 đạt**, 2 bỏ qua | bỏ qua khi không có `TEST_PW`: gửi email thật (cần SMTP) và ca cấp quyền nhân sự |
+| E2E cấp quyền nhân sự (B7, `TEST_PW`) | **1/1 đạt** | học sinh bị chặn khỏi `/quan-tri` → "Tạo nhân sự mới" bằng email đã có gợi ý form cấp quyền → admin cấp quyền Biên tập viên (email gõ hoa vẫn khớp) → hiện trong danh sách; cấp lần hai báo "đã là nhân sự"; học sinh vào `/quan-tri` bằng đúng phiên cũ, trang tài khoản có lối "Vào khu quản trị", trang Bảo mật không cho tự xóa tài khoản nhân sự. Lần chạy đầu đỏ do chính test (form xóa trắng sau khi cấp thành công, test chưa điền lại) — đã sửa |
+
+**Checklist bảo mật (mục 10 kế hoạch):**
+
+| Mục | Trạng thái | Bằng chứng |
+|---|:-:|---|
+| Quyền nội bộ chỉ từ `staff_profiles` | ✅ | `tests/rls/learner.mjs` (bảng trên), E2E (6) |
+| Bảng mới bật RLS + `revoke` rồi mới `grant` | ✅ | migration `20261020000000_learner_accounts.sql`, `supabase/tests/learner_accounts.sql` 34/34, quy tắc trong `AGENTS.md` |
+| User id chỉ từ `getUser()` / `getClaims()` | ✅ | unit test `claimLicenseAction` (bỏ `user_id` giả trong form), `/api/tien-do`, `/api/luyen-thi`, Server Action mua gói |
+| `safeNext()` cho mọi `next` / `redirectTo` | ✅ | `account.test.ts` (45 ca), E2E (5) |
+| Google qua PKCE, không xin scope thừa, không lưu `provider_token` | ✅ | `signInWithGoogleAction`, `linkGoogleAction` (chỉ `prompt=select_account`) |
+| Không lộ email nào đã có tài khoản | ✅ | E2E (2), quên mật khẩu / gửi lại xác nhận cùng một thông báo |
+| Mật khẩu 8–72 (≤ 72 byte), chữ + số; đặt lại / đổi xong đăng xuất máy khác | ✅ | E2E (3), E2E đổi mật khẩu (máy kia bị đăng xuất) |
+| `no-store` + `noindex` cho route tài khoản | ✅ | hàng "Header bảo mật" ở trên |
+| Giới hạn số lần thử `license_claim`, `progress_write` | ✅ | `lib/payments/rate-limit.ts`, unit test 429 |
+| Xóa tài khoản: gõ lại email, không xóa tài khoản nhân sự | ✅ | E2E (10); trang Bảo mật ẩn form với nhân sự, Server Action kiểm lại bằng khóa bí mật |
+| Nhân sự đăng nhập Google (Q1 — cho phép) | ✅ | `/auth/callback` (unit test "nhân sự đang hoạt động → đi tiếp") |
+| Không ghi email, token, `code` vào log | ✅ | chỉ log mã đơn khi gửi email lỗi |
+| CAPTCHA | — | tùy chọn, chưa làm |
+
+**Còn chờ cấu hình tay / người dùng:** kiểm tay Google G1–G7 (mục 13–14, cần bật Google + *Manual linking*); SMTP +
+email mã kích hoạt (cần tên miền, Q4); chạy `tests/rls/learner.mjs` và E2E cấp quyền nhân sự với `TEST_PW`.

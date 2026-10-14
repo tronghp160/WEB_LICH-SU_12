@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CreateStaffForm } from "@/components/admin/staff/CreateStaffForm";
+import { GrantExistingStaffForm } from "@/components/admin/staff/GrantExistingStaffForm";
 import { StaffRow } from "@/components/admin/staff/StaffRow";
 import { countActiveAdmins } from "@/lib/admin/staff-rules";
 import { requireRole } from "@/lib/auth";
@@ -7,11 +8,14 @@ import { listStaff } from "@/lib/queries/staff";
 
 export const metadata: Metadata = { title: "Nhân sự" };
 
-/** Quản lý nhân sự và vai trò (UC13): danh sách, tạo mới, đổi vai trò, khóa/mở khóa. Chỉ quản trị viên. */
+/** Quản lý nhân sự và vai trò (UC13): danh sách, tạo mới, cấp quyền cho tài khoản đã có, đổi vai trò, khóa/mở khóa. Chỉ quản trị viên. */
 export default async function StaffPage() {
   const me = await requireRole(["system_admin"]);
   const { members, emailWarning, emailsAvailable } = await listStaff();
   const activeAdmins = countActiveAdmins(members);
+  const noAdminKey = emailsAvailable
+    ? null
+    : "Chưa thể tạo hoặc cấp quyền tài khoản: máy chủ chưa có khóa quản trị (SUPABASE_SECRET_KEY) hoặc không kết nối được hệ thống đăng nhập.";
 
   return (
     <div className="flex flex-col gap-8">
@@ -48,13 +52,8 @@ export default async function StaffPage() {
         </ul>
       </section>
 
-      <CreateStaffForm
-        disabledReason={
-          emailsAvailable
-            ? null
-            : "Chưa thể tạo tài khoản: máy chủ chưa có khóa quản trị (SUPABASE_SECRET_KEY) hoặc không kết nối được hệ thống đăng nhập."
-        }
-      />
+      <CreateStaffForm disabledReason={noAdminKey} />
+      <GrantExistingStaffForm disabledReason={noAdminKey} />
     </div>
   );
 }

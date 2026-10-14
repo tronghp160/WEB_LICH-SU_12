@@ -13,6 +13,8 @@ export const RATE_LIMITS = {
   order_lookup: { windowSeconds: 15 * 60, max: 5 },
   /** Kích hoạt mã: 20 lần / 15 phút / IP (người dùng thật hiếm khi quá 2–3 lần). */
   license_activation: { windowSeconds: 15 * 60, max: 20 },
+  /** Thêm mã đã mua vào tài khoản: 10 lần / 15 phút / tài khoản. */
+  license_claim: { windowSeconds: 15 * 60, max: 10 },
   /** Ghi tiến độ lên tài khoản (/api/tien-do): 30 lần / phút / tài khoản — client gom thay đổi 3 giây một lần. */
   progress_write: { windowSeconds: 60, max: 30 },
 } as const;

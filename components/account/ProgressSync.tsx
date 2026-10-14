@@ -47,12 +47,12 @@ export function forgetSyncOwner() {
 let activeFlush: (() => Promise<void>) | null = null;
 
 /**
- * Đẩy nốt tiến độ còn chờ (thay đổi trong 3 giây cuối) lên tài khoản rồi mới đăng xuất — chờ tối đa 3 giây, mất mạng
+ * Đẩy nốt tiến độ còn chờ (thay đổi trong 3 giây cuối) lên tài khoản rồi mới đăng xuất — chờ tối đa 5 giây, mất mạng
  * thì thôi (tiến độ vẫn trên máy). Không đăng nhập / chưa đồng bộ thì xong ngay.
  */
 export async function flushProgressSync(): Promise<void> {
   if (!activeFlush) return;
-  await Promise.race([activeFlush().catch(() => {}), new Promise<void>((resolve) => window.setTimeout(resolve, 3000))]);
+  await Promise.race([activeFlush().catch(() => {}), new Promise<void>((resolve) => window.setTimeout(resolve, 5000))]);
 }
 
 async function fetchServer(): Promise<Progress | null> {
@@ -93,10 +93,11 @@ export function ProgressSync() {
       if (!sameProgress(next, local)) replaceProgress(next);
     };
 
-    const push = async (keepalive = false) => {
-      if (cancelled || !server) return;
+    /** `force`: đẩy cả khi chưa tải xong bản của tài khoản (server luôn gộp, không ghi đè — an toàn). */
+    const push = async (keepalive = false, force = false) => {
+      if (cancelled || (!server && !force)) return;
       const local = readProgress();
-      if (sameProgress(joinProgress(server, local), server)) return; // máy không có gì mới
+      if (server && sameProgress(joinProgress(server, local), server)) return; // máy không có gì mới
       if (inFlight) {
         again = true;
         return;
@@ -145,9 +146,14 @@ export function ProgressSync() {
     activeFlush = async () => {
       window.clearTimeout(timer);
       timer = undefined;
-      await started; // trang vừa mở, chưa tải xong bản của tài khoản → đợi rồi mới đẩy
+      // Trang vừa mở, chưa tải xong bản của tài khoản: không chờ (mạng chậm thì quá hạn đăng xuất) mà đẩy thẳng — trừ khi
+      // máy đang giữ tiến độ của tài khoản KHÁC (máy dùng chung): khi đó không đẩy gì.
+      if (!server) {
+        const owner = readOwner();
+        if (owner && owner !== userId) return;
+      }
       if (inFlight) await inFlight;
-      await push();
+      await push(false, true);
     };
 
     const onVisibility = () => {
@@ -183,7 +189,7 @@ export function ProgressSync() {
     window.addEventListener(CHANGE_EVENT, schedule);
     window.addEventListener("pagehide", flush);
     document.addEventListener("visibilitychange", onVisibility);
-    const started = start().catch(() => {});
+    start().catch(() => {});
 
     return () => {
       cancelled = true;

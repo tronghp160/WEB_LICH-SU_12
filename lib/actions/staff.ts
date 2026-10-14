@@ -7,7 +7,7 @@ import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { staffRoleLabels } from "@/lib/utils/labels";
-import { createStaffSchema, staffIdSchema, staffRoleSchema, staffStatusSchema } from "@/lib/validation/staff";
+import { createStaffSchema, grantStaffSchema, staffIdSchema, staffRoleSchema, staffStatusSchema } from "@/lib/validation/staff";
 
 // Quản lý nhân sự (UC13) — CHỈ quản trị viên. requireRole() đứng ĐẦU mọi action, trước khi đụng tới khóa server.
 // Đổi vai trò/khóa đi bằng phiên của admin nên RLS `admin_manage_staff` và trigger G3 ở database vẫn áp dụng.
@@ -17,7 +17,7 @@ const STAFF_PATH = "/quan-tri/nhan-su";
 /** Dịch lỗi Auth Admin API khi tạo tài khoản. Không lộ thông tin nội bộ. */
 function translateCreateUserError(error: { code?: string; status?: number; message?: string }): { message: string; field?: string } {
   if (error.code === "email_exists" || error.code === "user_already_exists" || /already (been )?registered/i.test(error.message ?? "")) {
-    return { message: "Email này đã có tài khoản.", field: "email" };
+    return { message: "Email này đã có tài khoản. Dùng “Cấp quyền cho tài khoản đã có” bên dưới.", field: "email" };
   }
   if (error.code === "weak_password") {
     return { message: "Mật khẩu quá yếu. Hãy dùng mật khẩu dài hơn, gồm chữ và số.", field: "password" };
@@ -79,6 +79,48 @@ export async function createStaffAction(_previous: ActionState, formData: FormDa
   return {
     status: "success",
     message: `Đã tạo tài khoản ${parsed.data.email} (${staffRoleLabels[parsed.data.role]}). Hãy sao chép mật khẩu tạm ở ô “Mật khẩu tạm” bên dưới (rời trang sẽ không xem lại được) rồi gửi cho người đó, và nhắc đổi sau khi đăng nhập.`,
+    values: {},
+  };
+}
+
+/**
+ * Cấp quyền nhân sự cho tài khoản đã có (mục 7.4): tìm tài khoản Auth theo email bằng hàm find_auth_user_by_email (chỉ
+ * service_role — gọi SAU requireRole), rồi chèn hồ sơ nhân sự bằng PHIÊN ADMIN (RLS admin_manage_staff). Không tạo mật
+ * khẩu, không đổi gì ở tài khoản Auth; hồ sơ học sinh (nếu có) giữ nguyên.
+ */
+export async function grantExistingStaffAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  await requireRole(["system_admin"]);
+  const values = readFormValues(formData);
+  const parsed = grantStaffSchema.safeParse(values);
+  if (!parsed.success) return zodErrorState(parsed.error, values);
+  if (!isAdminClientConfigured()) {
+    return { status: "error", message: "Chưa cấu hình SUPABASE_SECRET_KEY trên máy chủ nên chưa thể tra cứu tài khoản.", values };
+  }
+
+  const { data: userId, error: findError } = await createAdminClient().rpc("find_auth_user_by_email", { p_email: parsed.data.email });
+  if (findError) return { status: "error", message: "Không tra cứu được tài khoản. Vui lòng thử lại sau.", values };
+  if (!userId) {
+    const message = "Chưa có tài khoản nào dùng email này. Dùng “Tạo nhân sự mới” để tạo tài khoản.";
+    return { status: "error", message, fieldErrors: { email: message }, values };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("staff_profiles").insert({
+    id: userId,
+    full_name: parsed.data.full_name,
+    role: parsed.data.role,
+    account_status: "active",
+  });
+  if (error?.code === "23505") {
+    const message = "Tài khoản này đã là nhân sự — đổi vai trò hoặc mở khóa trong danh sách ở trên.";
+    return { status: "error", message, fieldErrors: { email: message }, values };
+  }
+  if (error) return dbErrorState(error, values);
+
+  revalidatePath(STAFF_PATH);
+  return {
+    status: "success",
+    message: `Đã cấp quyền ${staffRoleLabels[parsed.data.role]} cho ${parsed.data.email}. Người đó đăng nhập khu quản trị bằng cách đăng nhập hiện có của mình.`,
     values: {},
   };
 }

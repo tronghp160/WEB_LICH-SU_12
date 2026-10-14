@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ACCOUNT_HOME, ACCOUNT_SECURITY } from "@/lib/auth/routes";
+import { ACCOUNT_HOME, ACCOUNT_ORDERS, ACCOUNT_SECURITY } from "@/lib/auth/routes";
 import { cn } from "@/lib/utils/cn";
 
 const LINKS = [
   { href: ACCOUNT_HOME, label: "Hồ sơ" },
+  { href: ACCOUNT_ORDERS, label: "Gói & đơn hàng" },
   { href: ACCOUNT_SECURITY, label: "Bảo mật" },
 ] as const;
 
-/** Menu con của khu Tài khoản (đơn hàng thêm ở giai đoạn B6). */
+/** Menu con của khu Tài khoản. */
 export function AccountNav() {
   const pathname = usePathname();
   return (

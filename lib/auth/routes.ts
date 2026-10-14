@@ -5,6 +5,8 @@
 export const ACCOUNT_HOME = "/tai-khoan";
 /** Đổi / đặt mật khẩu, liên kết Google, đăng xuất mọi máy, tải dữ liệu, xóa tài khoản. */
 export const ACCOUNT_SECURITY = "/tai-khoan/bao-mat";
+/** Đơn hàng + gói luyện thi gắn với tài khoản (B6). */
+export const ACCOUNT_ORDERS = "/tai-khoan/don-hang";
 /** Route tải dữ liệu của em (JSON). */
 export const ACCOUNT_DATA_EXPORT = "/tai-khoan/du-lieu";
 export const LEARNER_LOGIN = "/dang-nhap";
