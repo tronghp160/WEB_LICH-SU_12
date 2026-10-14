@@ -764,6 +764,10 @@ test.describe.serial("Cấp quyền cho tài khoản đã có (B7)", () => {
     await expect(page.getByText(`Đã cấp quyền Biên tập viên cho ${email}`)).toBeVisible();
     await expect(page.locator("main ul > li", { hasText: "ZZ Giáo Viên" })).toContainText(email);
 
+    // Cấp thành công thì form xóa trắng → điền lại rồi cấp lần hai.
+    await page.locator("#grant-email").fill(email);
+    await page.locator("#grant-full_name").fill("ZZ Giáo Viên");
+    await page.locator("#grant-role").selectOption("editor");
     await page.getByRole("button", { name: "Cấp quyền" }).click();
     await expect(page.locator("#grant-email-error")).toContainText("đã là nhân sự");
 

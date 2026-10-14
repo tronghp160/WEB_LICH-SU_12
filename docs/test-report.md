@@ -558,7 +558,8 @@ ca chủ tài khoản, cascade đạt; dọn còn 0 tài khoản thử.** Trư�
 | Unit test (Vitest) | **612/612** đạt, 42 file | thêm `staff-grant.test.ts` (5 ca): `requireRole(["system_admin"])` chạy trước mọi tra cứu, kiểm dữ liệu, email chuẩn hóa, chèn hồ sơ không mật khẩu, chưa có tài khoản → gợi ý tạo mới, đã là nhân sự (23505) |
 | Lint, kiểu (tsc), `npm run build` | sạch | bảng route không đổi so với B6 |
 | Header bảo mật (bản production) | đạt | trang `/tai-khoan/*`, `/dang-nhap`, `/dat-lai-mat-khau`: `Cache-Control: private, no-cache, no-store`, `robots noindex`; `/api/tien-do`, `/api/tai-khoan/goi`: `private, no-store`; `robots.txt` chặn `/tai-khoan`, `/auth/`, `/dat-lai-mat-khau`; chưa đăng nhập vào `/tai-khoan/*` → 307 về `/dang-nhap?next=…` |
-| E2E tài khoản / thanh toán / trợ năng | **25 + 14 + 42 = 81 đạt**, 2 bỏ qua | bỏ qua: gửi email thật (cần SMTP) và ca mới "học sinh → admin cấp quyền Biên tập viên → vào `/quan-tri` bằng tài khoản cũ, cấp lần hai báo đã là nhân sự, nhân sự không tự xóa tài khoản" (cần `TEST_PW`) |
+| E2E tài khoản / thanh toán / trợ năng | **25 + 14 + 42 = 81 đạt**, 2 bỏ qua | bỏ qua khi không có `TEST_PW`: gửi email thật (cần SMTP) và ca cấp quyền nhân sự |
+| E2E cấp quyền nhân sự (B7, `TEST_PW`) | **1/1 đạt** | học sinh bị chặn khỏi `/quan-tri` → "Tạo nhân sự mới" bằng email đã có gợi ý form cấp quyền → admin cấp quyền Biên tập viên (email gõ hoa vẫn khớp) → hiện trong danh sách; cấp lần hai báo "đã là nhân sự"; học sinh vào `/quan-tri` bằng đúng phiên cũ, trang tài khoản có lối "Vào khu quản trị", trang Bảo mật không cho tự xóa tài khoản nhân sự. Lần chạy đầu đỏ do chính test (form xóa trắng sau khi cấp thành công, test chưa điền lại) — đã sửa |
 
 **Checklist bảo mật (mục 10 kế hoạch):**
 
