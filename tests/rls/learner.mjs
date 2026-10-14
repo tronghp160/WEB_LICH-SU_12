@@ -3,7 +3,8 @@
 // Hai tài khoản học sinh thử zz-kiem-thu-rls-hs-*@test.local được tạo bằng Admin API (SUPABASE_SECRET_KEY trong
 // .env.local) và XÓA ở cuối. Có TEST_PW thì chạy thêm cột so sánh quản trị viên / biên tập viên.
 // Cách chạy:  node tests/rls/learner.mjs        (hoặc TEST_PW='…' node tests/rls/learner.mjs)
-// Không ghi dữ liệu nội dung thật: mọi thao tác ghi vào bảng nội dung / thanh toán đều phải bị chặn.
+// KHÔNG ĐỤNG DỮ LIỆU THẬT — kể cả ở cột Editor / Admin (được phép ghi): lệnh sửa chỉ nhắm vào sự kiện thử do kịch bản tự
+// tạo, hoặc ghi lại đúng giá trị cũ; mọi dòng / tệp tạo ra (tiền tố zz-kiem-thu-rls-hs / ZZ KIỂM THỬ RLS HS) dọn ở cuối.
 import { createClient } from "@supabase/supabase-js";
 import fs from "node:fs";
 import { anon, as, URL_ } from "./_client.mjs";
@@ -26,9 +27,16 @@ const PREFIX = "zz-kiem-thu-rls-hs-";
 const PASSWORD = `Lichsu${Date.now().toString(36)}9`;
 const TERMS = "2026-10";
 
+const STORAGE_DIR = "zz-kiem-thu-rls-hs";
+
 async function cleanup() {
   const { data } = await service.auth.admin.listUsers({ perPage: 1000 });
   for (const user of data?.users ?? []) if (user.email?.startsWith(PREFIX)) await service.auth.admin.deleteUser(user.id);
+  // Dòng do cột Editor / Admin tạo (được phép) + sự kiện thử của kịch bản.
+  await service.from("historical_events").delete().like("slug", `${PREFIX}%`);
+  await service.from("sources").delete().like("title", "ZZ KIỂM THỬ RLS HS%");
+  const files = (await service.storage.from("media").list(STORAGE_DIR)).data ?? [];
+  if (files.length) await service.storage.from("media").remove(files.map((file) => `${STORAGE_DIR}/${file.name}`));
 }
 
 /** Tạo học sinh thử, đăng nhập bằng khóa publishable, tự tạo hồ sơ (RLS own_insert) như server làm. */
@@ -66,7 +74,21 @@ const draft = await one(service.from("historical_events").select("id").neq("work
 const topic = await one(service.from("curriculum_topics").select("id").limit(1));
 const anyStaff = await one(service.from("staff_profiles").select("id").limit(1));
 const product = await one(service.from("products").select("id, price_vnd").eq("kind", "exam_pack").limit(1));
-const examSet = await one(service.from("exam_sets").select("id, slug").limit(1));
+const examSet = await one(service.from("exam_sets").select("id, slug, title").limit(1));
+
+/** Sự kiện ĐÃ CÔNG BỐ của riêng kịch bản (để thử "sửa bản published" mà không đụng nội dung thật). */
+async function testPublishedEvent() {
+  const slug = `${PREFIX}cong-bo-${Date.now().toString(36)}`;
+  const event = await service.from("historical_events").insert({ topic_id: topic.id, title: "ZZ RLS HS công bố", slug, start_year: 1954, date_text: "1954", date_precision: "year", summary: "gốc", workflow_status: "draft" }).select("id").single();
+  if (event.error) throw new Error(`sự kiện thử: ${event.error.message}`);
+  const source = await service.from("sources").insert({ title: "ZZ KIỂM THỬ RLS HS nguồn", source_type: "book", citation: "c" }).select("id").single();
+  await service.from("event_sources").insert({ event_id: event.data.id, source_id: source.data.id });
+  const published = await service.from("historical_events").update({ workflow_status: "published" }).eq("id", event.data.id);
+  if (published.error) throw new Error(`công bố sự kiện thử: ${published.error.message}`);
+  return event.data.id;
+}
+/** Ảnh PNG 1×1 (bucket media chỉ nhận ảnh). */
+const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=", "base64");
 
 // Tiền điều kiện: mọi dữ liệu tham chiếu phải có thật — nếu không, ô "❌ bị chặn" có thể chỉ vì bảng trống / id null.
 const counts = {};
@@ -84,33 +106,43 @@ if (missing.length) {
   process.exit(1);
 }
 
+/** Upload Storage: chỉ "❌ bị chặn" khi lỗi đúng là RLS; lỗi khác (sai loại tệp…) ghi ⚠. */
+const uploaded = (r) => (!r.error ? "✅" : /row-level security/i.test(r.error.message ?? "") ? "❌" : "⚠");
 const rows = (r) => (!r.error && (Array.isArray(r.data) ? r.data.length > 0 : Boolean(r.data)) ? "✅" : "❌");
-const ok = (r) => (r.error ? "❌" : "✅");
 /**
  * Lệnh ghi / gọi hàm: chỉ tính "❌ bị chặn" khi lỗi đúng là thiếu quyền (42501 — RLS hoặc không có quyền EXECUTE). Lỗi
  * khác (thiếu cột, sai kiểu…) ghi ⚠ — không để lỗi dữ liệu che mất việc RLS có chặn hay không.
  */
-const denied = (r) => (!r.error ? (Array.isArray(r.data) && r.data.length === 0 ? "❌" : "✅") : r.error.code === "42501" ? "❌" : "⚠");
+const denied = (r) => {
+  if (!r.error) return Array.isArray(r.data) && r.data.length === 0 ? "❌" : "✅";
+  if (r.error.code === "42501") return "❌";
+  // Trùng khóa: RLS (WITH CHECK) đã cho qua, chỉ vướng dữ liệu có sẵn — tính là "được phép".
+  if (r.error.code === "23505") return "✅";
+  return "⚠";
+};
 
 // expected: [Khách, Học sinh] (+ [Editor, Admin] khi có TEST_PW, ghi ở `staff`).
 const OPS = [
   // ----- Nội dung: học sinh = khách -----
-  { name: "Đọc sự kiện `published`", expected: "✅✅", run: (c) => c.from("historical_events").select("id").eq("id", published.id).then(rows) },
+  { name: "Đọc sự kiện `published`", expected: "✅✅", staff: "✅✅", run: (c) => c.from("historical_events").select("id").eq("id", published.id).then(rows) },
   { name: "Đọc sự kiện chưa công bố", expected: "❌❌", staff: "✅✅", run: (c) => c.from("historical_events").select("id").eq("id", draft.id).then(rows) },
-  { name: "Tạo sự kiện", expected: "❌❌",
+  { name: "Tạo sự kiện", expected: "❌❌", staff: "✅✅",
     run: (c) => c.from("historical_events").insert({ topic_id: topic.id, title: "ZZ RLS HS", slug: `zz-kiem-thu-rls-hs-${Date.now()}`, start_year: 1954, date_text: "1954", date_precision: "year", summary: "s", workflow_status: "draft" }).select("id").then(denied) },
-  { name: "Sửa sự kiện `published`", expected: "❌❌", run: (c) => c.from("historical_events").update({ summary: "x" }).eq("id", published.id).select("id").then(rows) },
-  { name: "Thêm `sources`", expected: "❌❌", run: (c) => c.from("sources").insert({ title: "ZZ KIỂM THỬ RLS HS", source_type: "book", citation: "c" }).select("id").then(denied) },
+  { name: "Sửa sự kiện `published` (sự kiện thử)", expected: "❌❌", staff: "❌✅", note: "Chỉ quản trị viên sửa bản đã công bố (trigger G5)",
+    run: async (c) => c.from("historical_events").update({ summary: "đã sửa" }).eq("id", await testPublishedEvent()).select("id").then(rows) },
+  { name: "Thêm `sources`", expected: "❌❌", staff: "✅✅", run: (c) => c.from("sources").insert({ title: "ZZ KIỂM THỬ RLS HS", source_type: "book", citation: "c" }).select("id").then(denied) },
   { name: "Đọc `staff_profiles` (của người khác)", expected: "❌❌", staff: "❌✅", run: (c) => c.from("staff_profiles").select("id").eq("id", anyStaff.id).then(rows) },
   { name: "Tự chèn hồ sơ nhân sự cho mình (leo quyền)", expected: "❌❌",
-    note: "Không có policy insert cho authenticated — học sinh không tự cấp quyền nội bộ",
+    staff: "❌✅", note: "Chỉ quản trị viên được ghi staff_profiles; Admin ✅ = RLS cho qua (dòng của chính mình đã có → trùng khóa)",
     run: async (c) => { const { data } = await c.auth.getUser(); return c.from("staff_profiles").insert({ id: data.user?.id ?? "00000000-0000-0000-0000-000000000000", full_name: "ZZ", role: "system_admin" }).select("id").then(denied); } },
-  { name: "`current_staff_role()` trả vai trò", expected: "❌❌", note: "Học sinh nhận null như khách",
+  { name: "`current_staff_role()` trả vai trò", expected: "❌❌", staff: "✅✅", note: "Học sinh nhận null như khách",
     run: (c) => c.rpc("current_staff_role").then((r) => (!r.error && r.data ? "✅" : "❌")) },
-  { name: "Tải ảnh lên Storage `media`", expected: "❌❌",
-    run: (c) => c.storage.from("media").upload(`zz-kiem-thu-rls-hs/${Date.now()}.txt`, new Blob(["x"], { type: "text/plain" })).then(ok) },
+  { name: "Tải ảnh lên Storage `media`", expected: "❌❌", staff: "✅✅",
+    run: (c) => c.storage.from("media").upload(`${STORAGE_DIR}/${Date.now()}-${Math.random().toString(36).slice(2)}.png`, PNG, { contentType: "image/png" }).then(uploaded) },
   { name: "Đọc câu hỏi đề `exam_questions`", expected: "❌❌", staff: "✅✅", run: (c) => c.from("exam_questions").select("id").limit(1).then(rows) },
-  { name: "Sửa đề `exam_sets`", expected: "❌❌", run: (c) => c.from("exam_sets").update({ title: "x" }).eq("id", examSet.id).select("id").then(rows) },
+  { name: "Sửa đề `exam_sets` (ghi lại đúng tiêu đề cũ)", expected: "❌❌", staff: "❌❌",
+    note: "Ghi lại đúng giá trị cũ để không đổi dữ liệu thật; nhân sự soạn / duyệt đề qua Server Action ở trang quản trị",
+    run: (c) => c.from("exam_sets").update({ title: examSet.title }).eq("id", examSet.id).select("id").then(rows) },
   // ----- Thanh toán: đóng với học sinh -----
   { name: "Đọc `orders`", expected: "❌❌", staff: "❌✅", run: (c) => c.from("orders").select("id").limit(1).then(rows) },
   { name: "Đọc `licenses`", expected: "❌❌", staff: "❌✅", run: (c) => c.from("licenses").select("id").limit(1).then(rows) },
