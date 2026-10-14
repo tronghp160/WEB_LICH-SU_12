@@ -27,6 +27,12 @@ export const createStaffSchema = z.object({
 });
 export type CreateStaffInput = z.infer<typeof createStaffSchema>;
 
+/**
+ * Cấp quyền nhân sự cho tài khoản ĐÃ CÓ (vd. giáo viên từng đăng ký làm học sinh — docs/ke-hoach-tai-khoan.md, mục 7.4):
+ * như tạo mới nhưng không có mật khẩu — người đó giữ cách đăng nhập của mình.
+ */
+export const grantStaffSchema = createStaffSchema.omit({ password: true });
+
 /** Đổi vai trò / khóa-mở khóa: id là UUID hợp lệ, giá trị thuộc tập cho phép. */
 export const staffIdSchema = z.string({ error: "Mã nhân sự không hợp lệ." }).uuid("Mã nhân sự không hợp lệ.");
 export const staffRoleSchema = z.enum(STAFF_ROLES, { error: "Vai trò không hợp lệ." });

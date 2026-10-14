@@ -19,6 +19,8 @@ type FieldProps = {
   hint?: string;
   error?: string;
   className?: string;
+  /** Tiền tố id (mặc định "field") — đặt khác khi hai form cùng trang có trường trùng tên. */
+  idPrefix?: string;
   /** Nhận các thuộc tính a11y (id, name, aria-*) để gắn vào ô nhập. */
   children: (props: FieldControlProps) => ReactNode;
 };
@@ -28,8 +30,8 @@ type FieldProps = {
  * aria-invalid. KHÔNG dùng thuộc tính `required` của trình duyệt (thông báo mặc định là tiếng Anh) —
  * form tắt kiểm tra gốc bằng `noValidate` và dùng lỗi tiếng Việt từ server.
  */
-export function Field({ name, label, required, hint, error, className, children }: FieldProps) {
-  const id = `field-${name}`;
+export function Field({ name, label, required, hint, error, className, idPrefix = "field", children }: FieldProps) {
+  const id = `${idPrefix}-${name}`;
   const describedBy = [error ? `${id}-error` : null, hint ? `${id}-hint` : null].filter(Boolean).join(" ");
 
   return (

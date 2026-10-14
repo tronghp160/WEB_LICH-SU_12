@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { adminApi, asUser, hasHorizontalOverflow, hasSecretKey } from "./support";
+import { adminApi, asUser, hasHorizontalOverflow, hasSecretKey, login, TEST_PW } from "./support";
 
 // Tài khoản học sinh — giai đoạn B2 (docs/ke-hoach-tai-khoan.md, mục 12, E2E (1)–(5)). Chạy trên database THẬT, cần
 // migration 20261020000000_learner_accounts.sql và SUPABASE_SECRET_KEY trong .env.local (tạo / dọn tài khoản thử bằng
@@ -729,5 +729,52 @@ test.describe.serial("Gói luyện thi theo tài khoản (B6)", () => {
     await page.goto("/luyen-thi/de-2");
     await expect(page.getByRole("button", { name: "Bắt đầu làm bài" })).toBeVisible();
     await expect(page.getByTestId("exam-access-account")).toHaveCount(0);
+  });
+});
+
+// Cấp quyền nhân sự cho tài khoản học sinh đã có — giai đoạn B7 (docs/ke-hoach-tai-khoan.md, mục 7.4). Cần TEST_PW
+// (đăng nhập admin@test.local). Tài khoản học sinh thử bị xóa ở cuối (hồ sơ nhân sự xóa theo nhờ ON DELETE CASCADE).
+test.describe.serial("Cấp quyền cho tài khoản đã có (B7)", () => {
+  test.skip(!TEST_PW, "Cần TEST_PW (mật khẩu chung tài khoản @test.local)");
+  test.afterAll(cleanupLearners);
+
+  test("học sinh bị chặn khỏi /quan-tri → admin cấp quyền Biên tập viên → vào được bằng tài khoản cũ; cấp lần hai báo đã là nhân sự", async ({ page, browser }) => {
+    const email = await createLearner({ name: "ZZ Giáo Viên E2E" });
+    const learnerContext = await browser.newContext();
+    const learnerPage = await learnerContext.newPage();
+    await signIn(learnerPage, email, PASSWORD);
+    await learnerPage.waitForURL(/\/tai-khoan$/);
+    await learnerPage.goto("/quan-tri");
+    await learnerPage.waitForURL(/\/tai-khoan\?thong-bao=khu-noi-bo$/);
+
+    await login(page, "admin@test.local");
+    await page.goto("/quan-tri/nhan-su");
+    // "Tạo nhân sự mới" với email đã có → gợi ý dùng form cấp quyền.
+    await page.locator("#field-full_name").fill("ZZ Giáo Viên");
+    await page.locator("#field-email").fill(email);
+    await page.locator("#field-role").selectOption("editor");
+    await page.locator("#field-password").fill("Tam12345678");
+    await page.getByRole("button", { name: "Tạo tài khoản" }).click();
+    await expect(page.locator("#field-email-error")).toContainText("Cấp quyền cho tài khoản đã có");
+
+    await page.locator("#grant-email").fill(email.toUpperCase());
+    await page.locator("#grant-full_name").fill("ZZ Giáo Viên");
+    await page.locator("#grant-role").selectOption("editor");
+    await page.getByRole("button", { name: "Cấp quyền" }).click();
+    await expect(page.getByText(`Đã cấp quyền Biên tập viên cho ${email}`)).toBeVisible();
+    await expect(page.locator("main ul > li", { hasText: "ZZ Giáo Viên" })).toContainText(email);
+
+    await page.getByRole("button", { name: "Cấp quyền" }).click();
+    await expect(page.locator("#grant-email-error")).toContainText("đã là nhân sự");
+
+    // Học sinh vào được khu quản trị bằng đúng phiên / mật khẩu cũ; menu tài khoản có "Khu quản trị".
+    await learnerPage.goto("/quan-tri");
+    await learnerPage.waitForURL(/\/quan-tri$/);
+    await learnerPage.goto("/tai-khoan");
+    await expect(learnerPage.getByRole("link", { name: "Vào khu quản trị" })).toBeVisible();
+    // Đang là nhân sự → không tự xóa tài khoản được.
+    await learnerPage.goto("/tai-khoan/bao-mat");
+    await expect(learnerPage.getByText("Đây là tài khoản nhân sự")).toBeVisible();
+    await learnerContext.close();
   });
 });
