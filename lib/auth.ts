@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { ADMIN_BLOCKED, ADMIN_FORBIDDEN, ADMIN_LOGIN } from "@/lib/admin/routes";
+import { ACCOUNT_HOME } from "@/lib/auth/routes";
 import type { Database } from "@/lib/database.types";
 import { createClient } from "@/lib/supabase/server";
 import type { StaffRole } from "@/lib/utils/labels";
@@ -19,12 +20,13 @@ export type Staff = {
  * Trạng thái đăng nhập nội bộ của người đang gọi:
  *  - anonymous  : chưa đăng nhập (hoặc phiên hết hạn/không hợp lệ)
  *  - no-profile : có tài khoản Auth nhưng chưa có hồ sơ `staff_profiles` → không có quyền nào
+ *                 (`isLearner`: là tài khoản học sinh — có `learner_profiles`)
  *  - locked     : hồ sơ bị khóa (`account_status = 'locked'`) → mất toàn bộ quyền nội bộ
  *  - active     : nhân sự đang hoạt động, kèm vai trò
  */
 export type StaffState =
   | { status: "anonymous" }
-  | { status: "no-profile"; email: string }
+  | { status: "no-profile"; email: string; isLearner: boolean }
   | { status: "locked"; email: string; fullName: string | null }
   | { status: "active"; staff: Staff };
 
@@ -52,7 +54,11 @@ export async function loadStaffState(supabase: SupabaseClient<Database>): Promis
   if (profileError) {
     throw new Error(`Không đọc được hồ sơ nhân sự: ${profileError.message}`);
   }
-  if (!profile) return { status: "no-profile", email };
+  if (!profile) {
+    // Học sinh (RLS own_select chỉ cho thấy hồ sơ của chính họ) → đưa về /tai-khoan thay vì trang "bị khóa".
+    const { data: learner } = await supabase.from("learner_profiles").select("id").eq("id", user.id).maybeSingle();
+    return { status: "no-profile", email, isLearner: Boolean(learner) };
+  }
   if (profile.account_status !== "active") {
     return { status: "locked", email, fullName: profile.full_name };
   }
@@ -62,6 +68,9 @@ export async function loadStaffState(supabase: SupabaseClient<Database>): Promis
     staff: { id: user.id, email, fullName: profile.full_name, role: profile.role },
   };
 }
+
+/** Học sinh mở khu quản trị → về trang tài khoản kèm thông báo (docs/ke-hoach-tai-khoan.md, mục 6.6). */
+export const LEARNER_STAFF_ONLY = `${ACCOUNT_HOME}?thong-bao=khu-noi-bo`;
 
 /** Trạng thái nhân sự của request hiện tại; `cache` để layout và trang dùng chung một lần tra cứu. */
 export const getStaffState = cache(async (): Promise<StaffState> => {
@@ -77,6 +86,7 @@ export async function getCurrentStaff(): Promise<Staff | null> {
 /**
  * Bắt buộc đã đăng nhập VÀ có một trong các vai trò `roles`; không thì chuyển hướng:
  *  - chưa đăng nhập            → trang đăng nhập
+ *  - học sinh (không là nhân sự) → /tai-khoan kèm thông báo "Khu vực này dành cho nhân sự"
  *  - bị khóa / thiếu hồ sơ     → trang "Tài khoản đã bị khóa"
  *  - sai vai trò               → trang "Không có quyền"
  *
@@ -91,6 +101,7 @@ export async function requireRole(roles: readonly StaffRole[]): Promise<Staff> {
     case "anonymous":
       redirect(ADMIN_LOGIN);
     case "no-profile":
+      redirect(state.isLearner ? LEARNER_STAFF_ONLY : ADMIN_BLOCKED);
     case "locked":
       redirect(ADMIN_BLOCKED);
     case "active":

@@ -391,3 +391,62 @@ sự đang hoạt động thì đi tiếp (quyết định Q1). Nút Google **ch
 | G2 | Gmail trùng email đã đăng ký bằng mật khẩu | Vào **cùng** tài khoản, không hỏi lại điều khoản | chưa kiểm |
 | G3 | Bấm "Hủy" ở màn hình Google | `/auth/loi?ly-do=google-huy` | chưa kiểm |
 | G4 | Mở lại link `/auth/callback?code=…` lần hai | Đang đăng nhập → đi tiếp; đã đăng xuất → `google-het-han` | chưa kiểm |
+
+## 14. Tài khoản học sinh — giai đoạn B4: menu tài khoản, hồ sơ, bảo mật (14/10/2026)
+
+Nút tài khoản trên Header là **client component** (`AccountMenu`, `lib/hooks/useSession.ts`): khách chưa có cookie phiên
+thì không tải thư viện Supabase; có cookie mới tải (import động) để đọc phiên + tên hiển thị. Chỉ để hiển thị — mọi thao
+tác kiểm lại phiên ở server (`getUser`). Trang `/tai-khoan` (hồ sơ: tên, trường), `/tai-khoan/bao-mat` (đổi / đặt mật
+khẩu, liên kết / gỡ Google, đăng xuất mọi thiết bị, tải dữ liệu JSON, xóa tài khoản), hộp thoại đăng xuất có ô "máy dùng
+chung". Học sinh mở `/quan-tri/*` → `/tai-khoan?thong-bao=khu-noi-bo` (thay cho trang "Tài khoản bị khóa").
+
+| Nhóm | Kết quả | Ghi chú |
+|---|---|---|
+| Unit test (Vitest) | **580/580** đạt, 38 file | thêm `account-security.test.ts` (14 ca): cách đăng nhập từ `identities` (email / Google / Google đã đặt mật khẩu / cả hai — chỉ gỡ được Google khi còn danh tính email), schema hồ sơ / đổi mật khẩu / xóa tài khoản, lỗi liên kết Google (`identity_already_exists` → `/auth/loi?ly-do=google-da-gan`) |
+| Lint, kiểu (tsc), `npm run build` | sạch | bảng route **không đổi** kiểu trang: `/bai-hoc/*` vẫn ● SSG, `/huong-dan`, `/kham-pha`, `/dieu-khoan` vẫn ○ Static; `/tai-khoan/*` ƒ động |
+| **E2E tài khoản** (`account.spec.ts`, bản production, DB thật) | **18 đạt**, 1 bỏ qua / 19 | thêm 8 ca B4: (6) học sinh mở `/quan-tri`, `/quan-tri/bai-sgk`, trang "bị khóa" → `/tai-khoan` kèm thông báo; Header khách → "Đăng nhập" (mang `next`), đăng nhập → menu tài khoản, "Ở lại" đóng hộp thoại, đăng xuất máy dùng chung xóa `ls12:tien-do` + `ls12:ban-quyen`; sửa hồ sơ → DB + tên trên Header; đổi mật khẩu sai mật khẩu hiện tại → lỗi, đúng → máy khác bị đăng xuất, mật khẩu cũ hết tác dụng; tải dữ liệu (đính kèm, `no-store`, không lộ token / IP); đăng xuất mọi thiết bị; (10) xóa tài khoản (gõ sai email → lỗi; đúng → Auth + hồ sơ bị xóa, không đăng nhập lại được); trợ năng axe sáng/tối cho 2 trang + menu mở, 360 px không tràn ngang, menu điện thoại có mục tài khoản |
+| E2E thanh toán (`payments.spec.ts`), SGK (`sgk.spec.ts`) | **14/14**, **13/13** đạt | lần chạy đầu 2 ca thanh toán đỏ: `getByLabel('Mã kích hoạt')` khớp cả ô "máy dùng chung" trong hộp thoại đăng xuất → rút gọn nhãn ô, phần giải thích chuyển sang `aria-describedby` |
+| Trợ năng axe-core (`a11y.spec.ts`) | 42/42 đạt | các trang công khai giờ có nút "Đăng nhập" trên Header |
+
+**Chưa kiểm được tự động:** liên kết / gỡ Google ở trang Bảo mật (cần bật Google + *Manual linking* trong Supabase, mục
+9.2 bước 1 và 5 của kế hoạch) — thêm vào danh sách kiểm tay:
+
+| # | Kịch bản | Kỳ vọng | Kết quả |
+|---|---|---|---|
+| G5 | Tài khoản email → Bảo mật → Liên kết Google | Về `/tai-khoan/bao-mat?thong-bao=lien-ket-google`, mục Google "Đã liên kết", lần sau vào bằng Google được | chưa kiểm |
+| G6 | Liên kết bằng Gmail đã thuộc tài khoản khác | `/auth/loi?ly-do=google-da-gan` | chưa kiểm |
+| G7 | Tài khoản chỉ có Google → đặt mật khẩu | Đăng nhập được bằng email + mật khẩu; nút "Gỡ Google" vẫn ẩn (Supabase không cho gỡ danh tính cuối) | chưa kiểm |
+
+**Lưu ý thiết kế:** máy khác sau khi đổi mật khẩu / đăng xuất mọi thiết bị vẫn còn JWT chưa hết hạn trong cookie, nên
+proxy (kiểm lạc quan bằng `getClaims`) cho qua; `requireLearner` (`getUser`, hỏi máy chủ Auth) mới chặn và đưa về
+`/dang-nhap`. E2E kiểm đúng hành vi này. Đổi mật khẩu kiểm mật khẩu hiện tại bằng một client tạm không lưu phiên rồi thu
+hồi ngay — đây là lớp chặn trên giao diện; muốn chặn cả gọi API trực tiếp thì bật *Secure password change* trong Supabase.
+
+## 15. Tài khoản học sinh — giai đoạn B5: đồng bộ tiến độ (14/10/2026)
+
+`components/account/ProgressSync.tsx` (client, gắn trong layout công khai, chỉ chạy khi đã đăng nhập) + `/api/tien-do`
+(GET / PUT bằng phiên người dùng, RLS `own_*` của `learner_progress`). Khách vẫn dùng localStorage + mã `LS12-…` như cũ.
+
+- **Phép gộp riêng cho đồng bộ** (`lib/progress/sync.ts` → `joinProgress`): giống `mergeProgress` nhưng số lượt làm bài
+  lấy **max** thay vì cộng. Lý do: đồng bộ gộp đi gộp lại cùng một lịch sử (máy → tài khoản → máy); nếu cộng thì số
+  lượt nhân lên sau mỗi lần (có unit test chứng minh). Với max, phép gộp giao hoán, kết hợp, lũy đẳng. Đổi lại: hai máy
+  cùng làm một bộ đề khi chưa đồng bộ thì số lượt bị tính thiếu (điểm cao nhất, con dấu, mục đã đọc không mất).
+- **Server không ghi đè:** đọc bản đang lưu → gộp → ghi kèm điều kiện `updated_at` chưa đổi (khóa lạc quan, thử lại 3
+  lần) → hai máy ghi cùng lúc không mất phần của nhau. Giới hạn 64 KB, 30 lần ghi / phút / tài khoản (bucket
+  `progress_write`; bộ đếm hỏng thì vẫn cho ghi).
+- **Máy dùng chung:** khóa `ls12:tien-do-cua` ghi tài khoản đang giữ tiến độ trên máy. Người khác đăng nhập trên cùng máy
+  → **thay** bằng tiến độ của họ, không trộn tiến độ người trước vào tài khoản người sau.
+- **Đăng xuất:** đẩy nốt thay đổi còn chờ (tối đa 3 giây) rồi mới xóa dữ liệu máy (nếu tích "máy dùng chung") và đăng
+  xuất. Rời trang thì đẩy bằng `fetch keepalive`. Quay lại tab sau ≥ 1 phút thì tải lại bản của tài khoản.
+- **Hộ chiếu:** đã đăng nhập → "Tiến độ đã đồng bộ với tài khoản", ẩn mục chép mã tiến độ và nút xóa tiến độ trên máy
+  (xóa xong cũng bị đồng bộ trả lại); chưa đăng nhập → thêm lời mời đăng nhập.
+
+| Nhóm | Kết quả | Ghi chú |
+|---|---|---|
+| Unit test (Vitest) | **596/596** đạt, 40 file | thêm `progress-sync.test.ts` (9 ca: tính chất phép gộp, đồng bộ 5 vòng không nhân số lượt, so sánh không phụ thuộc thứ tự khóa, thông báo "đã gộp", máy dùng chung → thay chứ không trộn) và `progress-api.test.ts` (7 ca, Supabase giả: 401, tạo dòng, gộp không ghi đè, máy khác ghi chen giữa → đọc lại gộp lại, 413, 429, bộ đếm hỏng vẫn ghi, body hỏng) |
+| Lint, kiểu (tsc), `npm run build` | sạch | bảng route chỉ thêm `ƒ /api/tien-do`; mọi trang khác giữ nguyên kiểu (so bằng `diff` với bản build B4) |
+| **E2E tài khoản** (`account.spec.ts`, bản production, DB thật) | **22 đạt**, 1 bỏ qua / 23 | thêm 4 ca B5: (7) có con dấu khi chưa đăng nhập → đăng nhập → thông báo "Đã gộp … (1 con dấu)", tài khoản có con dấu, trợ năng Hộ chiếu khi đã đăng nhập; máy thứ hai có con dấu khác → đăng nhập thấy 2 con dấu, máy đầu tải lại cũng thấy 2, không báo gộp lần nữa; đang đăng nhập → tự đẩy sau ~3 giây; học xong rồi đăng xuất máy dùng chung ngay (chưa hết 3 giây) → vẫn kịp lên tài khoản, máy sạch; người sau trên cùng máy không nhận tiến độ người trước; `/api/tien-do` khi chưa đăng nhập → 401 |
+| E2E thanh toán, trợ năng | **14/14**, **42/42** đạt | một lần chạy ca "số tiền ủng hộ ngoài khoảng" đỏ ngẫu nhiên (không thấy phần tử), chạy lại đạt — cùng kiểu lỗi mạng chập chờn đã ghi ở mục 8 |
+
+**Lỗi tìm thấy khi kiểm thử:** đăng xuất ngay sau khi mở trang thì bước "đẩy nốt" không đẩy gì vì chưa tải xong bản của
+tài khoản → sửa: đẩy nốt chờ lần tải đầu xong rồi mới đẩy (E2E "học xong rồi đăng xuất ngay" bắt được lỗi này).

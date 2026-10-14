@@ -52,6 +52,34 @@ export const learnerSignInSchema = z.object({
 
 export const emailOnlySchema = z.object({ email });
 
+/** Hồ sơ ở /tai-khoan: tên hiển thị + trường (tùy chọn, ≤ 120 ký tự — khớp CHECK của learner_profiles.school). */
+export const profileSchema = z.object({
+  displayName: displayNameSchema,
+  school: z
+    .string()
+    .optional()
+    .transform((value) => (value ?? "").replace(/\s+/g, " ").trim())
+    .pipe(z.string().max(120, "Tên trường tối đa 120 ký tự."))
+    .transform((value) => value || null),
+});
+
+/**
+ * Đổi mật khẩu ở /tai-khoan/bao-mat. `current` bắt buộc khi tài khoản đã có mật khẩu (Server Action kiểm), bỏ trống với
+ * tài khoản chỉ có Google đang đặt mật khẩu lần đầu.
+ */
+export const changePasswordSchema = z
+  .object({
+    current: z.string().max(200, "Mật khẩu quá dài.").optional(),
+    password: learnerPasswordSchema,
+    confirm: z.string({ error: "Vui lòng nhập lại mật khẩu." }),
+  })
+  .refine((value) => value.password === value.confirm, { path: ["confirm"], message: "Hai mật khẩu không khớp." });
+
+/** Xóa tài khoản: gõ lại đúng email để xác nhận (mục 10). So khớp không phân biệt hoa/thường. */
+export const deleteAccountSchema = z.object({
+  confirmEmail: z.string({ error: "Gõ email của em để xác nhận." }).trim().min(1, "Gõ email của em để xác nhận.").max(254),
+});
+
 export const newPasswordSchema = z
   .object({
     password: learnerPasswordSchema,

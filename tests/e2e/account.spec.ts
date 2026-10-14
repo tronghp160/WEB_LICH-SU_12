@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { adminApi, hasSecretKey } from "./support";
+import AxeBuilder from "@axe-core/playwright";
+import { adminApi, asUser, hasHorizontalOverflow, hasSecretKey } from "./support";
 
 // Tài khoản học sinh — giai đoạn B2 (docs/ke-hoach-tai-khoan.md, mục 12, E2E (1)–(5)). Chạy trên database THẬT, cần
 // migration 20261020000000_learner_accounts.sql và SUPABASE_SECRET_KEY trong .env.local (tạo / dọn tài khoản thử bằng
@@ -41,6 +42,19 @@ async function signIn(page: Page, email: string, password: string, path = "/dang
   await page.locator("#email").fill(email);
   await page.locator("#password").fill(password);
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+}
+
+/** Đăng xuất từ trang Tài khoản: nút mở hộp thoại (mục 6.5) → xác nhận → về trang chủ. */
+async function signOut(page: Page, options: { shared?: boolean } = {}): Promise<void> {
+  const dialog = page.getByRole("dialog", { name: "Đăng xuất?" });
+  // Bấm trước khi hydrate thì nút chưa có onClick → thử lại tới khi hộp thoại mở.
+  await expect(async () => {
+    await page.locator("main").getByRole("button", { name: "Đăng xuất" }).click();
+    await expect(dialog).toBeVisible({ timeout: 1000 });
+  }).toPass();
+  if (options.shared) await dialog.getByRole("checkbox").check();
+  await dialog.getByRole("button", { name: "Đăng xuất" }).click();
+  await page.waitForURL((url) => url.pathname === "/");
 }
 
 test.describe.serial("Tài khoản học sinh (B2)", () => {
@@ -132,8 +146,7 @@ test.describe.serial("Tài khoản học sinh (B2)", () => {
     await page.waitForURL(/\/luyen-thi$/);
 
     await page.goto("/tai-khoan");
-    await page.getByRole("button", { name: "Đăng xuất" }).click();
-    await page.waitForURL((url) => url.pathname === "/");
+    await signOut(page);
     await page.goto("/tai-khoan");
     await page.waitForURL(/\/dang-nhap\?next=/);
   });
@@ -142,8 +155,7 @@ test.describe.serial("Tài khoản học sinh (B2)", () => {
     const email = await createLearner();
     await signIn(page, email, PASSWORD, "/dang-nhap?next=%2F%2Fevil.com");
     await page.waitForURL(/\/tai-khoan$/);
-    await page.getByRole("button", { name: "Đăng xuất" }).click();
-    await page.waitForURL((url) => url.pathname === "/");
+    await signOut(page);
     await signIn(page, email, PASSWORD, "/dang-nhap?next=https%3A%2F%2Fevil.com%2Fx");
     await page.waitForURL(/\/tai-khoan$/);
     expect(new URL(page.url()).hostname).toBe(new URL(test.info().project.use.baseURL ?? "http://localhost").hostname);
@@ -184,8 +196,7 @@ test.describe.serial("Tài khoản học sinh (B2)", () => {
     await expect(page.locator("#dat-lai-het-han")).toBeVisible();
 
     await page.goto("/tai-khoan");
-    await page.getByRole("button", { name: "Đăng xuất" }).click();
-    await page.waitForURL((url) => url.pathname === "/");
+    await signOut(page);
     await signIn(page, email, PASSWORD);
     await expect(page.locator("#dang-nhap-loi")).toHaveText("Email hoặc mật khẩu không đúng.");
     await signIn(page, email, newPassword);
@@ -254,5 +265,344 @@ test.describe.serial("Đăng nhập Google — phần kiểm tự động đư�
     await page.goto("/auth/callback?code=zz-khong-ton-tai&next=%2F%2Fevil.com");
     await page.waitForURL(/\/auth\/loi\?ly-do=google-het-han$/);
     await expect(page.locator("#auth-loi")).toContainText("trình duyệt");
+  });
+});
+
+// Trang tài khoản + Bảo mật — giai đoạn B4 (docs/ke-hoach-tai-khoan.md, mục 4.4, 6.5, 10, 12: E2E (6), (10)).
+async function userIdOf(email: string): Promise<string> {
+  const { data } = await adminApi().auth.admin.listUsers({ perPage: 1000 });
+  const user = data.users.find((candidate) => candidate.email === email);
+  if (!user) throw new Error(`Không thấy tài khoản ${email}`);
+  return user.id;
+}
+
+/** Đăng nhập bằng API (không qua giao diện) — để kiểm mật khẩu cũ / mới còn tác dụng hay không. */
+async function canSignIn(email: string, password: string): Promise<boolean> {
+  try {
+    await asUser(email, password);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+test.describe.serial("Tài khoản và Bảo mật (B4)", () => {
+  test.afterAll(cleanupLearners);
+
+  test("(6) học sinh mở /quan-tri → về /tai-khoan kèm thông báo; trang 'bị khóa' cũng vậy", async ({ page }) => {
+    const email = await createLearner();
+    await signIn(page, email, PASSWORD);
+    await page.waitForURL(/\/tai-khoan$/);
+
+    await page.goto("/quan-tri");
+    await page.waitForURL(/\/tai-khoan\?thong-bao=khu-noi-bo$/);
+    await expect(page.locator("#tai-khoan-thong-bao")).toContainText("chỉ dành cho nhân sự");
+    await page.goto("/quan-tri/bai-sgk");
+    await page.waitForURL(/\/tai-khoan\?thong-bao=khu-noi-bo$/);
+    await page.goto("/quan-tri/tai-khoan-bi-khoa");
+    await page.waitForURL(/\/tai-khoan\?thong-bao=khu-noi-bo$/);
+  });
+
+  test("Header: khách thấy 'Đăng nhập'; đăng nhập rồi thấy menu tài khoản; đăng xuất máy dùng chung xóa dữ liệu trên máy", async ({ page }) => {
+    const email = await createLearner({ name: "ZZ Header E2E" });
+    await page.goto("/bai-hoc");
+    const header = page.locator("header").first();
+    await expect(header.getByRole("link", { name: "Đăng nhập" })).toHaveAttribute("href", "/dang-nhap?next=%2Fbai-hoc");
+
+    await signIn(page, email, PASSWORD, "/dang-nhap?next=%2Fbai-hoc");
+    await page.waitForURL(/\/bai-hoc$/);
+    const trigger = header.getByRole("button", { name: "Tài khoản: ZZ Header E2E" });
+    await expect(trigger).toBeVisible();
+    await expect(header.getByRole("link", { name: "Đăng nhập" })).toHaveCount(0);
+
+    // Dữ liệu trên máy: tiến độ + mã kích hoạt.
+    await page.evaluate(() => {
+      localStorage.setItem("ls12:tien-do", JSON.stringify({ v: 1, lessons: {}, quizzes: {}, sgk: {} }));
+      localStorage.setItem("ls12:ban-quyen", JSON.stringify({ code: "ZZ" }));
+    });
+
+    await trigger.click();
+    const menu = page.locator("#account-menu");
+    await expect(menu.getByRole("link", { name: "Tài khoản của em" })).toHaveAttribute("href", "/tai-khoan");
+    await expect(menu.getByRole("link", { name: "Bảo mật" })).toHaveAttribute("href", "/tai-khoan/bao-mat");
+    await expect(menu.getByRole("link", { name: "Khu quản trị" })).toHaveCount(0);
+    await menu.getByRole("button", { name: "Đăng xuất" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Đăng xuất?" });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "Ở lại" }).click();
+    await expect(dialog).toBeHidden();
+
+    await trigger.click();
+    await menu.getByRole("button", { name: "Đăng xuất" }).click();
+    await dialog.getByRole("checkbox").check();
+    await dialog.getByRole("button", { name: "Đăng xuất" }).click();
+    await page.waitForURL((url) => url.pathname === "/");
+    await expect(header.getByRole("link", { name: "Đăng nhập" })).toBeVisible();
+    expect(await page.evaluate(() => [localStorage.getItem("ls12:tien-do"), localStorage.getItem("ls12:ban-quyen")])).toEqual([null, null]);
+    await page.goto("/tai-khoan");
+    await page.waitForURL(/\/dang-nhap\?next=/);
+  });
+
+  test("hồ sơ: sửa tên + trường → lưu vào DB, Header cập nhật tên", async ({ page }) => {
+    const email = await createLearner({ name: "ZZ Hồ Sơ E2E" });
+    await signIn(page, email, PASSWORD);
+    await page.waitForURL(/\/tai-khoan$/);
+
+    await page.locator("#displayName").fill(" ");
+    await page.getByRole("button", { name: "Lưu hồ sơ" }).click();
+    await expect(page.locator("#displayName-loi")).toContainText("tên hiển thị");
+
+    await page.locator("#displayName").fill("ZZ  Hồ Sơ   Mới");
+    await page.locator("#school").fill("THPT ZZ Kiểm Thử");
+    await page.getByRole("button", { name: "Lưu hồ sơ" }).click();
+    await expect(page.locator("#ho-so-da-luu")).toBeVisible();
+    await expect(page.locator("header").first().getByRole("button", { name: "Tài khoản: ZZ Hồ Sơ Mới" })).toBeVisible();
+
+    const { data } = await adminApi().from("learner_profiles").select("display_name, school").eq("id", await userIdOf(email)).single();
+    expect(data).toEqual({ display_name: "ZZ Hồ Sơ Mới", school: "THPT ZZ Kiểm Thử" });
+  });
+
+  test("đổi mật khẩu: sai mật khẩu hiện tại → báo lỗi; đúng → đổi, máy khác bị đăng xuất, mật khẩu cũ hết tác dụng", async ({ page, browser }) => {
+    const email = await createLearner();
+    const other = await browser.newContext();
+    const otherPage = await other.newPage();
+    await signIn(otherPage, email, PASSWORD);
+    await otherPage.waitForURL(/\/tai-khoan$/);
+
+    await signIn(page, email, PASSWORD, "/dang-nhap?next=%2Ftai-khoan%2Fbao-mat");
+    await page.waitForURL(/\/tai-khoan\/bao-mat$/);
+    await expect(page.getByTestId("phuong-thuc-mat-khau")).toHaveText("Đang dùng");
+    await expect(page.getByTestId("phuong-thuc-google")).toContainText("Chưa liên kết");
+
+    const newPassword = "lichsu2028C";
+    await page.locator("#current").fill("saimatkhau1");
+    await page.locator("#password").fill(newPassword);
+    await page.locator("#confirm").fill(newPassword);
+    await page.getByRole("button", { name: "Đổi mật khẩu" }).click();
+    await expect(page.locator("#current-loi")).toHaveText("Mật khẩu hiện tại không đúng.");
+
+    await page.locator("#current").fill(PASSWORD);
+    await page.locator("#password").fill(newPassword);
+    await page.locator("#confirm").fill(newPassword);
+    await page.getByRole("button", { name: "Đổi mật khẩu" }).click();
+    await expect(page.locator("#mat-khau-da-luu")).toContainText("Đã đổi mật khẩu");
+
+    // Máy này vẫn đăng nhập; máy kia bị đăng xuất.
+    await page.goto("/tai-khoan");
+    await expect(page.getByTestId("account-email")).toHaveText(email);
+    await otherPage.goto("/tai-khoan");
+    // Máy kia còn JWT chưa hết hạn → proxy cho qua; requireLearner (getUser) mới chặn → /dang-nhap.
+    await otherPage.waitForURL((url) => url.pathname === "/dang-nhap");
+    await other.close();
+
+    expect(await canSignIn(email, PASSWORD)).toBe(false);
+    expect(await canSignIn(email, newPassword)).toBe(true);
+  });
+
+  test("tải dữ liệu của em: JSON đính kèm gồm email, hồ sơ; chưa đăng nhập → về trang đăng nhập", async ({ page }) => {
+    const email = await createLearner({ name: "ZZ Dữ Liệu E2E" });
+    const anonymous = await page.request.get("/tai-khoan/du-lieu", { maxRedirects: 0 });
+    expect(anonymous.status()).toBe(307);
+    expect(anonymous.headers().location).toContain("/dang-nhap?next=%2Ftai-khoan%2Fdu-lieu");
+
+    await signIn(page, email, PASSWORD);
+    await page.waitForURL(/\/tai-khoan$/);
+    const response = await page.request.get("/tai-khoan/du-lieu");
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-disposition"]).toMatch(/^attachment; filename="lich-su-12-du-lieu-\d{4}-\d{2}-\d{2}\.json"$/);
+    expect(response.headers()["cache-control"]).toContain("no-store");
+    const body = await response.json();
+    expect(body.tai_khoan.email).toBe(email);
+    expect(body.tai_khoan.dang_nhap_bang).toEqual(["email + mật khẩu"]);
+    expect(body.ho_so.display_name).toBe("ZZ Dữ Liệu E2E");
+    expect(body.don_hang).toEqual([]);
+    expect(JSON.stringify(body)).not.toMatch(/access_token|client_ip/);
+  });
+
+  test("đăng xuất mọi thiết bị → mọi phiên bị thu hồi", async ({ page, browser }) => {
+    const email = await createLearner();
+    const other = await browser.newContext();
+    const otherPage = await other.newPage();
+    await signIn(otherPage, email, PASSWORD);
+    await otherPage.waitForURL(/\/tai-khoan$/);
+
+    await signIn(page, email, PASSWORD, "/dang-nhap?next=%2Ftai-khoan%2Fbao-mat");
+    await page.waitForURL(/\/tai-khoan\/bao-mat$/);
+    await page.getByRole("button", { name: "Đăng xuất mọi thiết bị" }).click();
+    await page.waitForURL(/\/dang-nhap\?thong-bao=dang-xuat-moi-may$/);
+    await expect(page.locator("#dang-nhap-thong-bao")).toContainText("mọi thiết bị");
+
+    await page.goto("/tai-khoan");
+    await page.waitForURL(/\/dang-nhap\?next=/);
+    await otherPage.goto("/tai-khoan");
+    // Máy kia còn JWT chưa hết hạn → proxy cho qua; requireLearner (getUser) mới chặn → /dang-nhap.
+    await otherPage.waitForURL((url) => url.pathname === "/dang-nhap");
+    await other.close();
+  });
+
+  test("trợ năng (sáng + tối) /tai-khoan, /tai-khoan/bao-mat, menu tài khoản mở; điện thoại không tràn ngang", async ({ page }) => {
+    const email = await createLearner({ name: "ZZ Trợ Năng E2E" });
+    await signIn(page, email, PASSWORD);
+    await page.waitForURL(/\/tai-khoan$/);
+
+    const check = async () => {
+      await page.waitForLoadState("networkidle");
+      const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+      const blocking = results.violations
+        .filter((violation) => violation.impact === "serious" || violation.impact === "critical")
+        .map((violation) => `${violation.id}: ${violation.nodes.slice(0, 3).map((node) => node.target.join(" ")).join(" | ")}`);
+      expect(blocking, blocking.join("\n")).toEqual([]);
+    };
+    for (const scheme of ["light", "dark"] as const) {
+      await page.emulateMedia({ colorScheme: scheme });
+      for (const path of ["/tai-khoan", "/tai-khoan/bao-mat"]) {
+        await page.goto(path);
+        await check();
+      }
+    }
+    await page.locator("header").first().getByRole("button", { name: "Tài khoản: ZZ Trợ Năng E2E" }).click();
+    await check();
+
+    await page.setViewportSize({ width: 360, height: 780 });
+    for (const path of ["/tai-khoan", "/tai-khoan/bao-mat"]) {
+      await page.goto(path);
+      expect(await hasHorizontalOverflow(page), path).toBe(false);
+    }
+    await page.getByRole("button", { name: "Mở menu" }).click();
+    const mobileNav = page.locator("#mobile-nav");
+    await expect(mobileNav.getByText("ZZ Trợ Năng E2E")).toBeVisible();
+    await mobileNav.getByRole("button", { name: "Đăng xuất" }).click();
+    await expect(page.getByRole("dialog", { name: "Đăng xuất?" })).toBeVisible();
+  });
+
+  test("(10) xóa tài khoản: gõ sai email → báo lỗi; đúng → xóa hẳn, không đăng nhập lại được", async ({ page }) => {
+    const email = await createLearner();
+    await signIn(page, email, PASSWORD, "/dang-nhap?next=%2Ftai-khoan%2Fbao-mat");
+    await page.waitForURL(/\/tai-khoan\/bao-mat$/);
+    const userId = await userIdOf(email);
+
+    await page.locator("#confirmEmail").fill("khac@test.local");
+    await page.getByRole("button", { name: "Xóa vĩnh viễn tài khoản" }).click();
+    await expect(page.locator("#confirmEmail-loi")).toHaveText("Email chưa khớp với email của tài khoản.");
+
+    await page.locator("#confirmEmail").fill(email.toUpperCase());
+    await page.getByRole("button", { name: "Xóa vĩnh viễn tài khoản" }).click();
+    await page.waitForURL(/\/dang-nhap\?thong-bao=da-xoa-tai-khoan$/);
+    await expect(page.locator("#dang-nhap-thong-bao")).toContainText("Đã xóa tài khoản");
+
+    const { data: user } = await adminApi().auth.admin.getUserById(userId);
+    expect(user.user).toBeNull();
+    const { data: profile } = await adminApi().from("learner_profiles").select("id").eq("id", userId).maybeSingle();
+    expect(profile).toBeNull();
+    expect(await canSignIn(email, PASSWORD)).toBe(false);
+    await page.goto("/tai-khoan");
+    await page.waitForURL(/\/dang-nhap\?next=/);
+  });
+});
+
+// Đồng bộ tiến độ — giai đoạn B5 (docs/ke-hoach-tai-khoan.md, mục 7.1, 12: E2E (7)).
+const passedQuiz = (setId: string, minute: number) => {
+  const time = new Date(Date.UTC(2026, 9, 14, 8, minute)).toISOString();
+  return { v: 1, lessons: {}, sgk: {}, quizzes: { [setId]: { best: 9, total: 10, attempts: 1, passedAt: time, lastAt: time } } };
+};
+
+async function setLocalProgress(page: Page, progress: unknown): Promise<void> {
+  await page.evaluate((value) => {
+    localStorage.setItem("ls12:tien-do", JSON.stringify(value));
+    window.dispatchEvent(new Event("ls12:tien-do-doi"));
+  }, progress);
+}
+
+const localQuizIds = (page: Page) =>
+  page.evaluate(() => Object.keys((JSON.parse(localStorage.getItem("ls12:tien-do") ?? "{}") as { quizzes?: object }).quizzes ?? {}).sort());
+
+const userIds = new Map<string, string>();
+
+async function serverQuizIds(email: string): Promise<string[]> {
+  // listUsers chậm → nhớ user id, vì hàm này được gọi lặp trong expect.poll.
+  if (!userIds.has(email)) userIds.set(email, await userIdOf(email));
+  const { data } = await adminApi().from("learner_progress").select("data").eq("user_id", userIds.get(email)!).maybeSingle();
+  return Object.keys((data?.data as { quizzes?: object } | undefined)?.quizzes ?? {}).sort();
+}
+
+test.describe.serial("Đồng bộ tiến độ (B5)", () => {
+  test.afterAll(cleanupLearners);
+
+  test("(7) học khi chưa đăng nhập → đăng nhập: gộp vào tài khoản, có thông báo; máy thứ hai thấy cùng con dấu", async ({ page, browser }) => {
+    const email = await createLearner({ name: "ZZ Đồng Bộ E2E" });
+    await page.goto("/ho-chieu");
+    await setLocalProgress(page, passedQuiz("tong-hop", 1));
+    await expect(page.getByRole("button", { name: "Tạo mã tiến độ" })).toBeVisible();
+
+    await signIn(page, email, PASSWORD, "/dang-nhap?next=%2Fho-chieu");
+    await page.waitForURL(/\/ho-chieu$/);
+    await expect(page.locator("#dong-bo-thong-bao")).toContainText("Đã gộp tiến độ trên máy này vào tài khoản (1 con dấu)");
+    await expect(page.getByTestId("ho-chieu-dong-bo")).toContainText("ZZ Đồng Bộ E2E");
+    await expect(page.getByRole("button", { name: "Tạo mã tiến độ" })).toHaveCount(0);
+    const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+    expect(axe.violations.filter((violation) => violation.impact === "serious" || violation.impact === "critical").map((violation) => violation.id)).toEqual([]);
+    await expect.poll(() => serverQuizIds(email)).toEqual(["tong-hop"]);
+
+    // Máy thứ hai đã có tiến độ riêng (chưa đăng nhập) → đăng nhập: thấy cả hai, tài khoản cũng có cả hai.
+    const other = await browser.newContext();
+    const phone = await other.newPage();
+    await phone.goto("/ho-chieu");
+    await setLocalProgress(phone, passedQuiz("doan-nam", 2));
+    await signIn(phone, email, PASSWORD, "/dang-nhap?next=%2Fho-chieu");
+    await phone.waitForURL(/\/ho-chieu$/);
+    await expect(phone.locator("header").first().getByRole("link", { name: "Hộ chiếu lịch sử: 2 con dấu" })).toBeVisible();
+    await expect.poll(() => localQuizIds(phone)).toEqual(["doan-nam", "tong-hop"]);
+    await expect.poll(() => serverQuizIds(email)).toEqual(["doan-nam", "tong-hop"]);
+
+    // Máy đầu tải lại → nhận con dấu từ máy kia; đăng nhập lại lần nữa không báo "đã gộp" (máy đã thuộc tài khoản).
+    await page.reload();
+    await expect(page.locator("header").first().getByRole("link", { name: "Hộ chiếu lịch sử: 2 con dấu" })).toBeVisible();
+    await expect(page.locator("#dong-bo-thong-bao")).toHaveCount(0);
+    await other.close();
+  });
+
+  test("đang đăng nhập: tiến độ mới tự đẩy lên tài khoản (gom ~3 giây)", async ({ page }) => {
+    const email = await createLearner();
+    await signIn(page, email, PASSWORD, "/dang-nhap?next=%2Fho-chieu");
+    await page.waitForURL(/\/ho-chieu$/);
+    await expect(page.getByTestId("ho-chieu-dong-bo")).toBeVisible();
+
+    await setLocalProgress(page, passedQuiz("tong-hop", 3));
+    await expect.poll(() => serverQuizIds(email), { timeout: 15_000 }).toEqual(["tong-hop"]);
+
+    // Vừa học xong (chưa hết 3 giây gom) đã đăng xuất máy dùng chung → vẫn kịp lên tài khoản, máy được xóa sạch.
+    await page.goto("/tai-khoan");
+    await setLocalProgress(page, { ...passedQuiz("tong-hop", 3), quizzes: { ...passedQuiz("tong-hop", 3).quizzes, ...passedQuiz("doan-nam", 6).quizzes } });
+    await signOut(page, { shared: true });
+    expect(await serverQuizIds(email)).toEqual(["doan-nam", "tong-hop"]);
+    expect(await localQuizIds(page)).toEqual([]);
+  });
+
+  test("máy dùng chung: người sau đăng nhập KHÔNG nhận tiến độ của người trước, và ngược lại", async ({ page }) => {
+    const first = await createLearner({ name: "ZZ Người Trước" });
+    const second = await createLearner({ name: "ZZ Người Sau" });
+
+    await signIn(page, first, PASSWORD, "/dang-nhap?next=%2Fho-chieu");
+    await page.waitForURL(/\/ho-chieu$/);
+    await setLocalProgress(page, passedQuiz("tong-hop", 4));
+    await expect.poll(() => serverQuizIds(first), { timeout: 15_000 }).toEqual(["tong-hop"]);
+
+    // Quên tích "máy dùng chung": tiến độ của người trước vẫn nằm trên máy.
+    await page.goto("/tai-khoan");
+    await signOut(page);
+    expect(await localQuizIds(page)).toEqual(["tong-hop"]);
+
+    await signIn(page, second, PASSWORD, "/dang-nhap?next=%2Fho-chieu");
+    await page.waitForURL(/\/ho-chieu$/);
+    await expect.poll(() => localQuizIds(page)).toEqual([]);
+    await expect(page.locator("#dong-bo-thong-bao")).toHaveCount(0);
+    expect(await serverQuizIds(second)).toEqual([]);
+    expect(await serverQuizIds(first)).toEqual(["tong-hop"]);
+  });
+
+  test("/api/tien-do: chưa đăng nhập → 401", async ({ request }) => {
+    expect((await request.get("/api/tien-do")).status()).toBe(401);
+    expect((await request.put("/api/tien-do", { data: passedQuiz("tong-hop", 5) })).status()).toBe(401);
   });
 });

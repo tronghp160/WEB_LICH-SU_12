@@ -57,6 +57,14 @@ export function translateLearnerAuthError(error: AuthErrorLike): string {
       return "Cách đăng nhập này đang tạm tắt. Em dùng email nhé.";
     case "identity_already_exists":
       return "Tài khoản Google này đã gắn với một tài khoản khác.";
+    case "manual_linking_disabled":
+      return "Trang chưa bật liên kết Google cho tài khoản đã có. Em thử lại sau nhé.";
+    case "single_identity_not_deletable":
+      return "Không gỡ được: đây là cách đăng nhập duy nhất của tài khoản.";
+    case "identity_not_found":
+      return "Tài khoản chưa liên kết Google.";
+    case "reauthentication_needed":
+      return "Vì an toàn, em đăng xuất rồi đăng nhập lại, sau đó đổi mật khẩu nhé.";
     case "signup_disabled":
       return "Hệ thống đang tạm dừng đăng ký tài khoản mới.";
     case "user_banned":
