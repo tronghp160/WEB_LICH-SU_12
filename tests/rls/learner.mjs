@@ -74,7 +74,7 @@ const draft = await one(service.from("historical_events").select("id").neq("work
 const topic = await one(service.from("curriculum_topics").select("id").limit(1));
 const anyStaff = await one(service.from("staff_profiles").select("id").limit(1));
 const product = await one(service.from("products").select("id, price_vnd").eq("kind", "exam_pack").limit(1));
-const examSet = await one(service.from("exam_sets").select("id, slug, title").limit(1));
+const examSet = await one(service.from("exam_sets").select("id, slug, title").eq("workflow_status", "draft").limit(1));
 
 /** Sự kiện ĐÃ CÔNG BỐ của riêng kịch bản (để thử "sửa bản published" mà không đụng nội dung thật). */
 async function testPublishedEvent() {
@@ -97,7 +97,7 @@ for (const table of ["exam_questions", "orders", "licenses", "staff_profiles"]) 
 }
 const missing = [
   ["sự kiện published", published], ["sự kiện chưa công bố", draft], ["chủ đề", topic], ["hồ sơ nhân sự", anyStaff],
-  ["sản phẩm gói", product], ["đề luyện thi", examSet],
+  ["sản phẩm gói", product], ["đề luyện thi nháp", examSet],
 ].filter(([, value]) => !value).map(([name]) => name);
 for (const [table, count] of Object.entries(counts)) if (count === 0) missing.push(`bảng ${table} trống`);
 if (missing.length) {
@@ -140,8 +140,8 @@ const OPS = [
   { name: "Tải ảnh lên Storage `media`", expected: "❌❌", staff: "✅✅",
     run: (c) => c.storage.from("media").upload(`${STORAGE_DIR}/${Date.now()}-${Math.random().toString(36).slice(2)}.png`, PNG, { contentType: "image/png" }).then(uploaded) },
   { name: "Đọc câu hỏi đề `exam_questions`", expected: "❌❌", staff: "✅✅", run: (c) => c.from("exam_questions").select("id").limit(1).then(rows) },
-  { name: "Sửa đề `exam_sets` (ghi lại đúng tiêu đề cũ)", expected: "❌❌", staff: "❌❌",
-    note: "Ghi lại đúng giá trị cũ để không đổi dữ liệu thật; nhân sự soạn / duyệt đề qua Server Action ở trang quản trị",
+  { name: "Sửa đề nháp `exam_sets` (ghi lại đúng tiêu đề cũ)", expected: "❌❌", staff: "✅✅",
+    note: "Biên tập viên sửa được đề nháp (editor_manage_editable), quản trị viên mọi đề; ghi lại đúng giá trị cũ để không đổi dữ liệu thật",
     run: (c) => c.from("exam_sets").update({ title: examSet.title }).eq("id", examSet.id).select("id").then(rows) },
   // ----- Thanh toán: đóng với học sinh -----
   { name: "Đọc `orders`", expected: "❌❌", staff: "❌✅", run: (c) => c.from("orders").select("id").limit(1).then(rows) },

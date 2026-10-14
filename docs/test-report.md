@@ -508,36 +508,49 @@ Không cần migration mới: cột `orders.user_id`, `licenses.user_id`, hàm `
 - **Không làm:** CAPTCHA (tùy chọn) — cần khóa Cloudflare Turnstile / hCaptcha và bật *Attack protection* trong Supabase;
   hiện dựa vào giới hạn có sẵn của Supabase Auth.
 
-**Kết quả `node tests/rls/learner.mjs`** (database thật, chưa có `TEST_PW` nên chưa có cột Editor / Admin):
+**Kết quả `TEST_PW=… node tests/rls/learner.mjs`** (database thật, 14/10/2026):
 
-| Thao tác | Khách | Học sinh |
-|---|:-:|:-:|
-| Đọc sự kiện `published` | ✅ | ✅ |
-| Đọc sự kiện chưa công bố | ❌ | ❌ |
-| Tạo sự kiện | ❌ | ❌ |
-| Sửa sự kiện `published` | ❌ | ❌ |
-| Thêm `sources` | ❌ | ❌ |
-| Đọc `staff_profiles` (của người khác) | ❌ | ❌ |
-| Tự chèn hồ sơ nhân sự cho mình (leo quyền) | ❌ | ❌ |
-| `current_staff_role()` trả vai trò | ❌ | ❌ |
-| Tải ảnh lên Storage `media` | ❌ | ❌ |
-| Đọc câu hỏi đề `exam_questions` | ❌ | ❌ |
-| Sửa đề `exam_sets` | ❌ | ❌ |
-| Đọc `orders` | ❌ | ❌ |
-| Đọc `licenses` | ❌ | ❌ |
-| Tạo đơn trực tiếp | ❌ | ❌ |
-| Gọi `claim_license` | ❌ | ❌ |
-| Gọi `get_exam_set` (tự khai user id) | ❌ | ❌ |
-| Gọi `find_auth_user_by_email` | ❌ | ❌ |
-| Gọi `consume_rate_limit` | ❌ | ❌ |
-| Đọc hồ sơ học sinh B | ❌ | ❌ |
-| Sửa hồ sơ học sinh B | ❌ | ❌ |
-| Đọc tiến độ học sinh B | ❌ | ❌ |
-| Ghi tiến độ cho B | ❌ | ❌ |
+| Thao tác | Khách | Học sinh | Editor | Admin |
+|---|:-:|:-:|:-:|:-:|
+| Đọc sự kiện `published` | ✅ | ✅ | ✅ | ✅ |
+| Đọc sự kiện chưa công bố | ❌ | ❌ | ✅ | ✅ |
+| Tạo sự kiện | ❌ | ❌ | ✅ | ✅ |
+| Sửa sự kiện `published` (sự kiện thử) | ❌ | ❌ | ❌ | ✅ |
+| Thêm `sources` | ❌ | ❌ | ✅ | ✅ |
+| Đọc `staff_profiles` (của người khác) | ❌ | ❌ | ❌ | ✅ |
+| Tự chèn hồ sơ nhân sự cho mình (leo quyền) | ❌ | ❌ | ❌ | ✅ * |
+| `current_staff_role()` trả vai trò | ❌ | ❌ | ✅ | ✅ |
+| Tải ảnh lên Storage `media` | ❌ | ❌ | ✅ | ✅ |
+| Đọc câu hỏi đề `exam_questions` | ❌ | ❌ | ✅ | ✅ |
+| Sửa đề nháp `exam_sets` (ghi lại đúng tiêu đề cũ) | ❌ | ❌ | ✅ | ✅ |
+| Đọc `orders` | ❌ | ❌ | ❌ | ✅ |
+| Đọc `licenses` | ❌ | ❌ | ❌ | ✅ |
+| Tạo đơn trực tiếp | ❌ | ❌ | ❌ | ❌ |
+| Gọi `claim_license` | ❌ | ❌ | ❌ | ❌ |
+| Gọi `get_exam_set` (tự khai user id) | ❌ | ❌ | ❌ | ❌ |
+| Gọi `find_auth_user_by_email` | ❌ | ❌ | ❌ | ❌ |
+| Gọi `consume_rate_limit` | ❌ | ❌ | ❌ | ❌ |
+| Đọc hồ sơ học sinh B | ❌ | ❌ | ❌ | ✅ |
+| Sửa hồ sơ học sinh B | ❌ | ❌ | ❌ | ❌ |
+| Đọc tiến độ học sinh B | ❌ | ❌ | ❌ | ❌ |
+| Ghi tiến độ cho B | ❌ | ❌ | ❌ | ❌ |
+
+\* Chỉ quản trị viên được ghi `staff_profiles`; dòng của chính admin đã có nên lệnh dừng ở trùng khóa (RLS đã cho qua).
+
+**Cột Khách và Học sinh giống hệt nhau ở mọi dòng** — tài khoản học sinh không có quyền nội bộ nào. Cột nhân sự khớp ma
+trận Phase 13 (`tests/rls/matrix.mjs`). Lần chạy này 84/88 ô khớp: 4 ô lệch đều ở dòng "Sửa đề" vì kỳ vọng ghi sai
+trong kịch bản (biên tập viên được sửa đề nháp theo policy `editor_manage_editable`) — đã sửa kỳ vọng và cố định đề thử là
+đề nháp; chạy lại không có `TEST_PW` 44/44.
+
+**Sự cố khi kiểm thử (đã xử lý):** lần chạy đầu với `TEST_PW`, kịch bản bản trước dùng một sự kiện **thật** đã công bố cho
+dòng "Sửa sự kiện `published`" → cột Admin (được phép) đổi tóm tắt sự kiện `dai-hoi-dang-lan-thu-vi` thành "x", và cột
+Editor / Admin để lại 2 sự kiện + 2 nguồn thử. Đã khôi phục tóm tắt gốc từ `supabase/seed.sql`, xóa dữ liệu thử, rồi sửa
+kịch bản: lệnh sửa chỉ nhắm vào sự kiện thử do kịch bản tự tạo hoặc ghi lại đúng giá trị cũ, dọn cả sự kiện / nguồn / tệp
+Storage thử; lỗi ném ra ghi ⚠ chứ không tính "bị chặn".
 
 Chủ tài khoản: ✅ đọc / sửa hồ sơ của mình, ✅ đọc / ghi tiến độ của mình, ✅ không đổi được id hồ sơ sang người khác, ✅
 không tự xóa hồ sơ (chỉ xóa theo tài khoản), ✅ xóa tài khoản → hồ sơ + tiến độ xóa theo. **22/22 thao tác (44/44 ô), 5/5
-ca chủ tài khoản, cascade đạt; dọn còn 0 tài khoản thử.** Lần chạy đầu phát hiện chính kịch bản kiểm thử có ô "đạt nhầm"
+ca chủ tài khoản, cascade đạt; dọn còn 0 tài khoản thử.** Trước đó, lần chạy đầu phát hiện chính kịch bản kiểm thử có ô "đạt nhầm"
 (slug sản phẩm sai → lệnh chèn ném lỗi, bị tính là "bị chặn") — đã sửa bằng kiểm tiền điều kiện và yêu cầu mã `42501`.
 
 | Nhóm | Kết quả | Ghi chú |
