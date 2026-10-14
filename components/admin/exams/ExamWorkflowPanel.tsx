@@ -63,10 +63,13 @@ export function ExamWorkflowPanel({ slug, status, reviewNote, readiness, canSubm
         ))}
       </ul>
 
+      {/* Thông báo đặt ngoài form: gửi duyệt / trả về xong thì trạng thái đổi và form tương ứng biến mất. */}
+      <FormMessage state={submitState} />
+      <FormMessage state={reviewState} />
+
       {canSubmit && (
         <form action={submitAction} className="flex flex-col gap-2">
           <input type="hidden" name="slug" value={slug} />
-          <FormMessage state={submitState} />
           <div>
             <Button type="submit" disabled={submitting || !ready}>
               {submitting ? "Đang gửi…" : "Gửi duyệt"}
@@ -78,7 +81,6 @@ export function ExamWorkflowPanel({ slug, status, reviewNote, readiness, canSubm
       {reviewActions.length > 0 && (
         <form action={reviewAction} className="flex flex-col gap-3">
           <input type="hidden" name="slug" value={slug} />
-          <FormMessage state={reviewState} />
           {reviewActions.includes("request_revision") && (
             <div className="flex flex-col gap-1.5">
               <label htmlFor="ly-do" className="text-sm font-medium text-foreground">

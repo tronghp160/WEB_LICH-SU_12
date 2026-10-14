@@ -2,6 +2,7 @@
 
 import { ImagePlus, Trash2, Upload } from "lucide-react";
 import { useActionState, useState } from "react";
+import { ActionNoticeScope, useNoticeAction } from "@/components/admin/ActionNotice";
 import { Field, FormMessage } from "@/components/admin/forms/Field";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -157,7 +158,9 @@ function MediaMetaFields({
 /** Một ảnh đã có: xem trước, sửa thông tin và ghi công, hoặc xóa. */
 function MediaItem({ item, owner, sources, readOnly }: { item: MediaItemData; owner: MediaOwner; sources: Option[]; readOnly?: boolean }) {
   const [updateState, updateAction, updating] = useActionState(updateMediaAction, initialActionState);
-  const [deleteState, deleteAction, deleting] = useActionState(deleteMediaAction, initialActionState);
+  // Xóa xong thì mục này (cùng thông báo bên trong) biến mất → báo kết quả lên khung danh sách.
+  const remove = useNoticeAction(deleteMediaAction);
+  const [deleteState, deleteAction, deleting] = useActionState(remove.action, initialActionState);
 
   return (
     <li className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4 sm:flex-row">
@@ -199,7 +202,7 @@ function MediaItem({ item, owner, sources, readOnly }: { item: MediaItemData; ow
           >
             <input type="hidden" name="media_id" value={item.id} />
             <OwnerFields owner={owner} />
-            <FormMessage state={deleteState} />
+            {!remove.scoped && <FormMessage state={deleteState} />}
             <Button type="submit" size="sm" variant="ghost" disabled={deleting} className="text-accent">
               <Trash2 className="h-4 w-4" aria-hidden="true" />
               {deleting ? "Đang xóa…" : "Xóa ảnh"}
@@ -364,15 +367,17 @@ function AddMediaForm({ owner, sources, hasCover }: { owner: MediaOwner; sources
 export function MediaManager({ owner, media, sources, readOnly }: MediaManagerProps) {
   return (
     <div className="flex flex-col gap-4">
-      {media.length > 0 ? (
-        <ul className="flex flex-col gap-4">
-          {media.map((item) => (
-            <MediaItem key={item.id} item={item} owner={owner} sources={sources} readOnly={readOnly} />
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-muted-foreground">Chưa có ảnh nào cho {OWNER_NOUN[owner.kind]} này.</p>
-      )}
+      <ActionNoticeScope className="flex flex-col gap-3">
+        {media.length > 0 ? (
+          <ul className="flex flex-col gap-4">
+            {media.map((item) => (
+              <MediaItem key={item.id} item={item} owner={owner} sources={sources} readOnly={readOnly} />
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">Chưa có ảnh nào cho {OWNER_NOUN[owner.kind]} này.</p>
+        )}
+      </ActionNoticeScope>
       {!readOnly && <AddMediaForm owner={owner} sources={sources} hasCover={media.some((item) => item.is_cover)} />}
     </div>
   );

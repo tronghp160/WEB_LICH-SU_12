@@ -2,6 +2,7 @@
 
 import { ListPlus, Trash2 } from "lucide-react";
 import { useActionState, useState } from "react";
+import { ActionNoticeScope, useNoticeAction } from "@/components/admin/ActionNotice";
 import { Field, FormMessage } from "@/components/admin/forms/Field";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -102,7 +103,9 @@ function QuestionFields({ prefix, initial, state, events }: { prefix: string; in
 
 function QuestionItem({ slug, item, index, events, readOnly }: { slug: string; item: ExamQuestionData; index: number; events: EventOption[]; readOnly: boolean }) {
   const [updateState, updateAction, updating] = useActionState(updateExamQuestionAction, initialActionState);
-  const [deleteState, deleteAction, deleting] = useActionState(deleteExamQuestionAction, initialActionState);
+  // Xóa xong thì mục này (cùng thông báo bên trong) biến mất → báo kết quả lên khung danh sách.
+  const remove = useNoticeAction(deleteExamQuestionAction);
+  const [deleteState, deleteAction, deleting] = useActionState(remove.action, initialActionState);
 
   return (
     <li className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4">
@@ -133,7 +136,7 @@ function QuestionItem({ slug, item, index, events, readOnly }: { slug: string; i
         >
           <input type="hidden" name="slug" value={slug} />
           <input type="hidden" name="question_id" value={item.id} />
-          <FormMessage state={deleteState} />
+          {!remove.scoped && <FormMessage state={deleteState} />}
           <Button type="submit" size="sm" variant="ghost" disabled={deleting} className="text-accent">
             <Trash2 className="h-4 w-4" aria-hidden="true" />
             {deleting ? "Đang xóa…" : "Xóa câu hỏi"}
@@ -175,15 +178,17 @@ function AddQuestionForm({ slug, events }: { slug: string; events: EventOption[]
 export function ExamQuestionManager({ slug, questions, events, readOnly }: { slug: string; questions: ExamQuestionData[]; events: EventOption[]; readOnly: boolean }) {
   return (
     <div className="flex flex-col gap-4">
-      {questions.length > 0 ? (
-        <ol className="m-0 flex list-none flex-col gap-3 p-0">
-          {questions.map((item, index) => (
-            <QuestionItem key={item.id} slug={slug} item={item} index={index} events={events} readOnly={readOnly} />
-          ))}
-        </ol>
-      ) : (
-        <p className="text-sm text-muted-foreground">Đề chưa có câu hỏi nào.</p>
-      )}
+      <ActionNoticeScope className="flex flex-col gap-3">
+        {questions.length > 0 ? (
+          <ol className="m-0 flex list-none flex-col gap-3 p-0">
+            {questions.map((item, index) => (
+              <QuestionItem key={item.id} slug={slug} item={item} index={index} events={events} readOnly={readOnly} />
+            ))}
+          </ol>
+        ) : (
+          <p className="text-sm text-muted-foreground">Đề chưa có câu hỏi nào.</p>
+        )}
+      </ActionNoticeScope>
       {!readOnly && <AddQuestionForm slug={slug} events={events} />}
     </div>
   );

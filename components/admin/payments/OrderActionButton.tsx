@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useNoticeAction } from "@/components/admin/ActionNotice";
 import { Button } from "@/components/ui/Button";
 import { initialActionState, type ActionState } from "@/lib/actions/state";
 import { cn } from "@/lib/utils/cn";
@@ -16,9 +17,13 @@ type Props = {
   danger?: boolean;
 };
 
-/** Một nút thao tác quản trị trên đơn hàng: form ẩn + xác nhận + thông báo kết quả ngay dưới nút. */
+/**
+ * Một nút thao tác quản trị: form ẩn + xác nhận + thông báo kết quả. Trong ActionNoticeScope thì thông báo hiện ở đầu
+ * khung (nút có thể biến mất sau thao tác); ngoài khung thì hiện ngay dưới nút.
+ */
 export function OrderActionButton({ action, label, pendingLabel, confirm, fields, variant = "secondary", danger }: Props) {
-  const [state, formAction, pending] = useActionState(action, initialActionState);
+  const notice = useNoticeAction(action);
+  const [state, formAction, pending] = useActionState(notice.action, initialActionState);
   return (
     <form
       action={formAction}
@@ -33,7 +38,7 @@ export function OrderActionButton({ action, label, pendingLabel, confirm, fields
       <Button type="submit" size="sm" variant={variant} disabled={pending} className={cn(danger && "text-accent")}>
         {pending ? (pendingLabel ?? "Đang xử lý…") : label}
       </Button>
-      {state.status !== "idle" && state.message && (
+      {!notice.scoped && state.status !== "idle" && state.message && (
         <p role={state.status === "error" ? "alert" : "status"} className={cn("text-sm", state.status === "error" ? "text-accent" : "text-success")}>
           {state.message}
         </p>

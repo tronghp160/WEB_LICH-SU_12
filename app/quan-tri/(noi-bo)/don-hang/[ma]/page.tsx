@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { ActionNoticeScope } from "@/components/admin/ActionNotice";
 import { OrderActionButton } from "@/components/admin/payments/OrderActionButton";
 import { OrderStatusBadge } from "@/components/admin/payments/OrderStatusBadge";
 import {
@@ -100,20 +101,23 @@ export default async function OrderDetailPage({ params }: PageProps<"/quan-tri/d
           <dt className="text-muted-foreground">Thanh toán lúc</dt>
           <dd className="text-foreground">{formatDateTime(order.paid_at)}</dd>
         </dl>
-        <div className="mt-4 flex flex-wrap gap-4">
-          {(order.status === "pending" || order.status === "expired") && (
-            <OrderActionButton action={adminReconcileAction} label="Đối soát với cổng" fields={fields} />
-          )}
-          {order.status === "paid" && (
-            <OrderActionButton
-              action={adminRecordRefundAction}
-              label="Ghi nhận đã hoàn tiền"
-              confirm="Chỉ bấm khi đã hoàn tiền xong ở cổng/ngân hàng. Đơn sẽ chuyển sang Đã hoàn tiền và mã bị thu hồi. Tiếp tục?"
-              fields={fields}
-              danger
-            />
-          )}
-        </div>
+        {/* Thông báo giữ ở khung: sau đối soát / hoàn tiền, trạng thái đơn đổi và nút vừa bấm biến mất. */}
+        <ActionNoticeScope className="mt-4 flex flex-col gap-3">
+          <div className="flex flex-wrap gap-4">
+            {(order.status === "pending" || order.status === "expired") && (
+              <OrderActionButton action={adminReconcileAction} label="Đối soát với cổng" fields={fields} />
+            )}
+            {order.status === "paid" && (
+              <OrderActionButton
+                action={adminRecordRefundAction}
+                label="Ghi nhận đã hoàn tiền"
+                confirm="Chỉ bấm khi đã hoàn tiền xong ở cổng/ngân hàng. Đơn sẽ chuyển sang Đã hoàn tiền và mã bị thu hồi. Tiếp tục?"
+                fields={fields}
+                danger
+              />
+            )}
+          </div>
+        </ActionNoticeScope>
       </section>
 
       {license && (
@@ -141,40 +145,43 @@ export default async function OrderDetailPage({ params }: PageProps<"/quan-tri/d
               Mã dùng hết lượt thiết bị trong vòng 24 giờ — có thể đang bị chia sẻ.
             </p>
           )}
-          {activations.length > 0 && (
-            <ul className="mt-3 flex flex-col gap-2">
-              {activations.map((activation) => (
-                <li key={activation.device_hash} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3 text-sm">
-                  <span>
-                    <span className="font-mono text-foreground">Thiết bị {activation.device_hash.slice(0, 8)}…</span>
-                    <span className="ml-2 text-muted-foreground">
-                      kích hoạt {formatDateTime(activation.activated_at)} · dùng gần nhất {formatDateTime(activation.last_seen_at)}
+          {/* Thông báo giữ ở khung: gỡ thiết bị làm dòng thiết bị (cùng nút) biến mất; thu hồi / mở lại đổi nút. */}
+          <ActionNoticeScope className="mt-3 flex flex-col gap-4">
+            {activations.length > 0 && (
+              <ul className="flex flex-col gap-2">
+                {activations.map((activation) => (
+                  <li key={activation.device_hash} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3 text-sm">
+                    <span>
+                      <span className="font-mono text-foreground">Thiết bị {activation.device_hash.slice(0, 8)}…</span>
+                      <span className="ml-2 text-muted-foreground">
+                        kích hoạt {formatDateTime(activation.activated_at)} · dùng gần nhất {formatDateTime(activation.last_seen_at)}
+                      </span>
                     </span>
-                  </span>
-                  <OrderActionButton
-                    action={adminRemoveDeviceAction}
-                    label="Gỡ thiết bị"
-                    confirm="Gỡ thiết bị này? Máy đó sẽ phải kích hoạt lại (tốn một lượt)."
-                    fields={{ ...fields, "thiet-bi": activation.device_hash }}
-                    variant="ghost"
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-4">
-            {license.status === "active" ? (
-              <OrderActionButton
-                action={adminRevokeLicenseAction}
-                label="Thu hồi mã"
-                confirm="Thu hồi mã này? Mọi máy đã kích hoạt sẽ không mở được đề nữa."
-                fields={fields}
-                danger
-              />
-            ) : (
-              order.status === "paid" && <OrderActionButton action={adminRestoreLicenseAction} label="Mở lại mã" fields={fields} />
+                    <OrderActionButton
+                      action={adminRemoveDeviceAction}
+                      label="Gỡ thiết bị"
+                      confirm="Gỡ thiết bị này? Máy đó sẽ phải kích hoạt lại (tốn một lượt)."
+                      fields={{ ...fields, "thiet-bi": activation.device_hash }}
+                      variant="ghost"
+                    />
+                  </li>
+                ))}
+              </ul>
             )}
-          </div>
+            <div>
+              {license.status === "active" ? (
+                <OrderActionButton
+                  action={adminRevokeLicenseAction}
+                  label="Thu hồi mã"
+                  confirm="Thu hồi mã này? Mọi máy đã kích hoạt sẽ không mở được đề nữa."
+                  fields={fields}
+                  danger
+                />
+              ) : (
+                order.status === "paid" && <OrderActionButton action={adminRestoreLicenseAction} label="Mở lại mã" fields={fields} />
+              )}
+            </div>
+          </ActionNoticeScope>
         </section>
       )}
 
@@ -194,13 +201,15 @@ export default async function OrderDetailPage({ params }: PageProps<"/quan-tri/d
             </dd>
           </dl>
           {order.show_on_wall && order.status === "paid" && (
-            <div className="mt-4">
-              {order.wall_approved ? (
-                <OrderActionButton action={adminWallAction} label="Gỡ khỏi bức tường" fields={{ ...fields, "quyet-dinh": "go" }} danger />
-              ) : (
-                <OrderActionButton action={adminWallAction} label="Duyệt lời nhắn" fields={{ ...fields, "quyet-dinh": "duyet" }} variant="primary" />
-              )}
-            </div>
+            <ActionNoticeScope className="mt-4 flex flex-col gap-3">
+              <div>
+                {order.wall_approved ? (
+                  <OrderActionButton action={adminWallAction} label="Gỡ khỏi bức tường" fields={{ ...fields, "quyet-dinh": "go" }} danger />
+                ) : (
+                  <OrderActionButton action={adminWallAction} label="Duyệt lời nhắn" fields={{ ...fields, "quyet-dinh": "duyet" }} variant="primary" />
+                )}
+              </div>
+            </ActionNoticeScope>
           )}
         </section>
       )}
