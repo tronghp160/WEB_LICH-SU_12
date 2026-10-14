@@ -65,6 +65,14 @@ export function Footer() {
               Ủng hộ dự án
             </Link>
             {" · "}
+            <Link href="/dieu-khoan" className={linkClass}>
+              Điều khoản
+            </Link>
+            {" · "}
+            <Link href="/chinh-sach-bao-mat" className={linkClass}>
+              Chính sách bảo mật
+            </Link>
+            {" · "}
             Dữ liệu bản đồ ©{" "}
             <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className={linkClass}>
               OpenStreetMap contributors

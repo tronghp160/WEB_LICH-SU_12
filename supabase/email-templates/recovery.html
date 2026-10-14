@@ -1,0 +1,21 @@
+<!--
+  Supabase → Authentication → Emails → Templates → "Reset password".
+  Tiêu đề (Subject): Đặt lại mật khẩu — Lịch sử Việt Nam 12
+  Link → app/auth/confirm/route.ts (type=recovery) → đánh dấu phiên 15 phút → /dat-lai-mat-khau.
+-->
+<div style="font-family: Arial, Helvetica, sans-serif; max-width: 520px; margin: 0 auto; color: #1f2937; line-height: 1.6">
+  <p style="font-size: 20px; font-weight: bold; margin: 0 0 16px">Lịch sử <span style="color: #b42318">Việt Nam 12</span></p>
+  <p>Chào em,</p>
+  <p>Có người (có thể là em) vừa yêu cầu đặt lại mật khẩu cho tài khoản <strong>{{ .Email }}</strong>. Bấm nút dưới đây để đặt mật khẩu mới:</p>
+  <p style="margin: 24px 0">
+    <a
+      href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery"
+      style="background: #b42318; color: #ffffff; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: bold"
+      >Đặt mật khẩu mới</a
+    >
+  </p>
+  <p style="font-size: 14px; color: #6b7280">
+    Link chỉ dùng được một lần và hết hạn sau một thời gian ngắn. Nếu em không yêu cầu, hãy bỏ qua email này — mật khẩu hiện tại
+    vẫn giữ nguyên.
+  </p>
+</div>
