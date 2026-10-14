@@ -238,7 +238,7 @@ export const SGK_12: SgkTopic[] = [
           "Phân tích được nguyên nhân thắng lợi và ý nghĩa lịch sử của cuộc kháng chiến.",
         ],
         sections: [
-          { id: "muc-1", numeral: "1", title: "Giai đoạn 1954–1965" },
+          { id: "muc-1", numeral: "1", title: "Giai đoạn 1954–1965", featureSlugs: ["duong-truong-son"] },
           {
             id: "muc-2",
             numeral: "2",

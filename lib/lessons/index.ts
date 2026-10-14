@@ -3,6 +3,7 @@ import { cachMangThangTamLesson } from "@/lib/lessons/cach-mang-thang-tam";
 import { chienDichHoChiMinhLesson } from "@/lib/lessons/chien-dich-ho-chi-minh";
 import { dienBienPhuLesson } from "@/lib/lessons/dien-bien-phu";
 import { dienBienPhuTrenKhongLesson } from "@/lib/lessons/dien-bien-phu-tren-khong";
+import { duongTruongSonLesson } from "@/lib/lessons/duong-truong-son";
 import { tetMauThanLesson } from "@/lib/lessons/tet-mau-than";
 import type { Lesson } from "@/lib/lessons/types";
 
@@ -10,6 +11,7 @@ import type { Lesson } from "@/lib/lessons/types";
 export const lessons: Lesson[] = [
   cachMangThangTamLesson,
   dienBienPhuLesson,
+  duongTruongSonLesson,
   tetMauThanLesson,
   dienBienPhuTrenKhongLesson,
   chienDichHoChiMinhLesson,

@@ -172,3 +172,42 @@ test.describe("Chuyên đề tương tác: Hà Nội – Điện Biên Phủ tr�
     expect(await hasHorizontalOverflow(page)).toBe(false);
   });
 });
+
+test.describe("Chuyên đề tương tác: Đường Trường Sơn – đường Hồ Chí Minh", () => {
+  const LESSON_TS = "/bai-hoc/duong-truong-son";
+
+  test("bản đồ 7 bước: tuyến trên bộ, trên biển, trọng điểm bị đánh phá, tiến về Sài Gòn", async ({ page }) => {
+    await page.goto(LESSON_TS);
+    await expect(page.locator("h1")).toHaveText("Đường Trường Sơn – đường Hồ Chí Minh");
+    const steps = page.getByRole("navigation", { name: "Các bước diễn biến" }).locator("button");
+    await expect(steps).toHaveCount(7);
+    const attacked = page.locator(".leaflet-marker-icon .battle-sp--ours.battle-sp--attacked");
+
+    await steps.nth(1).click();
+    await expect(page.locator("path.battle-arrow--supply")).toHaveCount(3, { timeout: 10_000 });
+    await expect(page.locator(".leaflet-marker-icon .battle-unit--defender-boat")).toHaveCount(1);
+    await steps.nth(3).click();
+    await expect(attacked).toHaveCount(1, { timeout: 10_000 });
+    await expect(page.getByText("Ngã ba Đồng Lộc").first()).toBeVisible();
+    await steps.nth(6).click();
+    await expect(page.locator(".leaflet-marker-icon .battle-sp--captured")).toHaveCount(1, { timeout: 10_000 });
+    await expect(page.locator("path.battle-arrow--attack")).toHaveCount(1);
+  });
+
+  test("được gắn vào Bài 8 mục 1; không có nút tới trang sự kiện (chưa có trong database)", async ({ page }) => {
+    await page.goto(LESSON_TS);
+    await expect(page.getByRole("link", { name: /Xem trang sự kiện/ })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Về Bài 8" })).toHaveAttribute("href", /\/bai\/8-/);
+  });
+
+  test("trắc nghiệm bài học và trình chiếu mở được; không tràn ngang ở 360px", async ({ page }) => {
+    await page.goto("/trac-nghiem/bai-hoc/duong-truong-son");
+    await expect(page.locator("h1")).toHaveText("Trắc nghiệm: Đường Trường Sơn – đường Hồ Chí Minh");
+    const response = await page.goto(`${LESSON_TS}/trinh-chieu`);
+    expect(response?.status()).toBe(200);
+    await page.setViewportSize({ width: 360, height: 900 });
+    await page.goto(`${LESSON_TS}#dien-bien`);
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+    expect(await hasHorizontalOverflow(page)).toBe(false);
+  });
+});

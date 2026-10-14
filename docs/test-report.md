@@ -605,3 +605,23 @@ ghi "theo số liệu của ta". Các chi tiết cần đối chiếu SGK bản 
 | Unit test | **625/625** (bộ `lesson-data.test.ts` có sẵn bắt 2 ảnh quá 250 KB → đã nén lại) |
 | Lint, tsc, build | sạch; thêm `● /bai-hoc/dien-bien-phu-tren-khong-1972` (+ trình chiếu) |
 | E2E `lesson`, `battle`, `presentation`, `a11y`, `sgk` (bản production) | **86/86** — thêm 3 ca: bản đồ 8 bước (2 đường bay, nơi bị ném bom 1 → 3, B-52 bị bắn rơi 1 → 2), không có nút tới sự kiện nháp nhưng có lối về Bài 8, trắc nghiệm + trình chiếu mở được, 360 px không tràn; trợ năng thêm trang mới × sáng/tối |
+
+## 19. Chuyên đề tương tác "Đường Trường Sơn – đường Hồ Chí Minh" (15/10/2026)
+
+GĐ5.2 (bài thứ 4): `/bai-hoc/duong-truong-son`, gắn vào Bài 8 mục 1. Viết cứng trong mã (không migration). Bản đồ 7 bước:
+Đoàn 559 mở đường (1959) → đường Hồ Chí Minh trên biển (1961) → đường xe cơ giới phía tây Trường Sơn (1965 – 1968) → Ngã ba
+Đồng Lộc (24/7/1968) → Đường 9 – Nam Lào (1971) → Đông Trường Sơn, đường ống xăng dầu (1973 – 1975) → Xuân 1975 tiến về Sài
+Gòn. 3 video (Báo Nhân Dân, QPVN, VTV24 — kiểm bằng oEmbed); 7 ảnh Wikimedia Commons (phạm vi công cộng / CC BY / CC BY-SA).
+Không đưa con số chiều dài đường / đường ống vào bài vì các tài liệu ghi khác nhau (ghi ở `toVerify`). Database chưa có sự
+kiện riêng → nút "Xem trang sự kiện" tự ẩn.
+
+- Bỏ ảnh "xe đạp thồ" trên Commons: mô tả ghi là ảnh thu được của phía miền Bắc nhưng gắn nhãn "tác phẩm Lục quân Mỹ" —
+  căn cứ phạm vi công cộng không vững.
+- Lỗi tìm thấy nhờ test có sẵn: lúc đầu bài gắn thêm sự kiện "Chiến dịch Hồ Chí Minh" làm sự kiện liên quan → trang sự kiện
+  đó sẽ dẫn nhầm sang bài Trường Sơn (bài đứng trước trong danh mục) thay vì bài Chiến dịch Hồ Chí Minh — đã bỏ.
+
+| Nhóm | Kết quả |
+|---|---|
+| Unit test | **634/634** |
+| Lint, tsc, build | sạch; thêm `● /bai-hoc/duong-truong-son` (+ trình chiếu) |
+| E2E `lesson`, `battle`, `presentation`, `a11y`, `sgk` (bản production) | **91/91** — thêm 3 ca: bản đồ 7 bước (3 tuyến chi viện + tàu không số ở bước 2, Đồng Lộc bị đánh phá, Sài Gòn được giải phóng), không có nút tới sự kiện chưa có nhưng có lối về Bài 8, trắc nghiệm + trình chiếu, 360 px; trợ năng thêm trang mới × sáng/tối |
