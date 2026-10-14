@@ -3,6 +3,10 @@
 // docs/ke-hoach-tai-khoan.md, mục 4.4 và 6.6.
 
 export const ACCOUNT_HOME = "/tai-khoan";
+/** Đổi / đặt mật khẩu, liên kết Google, đăng xuất mọi máy, tải dữ liệu, xóa tài khoản. */
+export const ACCOUNT_SECURITY = "/tai-khoan/bao-mat";
+/** Route tải dữ liệu của em (JSON). */
+export const ACCOUNT_DATA_EXPORT = "/tai-khoan/du-lieu";
 export const LEARNER_LOGIN = "/dang-nhap";
 export const LEARNER_SIGNUP = "/dang-ky";
 export const SIGNUP_CHECK_EMAIL = "/dang-ky/kiem-tra-email";

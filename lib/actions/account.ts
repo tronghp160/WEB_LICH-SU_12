@@ -3,19 +3,34 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { RECOVERY_COOKIE, SIGNUP_EMAIL_COOKIE, hasRecoveryMark, readSignUpEmail, shortCookie } from "@/lib/auth/cookies";
+import { PASSWORD_SET_FLAG, loginMethods } from "@/lib/auth/identities";
 import { ensureLearnerProfile } from "@/lib/auth/learner";
 import { profileDefaults } from "@/lib/auth/oauth";
 import { isGoogleAuthEnabled } from "@/lib/auth/providers";
-import { ACCOUNT_HOME, AUTH_CALLBACK, RESET_PASSWORD, SIGNUP_CHECK_EMAIL, loginPath, safeNext } from "@/lib/auth/routes";
+import {
+  ACCOUNT_HOME,
+  ACCOUNT_SECURITY,
+  AUTH_CALLBACK,
+  LEARNER_LOGIN,
+  RESET_PASSWORD,
+  SIGNUP_CHECK_EMAIL,
+  loginPath,
+  safeNext,
+} from "@/lib/auth/routes";
+import { verifyCurrentPassword } from "@/lib/auth/verify-password";
 import { TERMS_VERSION } from "@/lib/legal";
 import { siteUrl } from "@/lib/site";
+import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { translateLearnerAuthError } from "@/lib/utils/auth-errors";
 import {
+  changePasswordSchema,
   completeSignUpSchema,
+  deleteAccountSchema,
   emailOnlySchema,
   learnerSignInSchema,
   newPasswordSchema,
+  profileSchema,
   signUpSchema,
 } from "@/lib/validation/account";
 
@@ -166,7 +181,7 @@ export async function updatePasswordAction(_previous: NewPasswordState, formData
     return { error: "Link đặt lại mật khẩu đã hết hạn. Em yêu cầu link mới nhé." };
   }
 
-  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password, data: { [PASSWORD_SET_FLAG]: true } });
   if (error) {
     if (error.code === "weak_password" || error.code === "same_password") {
       return { fieldErrors: { password: translateLearnerAuthError(error) } };
@@ -235,9 +250,178 @@ export async function completeSignUpAction(_previous: CompleteSignUpState, formD
   redirect(next);
 }
 
-/** Đăng xuất trên máy này rồi về trang chủ. */
+/**
+ * Đăng xuất trên máy này rồi về trang chủ. Ô "máy dùng chung" (xóa tiến độ + mã kích hoạt trên máy) do hộp thoại xử lý
+ * phía client trước khi gửi form — dữ liệu đó chỉ nằm trong localStorage (mục 6.5).
+ */
 export async function signOutLearnerAction(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/");
+}
+
+// ——— Trang tài khoản và Bảo mật (giai đoạn B4: docs/ke-hoach-tai-khoan.md, mục 4.4, 10, 11) ———
+
+/** Người dùng đã xác minh của request; chưa đăng nhập thì về trang đăng nhập rồi quay lại `next`. */
+async function verifiedUser(next: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect(loginPath(next));
+  return { supabase, user: data.user };
+}
+
+export type ProfileState = {
+  status?: "saved";
+  error?: string;
+  fieldErrors?: { displayName?: string; school?: string };
+  values?: { displayName: string; school: string };
+};
+
+/** Sửa tên hiển thị, trường (RLS own_update — chỉ dòng của chính mình). */
+export async function updateProfileAction(_previous: ProfileState, formData: FormData): Promise<ProfileState> {
+  const values = {
+    displayName: String(formData.get("displayName") ?? "").slice(0, 100),
+    school: String(formData.get("school") ?? "").slice(0, 200),
+  };
+  const parsed = profileSchema.safeParse({ displayName: formData.get("displayName"), school: formData.get("school") ?? undefined });
+  if (!parsed.success) {
+    const errors = parsed.error.flatten().fieldErrors;
+    return { values, fieldErrors: { displayName: firstError(errors, "displayName"), school: firstError(errors, "school") } };
+  }
+
+  const { supabase, user } = await verifiedUser(ACCOUNT_HOME);
+  const { data, error } = await supabase
+    .from("learner_profiles")
+    .update({ display_name: parsed.data.displayName, school: parsed.data.school })
+    .eq("id", user.id)
+    .select("id");
+  if (error) return { values, error: "Chưa lưu được hồ sơ. Em thử lại nhé." };
+  if (!data?.length) return { values, error: "Tài khoản này chưa có hồ sơ học sinh." };
+  return { status: "saved", values: { displayName: parsed.data.displayName, school: parsed.data.school ?? "" } };
+}
+
+export type ChangePasswordState = {
+  status?: "saved";
+  message?: string;
+  error?: string;
+  fieldErrors?: { current?: string; password?: string; confirm?: string };
+};
+
+/**
+ * Đổi mật khẩu (đã có mật khẩu: bắt nhập mật khẩu hiện tại) hoặc đặt mật khẩu lần đầu (tài khoản chỉ có Google). Xong
+ * thì đăng xuất các máy khác (mục 10), giữ phiên trên máy này.
+ */
+export async function changePasswordAction(_previous: ChangePasswordState, formData: FormData): Promise<ChangePasswordState> {
+  const parsed = changePasswordSchema.safeParse({
+    current: formData.get("current") ?? undefined,
+    password: formData.get("password"),
+    confirm: formData.get("confirm"),
+  });
+  if (!parsed.success) {
+    const errors = parsed.error.flatten().fieldErrors;
+    return {
+      fieldErrors: {
+        current: firstError(errors, "current"),
+        password: firstError(errors, "password"),
+        confirm: firstError(errors, "confirm"),
+      },
+    };
+  }
+
+  const { supabase, user } = await verifiedUser(ACCOUNT_SECURITY);
+  const hadPassword = loginMethods(user).password;
+  if (hadPassword) {
+    if (!parsed.data.current) return { fieldErrors: { current: "Vui lòng nhập mật khẩu hiện tại." } };
+    const failure = await verifyCurrentPassword(user.email ?? "", parsed.data.current);
+    if (failure) {
+      if (failure.code === "invalid_credentials") return { fieldErrors: { current: "Mật khẩu hiện tại không đúng." } };
+      return { error: translateLearnerAuthError(failure) };
+    }
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password, data: { [PASSWORD_SET_FLAG]: true } });
+  if (error) {
+    if (error.code === "weak_password" || error.code === "same_password") {
+      return { fieldErrors: { password: translateLearnerAuthError(error) } };
+    }
+    return { error: translateLearnerAuthError(error) };
+  }
+  await supabase.auth.signOut({ scope: "others" });
+  return {
+    status: "saved",
+    message: hadPassword
+      ? "Đã đổi mật khẩu. Các máy khác đã được đăng xuất."
+      : "Đã đặt mật khẩu. Từ giờ em đăng nhập được bằng email và mật khẩu này.",
+  };
+}
+
+export type IdentityState = { error?: string };
+
+/**
+ * Liên kết Google vào tài khoản đang đăng nhập (cần bật *Manual linking* trong Supabase, mục 9.2). Luồng PKCE giống
+ * đăng nhập: Google → Supabase → /auth/callback?code=… → quay về trang Bảo mật.
+ */
+export async function linkGoogleAction(): Promise<IdentityState> {
+  if (!(await isGoogleAuthEnabled())) return { error: translateLearnerAuthError({ code: "provider_disabled" }) };
+  const { supabase } = await verifiedUser(ACCOUNT_SECURITY);
+  const back = `${ACCOUNT_SECURITY}?thong-bao=lien-ket-google`;
+  const { data, error } = await supabase.auth.linkIdentity({
+    provider: "google",
+    options: {
+      redirectTo: `${siteUrl()}${AUTH_CALLBACK}?next=${encodeURIComponent(back)}`,
+      queryParams: { prompt: "select_account" },
+    },
+  });
+  if (error || !data.url) return { error: translateLearnerAuthError(error ?? {}) };
+  redirect(data.url);
+}
+
+/** Gỡ Google — chỉ khi còn đăng nhập được bằng email + mật khẩu (Supabase cũng cấm gỡ danh tính cuối cùng). */
+export async function unlinkGoogleAction(): Promise<IdentityState> {
+  const { supabase, user } = await verifiedUser(ACCOUNT_SECURITY);
+  if (!loginMethods(user).canUnlinkGoogle) return { error: translateLearnerAuthError({ code: "single_identity_not_deletable" }) };
+  const google = user.identities?.find((identity) => identity.provider === "google");
+  if (!google) return { error: translateLearnerAuthError({ code: "identity_not_found" }) };
+
+  const { error } = await supabase.auth.unlinkIdentity(google);
+  if (error) return { error: translateLearnerAuthError(error) };
+  redirect(`${ACCOUNT_SECURITY}?thong-bao=go-google`);
+}
+
+/** Đăng xuất mọi thiết bị (thu hồi mọi phiên, kể cả máy này) — dùng khi quên đăng xuất ở máy trường. */
+export async function signOutEverywhereAction(): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.signOut({ scope: "global" });
+  redirect(`${LEARNER_LOGIN}?thong-bao=dang-xuat-moi-may`);
+}
+
+export type DeleteAccountState = { error?: string; fieldError?: string };
+
+/**
+ * Xóa tài khoản (mục 10, 11): gõ lại đúng email; KHÔNG cho xóa tài khoản đang có hồ sơ nhân sự (phải gỡ quyền trước).
+ * Xóa bằng Admin API sau khi đã xác minh phiên — hồ sơ, tiến độ xóa theo (cascade), đơn hàng / mã kích hoạt giữ lại với
+ * user_id = null nên mã vẫn dùng được bằng đường mã + thiết bị.
+ */
+export async function deleteAccountAction(_previous: DeleteAccountState, formData: FormData): Promise<DeleteAccountState> {
+  const parsed = deleteAccountSchema.safeParse({ confirmEmail: formData.get("confirmEmail") });
+  if (!parsed.success) return { fieldError: firstError(parsed.error.flatten().fieldErrors, "confirmEmail") };
+
+  const { supabase, user } = await verifiedUser(ACCOUNT_SECURITY);
+  if (!user.email || parsed.data.confirmEmail.toLowerCase() !== user.email.toLowerCase()) {
+    return { fieldError: "Email chưa khớp với email của tài khoản." };
+  }
+  if (!isAdminClientConfigured()) return { error: "Máy chủ chưa cấu hình để xóa tài khoản. Em thử lại sau nhé." };
+
+  const admin = createAdminClient();
+  const { data: staff, error: staffError } = await admin.from("staff_profiles").select("id").eq("id", user.id).maybeSingle();
+  if (staffError) return { error: "Chưa xóa được tài khoản. Em thử lại nhé." };
+  if (staff) {
+    return { error: "Tài khoản này đang là tài khoản nhân sự. Nhờ quản trị viên gỡ quyền nhân sự trước khi xóa." };
+  }
+
+  const { error } = await admin.auth.admin.deleteUser(user.id);
+  if (error) return { error: "Chưa xóa được tài khoản. Em thử lại nhé." };
+  // Người dùng đã bị xóa → Supabase trả 401/403/404 và client tự xóa cookie phiên.
+  await supabase.auth.signOut({ scope: "local" });
+  redirect(`${LEARNER_LOGIN}?thong-bao=da-xoa-tai-khoan`);
 }

@@ -28,6 +28,12 @@ const REASONS: Record<string, Reason> = {
       "Phiên đăng nhập Google đã hết hạn, hoặc được mở ở một trình duyệt khác. Em bấm “Tiếp tục với Google” lại trên cùng trình duyệt nhé.",
     google: true,
   },
+  "google-da-gan": {
+    title: "Chưa liên kết được Google",
+    message:
+      "Tài khoản Google này đã gắn với một tài khoản khác của trang. Em đăng nhập bằng Google đó, hoặc chọn một tài khoản Google khác để liên kết.",
+    google: true,
+  },
   "google-loi": {
     title: "Chưa đăng nhập bằng Google",
     message: "Không đăng nhập được bằng Google. Em thử lại sau ít phút, hoặc dùng email và mật khẩu.",

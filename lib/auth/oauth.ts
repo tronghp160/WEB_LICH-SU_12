@@ -2,7 +2,7 @@
 // server-only: dịch lỗi ở /auth/callback thành lý do cho trang /auth/loi, lấy tên / ảnh gợi ý từ hồ sơ Google.
 
 /** Lý do hiển thị ở /auth/loi?ly-do=… cho các lỗi của luồng Google. */
-export type OAuthFailure = "google-huy" | "google-het-han" | "google-loi";
+export type OAuthFailure = "google-huy" | "google-het-han" | "google-loi" | "google-da-gan";
 
 /**
  * Supabase chuyển về /auth/callback?error=…&error_code=…&error_description=… khi Google / Supabase từ chối. Người dùng bấm
@@ -10,6 +10,8 @@ export type OAuthFailure = "google-huy" | "google-het-han" | "google-loi";
  */
 export function oauthErrorReason(error: string | null, errorCode: string | null): OAuthFailure {
   if (error === "access_denied" || errorCode === "access_denied") return "google-huy";
+  // Liên kết Google ở /tai-khoan/bao-mat bằng một Gmail đã thuộc tài khoản khác.
+  if (errorCode === "identity_already_exists") return "google-da-gan";
   if (errorCode === "flow_state_expired" || errorCode === "flow_state_not_found") return "google-het-han";
   return "google-loi";
 }

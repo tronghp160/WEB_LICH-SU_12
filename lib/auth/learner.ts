@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { loginMethods, type LoginMethods } from "@/lib/auth/identities";
 import { profileDefaults } from "@/lib/auth/oauth";
 import { completeSignUpPath, loginPath } from "@/lib/auth/routes";
 import type { Database } from "@/lib/database.types";
@@ -22,6 +23,11 @@ export type Learner = {
   isStaff: boolean;
   /** Tên gợi ý khi chưa có hồ sơ (người vào lần đầu bằng Google — trang /dang-ky/hoan-tat). */
   suggestedName: string;
+  /** Mật khẩu / Google (trang Bảo mật). */
+  methods: LoginMethods;
+  /** Ảnh đại diện: hồ sơ trước, không có thì ảnh Google. */
+  avatarUrl: string | null;
+  createdAt: string;
 };
 
 const text = (value: unknown, max: number): string | null => {
@@ -78,6 +84,9 @@ export const getLearner = cache(async (): Promise<Learner | null> => {
     profile,
     isStaff: staff.data?.account_status === "active",
     suggestedName: profileDefaults(user).displayName,
+    methods: loginMethods(user),
+    avatarUrl: profile?.avatar_url ?? profileDefaults(user).avatarUrl,
+    createdAt: user.created_at,
   };
 });
 

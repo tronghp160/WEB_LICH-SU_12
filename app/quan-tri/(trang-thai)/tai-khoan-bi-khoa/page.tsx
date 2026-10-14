@@ -3,7 +3,7 @@ import { Lock } from "lucide-react";
 import { redirect } from "next/navigation";
 import { SignOutButton } from "@/components/admin/SignOutButton";
 import { ADMIN_HOME, ADMIN_LOGIN } from "@/lib/admin/routes";
-import { getStaffState } from "@/lib/auth";
+import { getStaffState, LEARNER_STAFF_ONLY } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "Tài khoản đã bị khóa" };
 
@@ -12,6 +12,7 @@ export default async function BlockedPage() {
   const state = await getStaffState();
   if (state.status === "anonymous") redirect(ADMIN_LOGIN);
   if (state.status === "active") redirect(ADMIN_HOME);
+  if (state.status === "no-profile" && state.isLearner) redirect(LEARNER_STAFF_ONLY);
 
   const reason =
     state.status === "locked"

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { BookOpen, ChevronDown, Menu, Search, Stamp, X } from "lucide-react";
+import { AccountMenu, MobileAccountSection } from "@/components/account/AccountMenu";
+import { SignOutDialog } from "@/components/account/SignOutDialog";
 import { ContinueLearningLink } from "@/components/layout/ContinueLearningLink";
 import { activeGroup, NAV_GROUPS, type NavGroup, type NavLink } from "@/components/layout/nav";
 import { openSearch, SearchOverlay } from "@/components/layout/SearchOverlay";
@@ -219,6 +221,7 @@ export function Header() {
           <span className="hidden xl:block">
             <ThemeToggle />
           </span>
+          <AccountMenu />
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold md:hidden"
@@ -253,6 +256,7 @@ export function Header() {
                 <GroupPanel group={group} onNavigate={close} />
               </section>
             ))}
+            <MobileAccountSection onNavigate={close} />
             <div className="flex items-center justify-between border-t border-border pt-4">
               <span className="text-sm text-muted-foreground">Giao diện</span>
               <ThemeToggle />
@@ -262,6 +266,7 @@ export function Header() {
       )}
 
       <SearchOverlay />
+      <SignOutDialog />
     </header>
   );
 }
