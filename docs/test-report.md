@@ -315,3 +315,36 @@ hoạch) cần người tham gia.
 - Migration đã chạy: `20260924000001–3` (bảng, trigger/index/hàm, RLS), `20260925000000` (toàn vẹn nghiệp vụ G1/G3/G4),
   `20260925000001` (bucket `media`), `20260925000002` (RLS bảng liên kết), `20260925000003` (RLS `sources`), `20260925000004` (G5).
   `20260925000005` (sửa G5 cho cột `geom`) — đã chạy ngày 2026-09-24. Không còn migration chờ chạy.
+
+## 11. Thanh toán, luyện thi và hoàn thiện A1 + A3 (14/10/2026)
+
+Phạm vi: luyện thi trả phí, thanh toán (cổng giả lập + payOS), ủng hộ, quản trị đơn hàng; cùng các việc T1, T3, T4, T5, T7 của
+`docs/ke-hoach-tai-khoan.md`. Migration `20261017000000_late_payment.sql` đã chạy trên database thật ngày 14/10/2026
+(kiểm tra chỉ-đọc: `admin_resolve_late_payment` trả `not_found` với mã đơn không tồn tại, mô tả sản phẩm đã đổi).
+
+| Nhóm | Kết quả | Ghi chú |
+|---|---|---|
+| Unit test (Vitest) | **505/505** đạt, 35 file | thêm `client-ip.test.ts` (9 ca: chỉ tin header IP trên Vercel hoặc khi `TRUST_PROXY=1`), 5 ca mô tả gói theo số đề thật, chuyển trạng thái `cancelled → paid` |
+| Lint, kiểu (tsc), `npm run build` | sạch | |
+| Ràng buộc CSDL thanh toán `supabase/tests/payments.sql` | 44/44 | chạy thử trên PostgreSQL nhúng (PGlite) trước khi trình migration |
+| Tiền về sau khi hủy `supabase/tests/late_payment.sql` (L1–L11) | 11/11 | như trên; lần chạy thử bắt được lỗi so sánh NULL trong trigger (cờ chưa đặt → không chặn) — đã sửa trước khi chạy thật |
+| **E2E thanh toán** (`payments.spec.ts` + `payments-admin.spec.ts`, bản production, DB thật) | **20/20** đạt (1,8 phút) | gồm 2 ca mới: lời giới thiệu gói đúng số đề (T1); tiền về sau khi đơn đã hủy → quản trị viên xác nhận → cấp mã, người mua thấy mã (T5) |
+| **Ma trận phân quyền thanh toán** (`tests/rls/payments.mjs`, T4) | **21/21** thao tác, **105/105** ô | 5 vai trò: Khách, Editor, Reviewer, Admin, Editor bị khóa |
+
+Ma trận phân quyền thanh toán (chạy thật từng ô bằng phiên của vai trò):
+
+| Thao tác | Khách | Editor | Reviewer | Admin | Editor bị khóa |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Đọc `orders`, `payment_events`, `licenses`, `license_activations` | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Đọc `rate_limit_hits` | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Đọc câu hỏi `exam_questions` | ❌ | ✅ | ✅ | ✅ | ❌ |
+| Đọc sản phẩm đang bán, đề đã công bố, Bức tường cảm ơn | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Tạo đơn, sửa đơn → paid, tạo mã, thêm thiết bị, ghi `payment_events` | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Sửa sản phẩm | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Gọi `mark_order_paid`, `activate_license`, `get_exam_set`, `expire_stale_orders`, `consume_rate_limit`, `admin_resolve_late_payment` | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+- Nhân sự đang hoạt động đọc được `exam_questions` để soạn / duyệt đề (policy `staff_read_all`); khách chỉ nhận câu hỏi qua
+  `get_exam_set` do server gọi bằng khóa bí mật sau khi kiểm tra mã kích hoạt.
+- Mọi thao tác ghi đơn / mã / nhật ký đi qua server (service_role); không vai trò đăng nhập nào ghi trực tiếp được.
+
+**Chưa làm:** A2 (chạy payOS thật trên Vercel với giao dịch tiền thật) và phần B (tài khoản học sinh) của kế hoạch.

@@ -105,6 +105,20 @@ test.describe("Kích hoạt mã và làm đề luyện thi", () => {
     await expect(page.getByRole("heading", { name: "Đáp án và giải thích" })).toBeVisible();
   }
 
+  test("lời giới thiệu gói nêu đúng số đề trả phí đang có trong danh sách (T1)", async ({ page }) => {
+    await page.goto("/luyen-thi");
+    const cards = page.getByRole("region", { name: "Các đề luyện thi" }).getByRole("listitem");
+    await expect(cards.first()).toBeVisible();
+    const paid = (await cards.count()) - (await cards.filter({ hasText: "Miễn phí" }).count());
+    const headline = page.getByTestId("pack-headline");
+    if (paid === 0) {
+      await expect(page.getByText("Tạm ngưng bán")).toBeVisible();
+    } else {
+      await expect(headline).toContainText(new RegExp(`(^|Đang mở )${paid} đề luyện`));
+    }
+    await expect(page.getByText(/10 đề × 40 câu/)).toHaveCount(0);
+  });
+
   test("đề miễn phí làm được ngay, không cần mã", async ({ page }) => {
     await page.goto("/luyen-thi");
     await page.getByRole("link", { name: /Đề luyện thi số 1/ }).click();

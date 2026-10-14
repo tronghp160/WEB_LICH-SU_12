@@ -1014,6 +1014,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_resolve_late_payment: {
+        Args: {
+          p_order_code: number
+          p_staff_id: string
+          p_note: string
+          p_license_code: string
+        }
+        Returns: Json
+      }
       activate_license: {
         Args: { p_code: string; p_device_hash: string }
         Returns: Json

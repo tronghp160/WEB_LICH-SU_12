@@ -12,7 +12,9 @@ export const ORDER_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   expired: ["paid"],
   // Hoàn tiền thực hiện ngoài hệ thống (ở cổng/ngân hàng); quản trị viên chỉ GHI NHẬN, kèm thu hồi mã.
   paid: ["refunded"],
-  cancelled: [],
+  // Tiền về SAU KHI đơn đã hủy: chỉ quản trị viên xác nhận được, qua hàm admin_resolve_late_payment
+  // (migration 20261017000000_late_payment.sql) — webhook / đối soát tự động vẫn không chuyển được.
+  cancelled: ["paid"],
   refunded: [],
 };
 

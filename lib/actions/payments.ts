@@ -1,11 +1,12 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { readFormValues, zodErrorState, type ActionState } from "@/lib/actions/state";
 import { getPaymentProvider, mockSecret } from "@/lib/payments/config";
 import { activateLicense } from "@/lib/payments/licenses";
 import { consumeRateLimit } from "@/lib/payments/rate-limit";
+import { requestClient } from "@/lib/request-client";
 import { paymentReasonMessage } from "@/lib/payments/order-status";
 import {
   createOrder,
@@ -25,14 +26,8 @@ import { buyPackSchema, donationSchema } from "@/lib/validation/payments";
 // Thanh toán phía người mua (docs/ke-hoach-thanh-toan.md, mục 7.1). Không cần đăng nhập: quyền xem đơn = token trong
 // cookie httpOnly của riêng đơn đó.
 
-async function clientIp(): Promise<string | null> {
-  const list = await headers();
-  const forwarded = list.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || list.get("x-real-ip")?.trim() || null;
-}
-
-async function startCheckout(input: Omit<CreateOrderInput, "clientIp">, values: Record<string, string>): Promise<ActionState> {
-  const result = await createOrder({ ...input, clientIp: await clientIp() });
+async function startCheckout(input: Omit<CreateOrderInput, "client">, values: Record<string, string>): Promise<ActionState> {
+  const result = await createOrder({ ...input, client: await requestClient() });
   if (!result.ok) return { status: "error", message: result.error, values };
 
   (await cookies()).set(orderCookieName(result.orderCode), result.token, {
@@ -115,7 +110,7 @@ export async function activateLicenseAction(code: string, deviceId: string): Pro
     return { ok: false, message: paymentReasonMessage("invalid_code") };
   }
   // Không đếm được (chưa chạy migration / mất kết nối) thì vẫn cho kích hoạt — mã 60 bit nên dò mã không khả thi.
-  if ((await consumeRateLimit("license_activation", await clientIp())) === "limited") {
+  if ((await consumeRateLimit("license_activation", (await requestClient()).key)) === "limited") {
     return { ok: false, message: "Em đã thử quá nhiều lần. Đợi khoảng 15 phút rồi thử lại nhé." };
   }
   const result = await activateLicense(code, deviceId);
@@ -127,14 +122,14 @@ export async function activateLicenseAction(code: string, deviceId: string): Pro
 
 export type LookupState = { status: "idle" | "error" | "found"; message?: string; result?: LookupResult; values?: Record<string, string> };
 
-/** Tra cứu đơn bằng mã đơn + email (khi mất mã kích hoạt / đổi máy). Giới hạn 5 lần / 15 phút / IP. */
+/** Tra cứu đơn bằng mã đơn + email (khi mất mã kích hoạt / đổi máy). Giới hạn 5 lần / 15 phút / người gửi (IP hoặc cookie định danh). */
 export async function lookupOrderAction(_previous: LookupState, formData: FormData): Promise<LookupState> {
   const values = readFormValues(formData);
   const orderCode = Number((values.don ?? "").replace(/\D/g, ""));
   const email = (values.email ?? "").trim();
   if (!orderCode || !email) return { status: "error", message: "Em nhập đủ mã đơn và email đã dùng khi mua nhé.", values };
   // Không đếm được thì CHẶN: mã đơn là số tăng dần, không giới hạn được số lần thử thì không an toàn để tra cứu.
-  const limit = await consumeRateLimit("order_lookup", await clientIp());
+  const limit = await consumeRateLimit("order_lookup", (await requestClient()).key);
   if (limit === "limited") return { status: "error", message: "Em đã tra cứu quá nhiều lần. Đợi khoảng 15 phút rồi thử lại nhé.", values };
   if (limit === "unavailable") return { status: "error", message: "Tạm thời chưa tra cứu được. Em thử lại sau ít phút nhé.", values };
   const result = await lookupOrder(orderCode, email);
