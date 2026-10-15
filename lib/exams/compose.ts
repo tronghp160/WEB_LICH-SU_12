@@ -21,21 +21,25 @@ export function rotateChoices<T>(choices: readonly T[], shift: number): T[] {
   return [0, 1, 2, 3].map((position) => choices[(position - shift + 4) % 4]);
 }
 
-/** Chọn độ xoay để đáp án đúng rơi vào chữ cái đang ít nhất trong đề (bằng nhau thì lấy chữ đứng trước). */
-export function balancedShift(letterCounts: readonly number[], correctIndex: number): number {
+/**
+ * Chọn độ xoay để đáp án đúng rơi vào chữ cái đang ít nhất trong đề. Nhiều chữ cùng ít nhất thì chọn NGẪU NHIÊN trong số
+ * đó — lấy chữ đứng trước sẽ thành mẫu A, B, C, D, A… đoán được. `random` (0 ≤ x < 1) truyền vào để test cố định.
+ */
+export function balancedShift(letterCounts: readonly number[], correctIndex: number, random: () => number = Math.random): number {
   const fewest = Math.min(...letterCounts);
-  const target = letterCounts.indexOf(fewest);
+  const ties = [0, 1, 2, 3].filter((letter) => letterCounts[letter] === fewest);
+  const target = ties[Math.min(ties.length - 1, Math.floor(random() * ties.length))];
   return (target - correctIndex + 4) % 4;
 }
 
 export type ComposedItem = { itemId: string; kind: ExamItemKind; correctIndex: number | null; shift: number };
 
 /** Xếp lại độ xoay cho cả đề theo thứ tự hiện tại (nút "Rải đều đáp án"). Câu Đúng/Sai giữ 0. */
-export function rebalanceShifts<T extends ComposedItem>(items: readonly T[]): T[] {
+export function rebalanceShifts<T extends ComposedItem>(items: readonly T[], random: () => number = Math.random): T[] {
   const counts = [0, 0, 0, 0];
   return items.map((item) => {
     if (item.kind !== "mcq" || item.correctIndex === null) return { ...item, shift: 0 };
-    const shift = balancedShift(counts, item.correctIndex);
+    const shift = balancedShift(counts, item.correctIndex, random);
     counts[displayedCorrect(item.correctIndex, shift)] += 1;
     return { ...item, shift };
   });

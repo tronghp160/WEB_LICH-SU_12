@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
 import { loginPath } from "@/lib/auth/routes";
 import { attemptPaths, localDeadline, parseAttemptView, parseExamIntro, type AttemptView, type ExamIntro } from "@/lib/exams/attempt";
-import { DEVICE_HEADER, LICENSE_HEADER, examAccessMessage, examPaths, examSetId, formatClock } from "@/lib/exams/exam";
+import { DEVICE_HEADER, LICENSE_HEADER, examAccessMessage, examPaths, examSetId, formatClock, generatedKey } from "@/lib/exams/exam";
 import { THPT_2025_LABEL } from "@/lib/exams/format";
 import { SHORTCUT_HELP, addHistory, addTime, answerState, formatSavedAt, mergeAnswers, parseHistory, parseLocalAttempt, roomKeys, shortcutFor } from "@/lib/exams/room";
 import type { ItemAnswer } from "@/lib/exams/scoring";
@@ -27,7 +27,8 @@ import { cn } from "@/lib/utils/cn";
 type Load = { state: "loading" } | { state: "blocked"; message: string; needsActivation: boolean } | { state: "ready"; intro: ExamIntro };
 type SaveState = { kind: "idle" } | { kind: "saving" } | { kind: "saved"; at: number } | { kind: "offline" };
 type FontSize = "nho" | "vua" | "lon";
-type Props = { slug: string; title: string; durationMin: number; free: boolean; format: string };
+/** Đề có sẵn: `slug`. Đề tự sinh (GĐ5): `blueprint` — mỗi lần bắt đầu server sinh đề mới theo ma trận. */
+type Props = { slug: string; title: string; durationMin: number; free: boolean; format: string; blueprint?: string };
 
 /** Lưu câu trả lời lên server sau khi ngừng thao tác 2 giây; lỗi mạng thì thử lại sau 10 giây. */
 const SAVE_DELAY_MS = 2000;
@@ -64,7 +65,7 @@ function readActive(): Record<string, { id: string; deadline: string | null }> {
  * án sau khi nộp. Tự lưu: mỗi lần chọn ghi ngay vào localStorage và gửi server gom 2 giây; mất mạng vẫn làm tiếp, có mạng
  * lại thì gửi. Làm tiếp được sau khi tải lại trang / đổi máy (cùng tài khoản). Nộp xong chuyển sang trang kết quả.
  */
-export function ExamRoom({ slug, title, durationMin, free, format }: Props) {
+export function ExamRoom({ slug, title, durationMin, free, format, blueprint }: Props) {
   const router = useRouter();
   const license = useLicense();
   const hydrated = useHydrated();
@@ -86,6 +87,14 @@ export function ExamRoom({ slug, title, durationMin, free, format }: Props) {
   });
   const [focusMode, setFocusMode] = useState(false);
   const [waitingNetwork, setWaitingNetwork] = useState(false);
+  /** Ghi chú khi ngân hàng thiếu câu phải nới luật chọn (đề tự sinh). */
+  const [notes, setNotes] = useState<string[]>([]);
+
+  // Đề tự sinh dùng chung API theo ma trận; khóa lịch sử / lượt dở trên máy theo ma trận thay cho slug.
+  const roomKey = blueprint ? generatedKey(blueprint) : slug;
+  const introUrl = blueprint ? attemptPaths.generated(blueprint) : attemptPaths.intro(slug);
+  const startUrl = blueprint ? attemptPaths.generated(blueprint) : attemptPaths.start(slug);
+  const pagePath = blueprint ? examPaths.generated(blueprint) : examPaths.set(slug);
 
   const roomRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -112,7 +121,7 @@ export function ExamRoom({ slug, title, durationMin, free, format }: Props) {
     // Tải trang đề sau khi biết phiên: gói gắn với tài khoản mở đề không cần mã.
     if (!hydrated || sessionKey === "loading") return;
     let cancelled = false;
-    fetch(attemptPaths.intro(slug), { headers: headers(), cache: "no-store" })
+    fetch(introUrl, { headers: headers(), cache: "no-store" })
       .then(async (response) => {
         const body = (await response.json().catch(() => null)) as { ok?: boolean; reason?: string } | null;
         if (cancelled) return;
@@ -125,7 +134,7 @@ export function ExamRoom({ slug, title, durationMin, free, format }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [hydrated, sessionKey, slug, headers]);
+  }, [hydrated, sessionKey, introUrl, headers]);
 
   const attemptId = view?.id ?? null;
   const questions = useMemo(() => view?.questions ?? [], [view]);
@@ -231,8 +240,8 @@ export function ExamRoom({ slug, title, durationMin, free, format }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch(attemptPaths.start(slug), { method: "POST", headers: headers() });
-      const body = (await response.json().catch(() => null)) as { ok?: boolean; reason?: string } | null;
+      const response = await fetch(startUrl, { method: "POST", headers: headers() });
+      const body = (await response.json().catch(() => null)) as { ok?: boolean; reason?: string; notes?: unknown } | null;
       const attempt = body?.ok ? parseAttemptView(body) : null;
       if (!attempt) {
         setError(examAccessMessage(body?.reason).message);
@@ -254,7 +263,8 @@ export function ExamRoom({ slug, title, durationMin, free, format }: Props) {
       setNow(received);
       setDeadline(localDeadline(attempt.deadlineAt, attempt.serverNow, received));
       setSaveState(savedAt.current ? { kind: "saved", at: savedAt.current } : { kind: "idle" });
-      writeStorage(roomKeys.active, JSON.stringify({ ...readActive(), [slug]: { id: attempt.id, deadline: attempt.deadlineAt } }));
+      setNotes(Array.isArray(body?.notes) ? body.notes.filter((note): note is string => typeof note === "string") : []);
+      writeStorage(roomKeys.active, JSON.stringify({ ...readActive(), [roomKey]: { id: attempt.id, deadline: attempt.deadlineAt } }));
     } catch {
       setError(examAccessMessage(undefined).message);
     } finally {
@@ -266,14 +276,15 @@ export function ExamRoom({ slug, title, durationMin, free, format }: Props) {
   const record = useCallback(
     (graded: AttemptView) => {
       if (graded.score10 === null) return;
-      saveQuizResult(examSetId(slug), Math.round(graded.score10 * 100), 1000);
-      writeStorage(roomKeys.history, JSON.stringify(addHistory(parseHistory(readStorage(roomKeys.history)), { id: graded.id, slug, title, score10: graded.score10, submittedAt: graded.submittedAt ?? new Date().toISOString() })));
+      // Đề tự sinh mỗi lần một khác — không tính vào Hộ chiếu (mục 3.11 chỉ tính đề có sẵn).
+      if (!blueprint) saveQuizResult(examSetId(slug), Math.round(graded.score10 * 100), 1000);
+      writeStorage(roomKeys.history, JSON.stringify(addHistory(parseHistory(readStorage(roomKeys.history)), { id: graded.id, slug: roomKey, title, score10: graded.score10, submittedAt: graded.submittedAt ?? new Date().toISOString() })));
       writeStorage(roomKeys.attempt(graded.id), null);
       const active = readActive();
-      delete active[slug];
+      delete active[roomKey];
       writeStorage(roomKeys.active, JSON.stringify(active));
     },
-    [slug, title],
+    [blueprint, roomKey, slug, title],
   );
 
   const submitAttempt = useCallback(
@@ -435,7 +446,7 @@ export function ExamRoom({ slug, title, durationMin, free, format }: Props) {
               {session.status === "anonymous" && (
                 <>
                   {" · "}Đã mua khi đăng nhập?{" "}
-                  <Link href={loginPath(examPaths.set(slug))} className="text-accent underline">
+                  <Link href={loginPath(pagePath)} className="text-accent underline">
                     Đăng nhập để mở đề
                   </Link>
                 </>
@@ -471,7 +482,11 @@ export function ExamRoom({ slug, title, durationMin, free, format }: Props) {
           </li>
           <li>Bài tự lưu trên máy và trên máy chủ: tải lại trang, mất mạng hay đổi máy (cùng tài khoản) vẫn làm tiếp được.</li>
           <li>Đánh dấu câu để xem lại; bấm phím ? trong phòng thi để xem phím tắt. Hết giờ bài tự nộp.</li>
-          <li>Nộp bài xong mới thấy điểm, đáp án, lời giải và phân tích. Đạt từ 7 điểm được đóng dấu vào Hộ chiếu lịch sử.</li>
+          {blueprint ? (
+            <li>Mỗi lần bắt đầu là một đề mới, ưu tiên câu em chưa làm trong 14 ngày. Nộp bài xong mới thấy điểm, đáp án, lời giải và phân tích.</li>
+          ) : (
+            <li>Nộp bài xong mới thấy điểm, đáp án, lời giải và phân tích. Đạt từ 7 điểm được đóng dấu vào Hộ chiếu lịch sử.</li>
+          )}
           {intro.access === "account" && <li data-testid="exam-access-account">Đề mở bằng gói trong tài khoản của em — không tốn lượt thiết bị.</li>}
         </ul>
         {intro.inProgress ? (
@@ -573,6 +588,11 @@ export function ExamRoom({ slug, title, durationMin, free, format }: Props) {
         </span>
       </div>
       {errorNote}
+      {notes.length > 0 && index === 0 && (
+        <Callout variant="info" title="Về đề này">
+          {notes.join(" ")}
+        </Callout>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
         <div className={cn("grid gap-4", question.passage && "xl:grid-cols-2 xl:items-start")}>

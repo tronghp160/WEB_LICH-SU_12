@@ -27,6 +27,7 @@ Nội dung bám theo SGK Lịch sử 12 (bộ *Kết nối tri thức với cu�
 | Tra cứu | `/tra-cuu` | Tìm sự kiện, nhân vật, địa điểm; gõ không dấu vẫn được |
 | Chi tiết | `/su-kien/…`, `/nhan-vat/…`, `/dia-diem/…`, `/chu-de/…` | Nội dung, ảnh có ghi công, nguồn tham khảo |
 | Luyện thi THPT | `/luyen-thi`, `/luyen-thi/[slug]`, `/kich-hoat` | Đề bấm giờ có giải thích từng câu; đề 1 miễn phí, các đề khác trong gói trả phí (mở bằng mã kích hoạt `LT12-…`, tối đa 3 thiết bị). Trang tự ghi đúng số đề đã công bố |
+| Luyện tập, ôn thi cá nhân | `/luyen-thi/luyen-tap`, `/luyen-thi/so-cau-sai`, `/luyen-thi/de-ngau-nhien`, `/luyen-thi/tong-quan`, `/luyen-thi/lo-trinh` | Luyện theo bài chấm ngay từng câu (miễn phí 10 câu / ngày); sổ câu sai ôn ngắt quãng; đề tự sinh theo ma trận (chỉ hiện khi ngân hàng đủ câu cho 3 đề không trùng); tổng quan (điểm dự kiến, bản đồ thành thạo 17 bài, chuỗi ngày học); lộ trình ôn theo mục tiêu điểm. Phần cá nhân cần đăng nhập, phần nâng cao thuộc gói |
 | Thanh toán | `/thanh-toan/ket-qua`, `/thanh-toan/tra-cuu` | Chuyển khoản VietQR qua payOS (hoặc cổng giả lập khi phát triển); xem lại đơn và mã bằng mã đơn + email |
 | Ủng hộ | `/ung-ho` | Ủng hộ tự nguyện, Bức tường cảm ơn (lời nhắn được duyệt trước khi hiện) |
 | Tài khoản học sinh | `/dang-ky`, `/dang-nhap`, `/quen-mat-khau`, `/tai-khoan` (+ `/don-hang`, `/bao-mat`) | Đăng ký bằng email (xác nhận qua link) hoặc Google, đặt lại mật khẩu. Hộ chiếu (tiến độ) tự đồng bộ giữa các máy; gói luyện thi gắn với tài khoản mở đề ở mọi máy; thêm mã đã mua vào tài khoản; đổi mật khẩu, liên kết Google, đăng xuất mọi thiết bị, tải dữ liệu, xóa tài khoản. Nút Google chỉ hiện khi đã bật Google trong Supabase. Không bắt buộc: mọi bài học, mua gói vẫn dùng được khi chưa đăng nhập. Tài khoản học sinh **không bao giờ** có quyền nội bộ |
@@ -155,7 +156,10 @@ npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-quiz.sql
 # 10. Luyện thi — lượt làm bài, chấm phía server (GĐ2): migrations/20261026000000_exam_attempts.sql
 #    (trình làm đề từ GĐ2 gọi các hàm này nên PHẢI chạy trước). Kiểm thử (tự hoàn tác): supabase/tests/exam_attempts.sql
 # 11. Luyện thi — luyện tập, sổ câu sai, ôn ngắt quãng (GĐ4): migrations/20261027000000_exam_practice.sql
-#    Kiểm thử (tự hoàn tác): supabase/tests/exam_practice.sql
+#    Kiểm thử (tự hoàn tác): supabase/tests/exam_practice.sql. Sau đó chạy migrations/20261027000001_fix_grade_safeupdate.sql
+#    (sửa DELETE thiếu WHERE bị pg_safeupdate chặn khi gọi qua API)
+# 12. Luyện thi — đề tự sinh theo ma trận, mục tiêu điểm, lộ trình ôn (GĐ5): migrations/20261028000000_exam_generated.sql
+#    Kiểm thử (tự hoàn tác): supabase/tests/exam_generated.sql
 ```
 
 > `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands

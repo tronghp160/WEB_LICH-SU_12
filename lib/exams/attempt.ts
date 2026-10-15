@@ -11,6 +11,8 @@ export const attemptPaths = {
   check: (id: string) => `/api/luyen-thi/luot/${id}/kiem-tra`,
   intro: (slug: string) => `/api/luyen-thi/${slug}`,
   start: (slug: string) => `/api/luyen-thi/${slug}/bat-dau`,
+  /** Đề tự sinh theo ma trận (GĐ5): GET = trang trước khi làm, POST = sinh đề và bắt đầu. */
+  generated: (blueprint: string) => `/api/luyen-thi/de-ngau-nhien?ma-tran=${encodeURIComponent(blueprint)}`,
   attempt: (id: string) => `/api/luyen-thi/luot/${id}`,
   submit: (id: string) => `/api/luyen-thi/luot/${id}/nop`,
 };
@@ -92,6 +94,7 @@ const viewSchema = z.object({
     server_now: z.string(),
     score10: nullish(z.number()),
     breakdown: nullish(breakdownSchema),
+    blueprint: nullish(z.string()),
   }),
   set: nullish(z.object({ slug: z.string(), title: z.string(), duration_min: z.number(), format: z.string(), free: z.boolean() })),
   answers: z.record(z.string(), z.unknown()).default({}),
@@ -132,6 +135,8 @@ export type AttemptView = {
   /** Lượt luyện tập: người học có gói (không giới hạn câu kiểm tra mỗi ngày). */
   pack: boolean | null;
   set: { slug: string; title: string; durationMin: number; format: string; free: boolean } | null;
+  /** Ma trận của lượt đề tự sinh (thpt_2025, quick_15, …) — null với đề có sẵn / luyện tập. */
+  blueprint: string | null;
   startedAt: string;
   submittedAt: string | null;
   /** Phân tích sau khi chấm (null khi chưa nộp). */
@@ -172,6 +177,7 @@ export function parseAttemptView(value: unknown): AttemptView | null {
     mode: attempt.mode,
     pack: pack ?? null,
     set: set ? { slug: set.slug, title: set.title, durationMin: set.duration_min, format: set.format, free: set.free } : null,
+    blueprint: attempt.blueprint,
     startedAt: attempt.started_at,
     submittedAt: attempt.submitted_at,
     groups: breakdown
@@ -254,6 +260,8 @@ export const ATTEMPT_STATUS_BY_REASON: Record<string, number> = {
   login_required: 401,
   pack_required: 403,
   not_practice: 409,
+  invalid_items: 409,
+  not_enough_items: 409,
 };
 
 /** Tùy chọn bắt đầu lượt luyện tập (thân POST /api/luyen-thi/luyen-tap) — hàm SQL start_practice_attempt. */

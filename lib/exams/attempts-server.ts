@@ -2,7 +2,9 @@ import "server-only";
 
 import type { Json } from "@/lib/database.types";
 import { ATTEMPT_BODY_LIMIT, ATTEMPT_STATUS_BY_REASON, answersBodySchema, type AnswersBody, type PracticeOptions } from "@/lib/exams/attempt";
+import type { Blueprint } from "@/lib/exams/blueprint";
 import { DEVICE_HEADER, LICENSE_HEADER } from "@/lib/exams/exam";
+import type { GeneratedExam, PoolItem } from "@/lib/exams/generate";
 import { normalizeLicenseCode } from "@/lib/payments/license";
 import { deviceHash } from "@/lib/payments/licenses";
 import { consumeRateLimit, type RateLimitBucket } from "@/lib/payments/rate-limit";
@@ -160,4 +162,61 @@ export async function hasAccountPack(userId: string): Promise<boolean> {
     .eq("status", "active")
     .eq("products.kind", "exam_pack");
   return (data ?? []).some((license) => !license.valid_until || Date.parse(license.valid_until) >= Date.now());
+}
+
+// ----- Đề tự sinh theo ma trận (GĐ5, migration 20261028000000_exam_generated.sql) -----
+
+/** Câu làm trong ngần này ngày được tránh khi sinh đề mới (mục 4.4). */
+export const RECENT_DAYS = 14;
+
+/**
+ * Thông tin phân loại các câu ĐÃ CÔNG BỐ lớp 12 để sinh đề — chỉ id, dạng, bài, mức độ, tư liệu, sự kiện, đáp án gốc (để
+ * rải đáp án), KHÔNG có nội dung câu hỏi. Đọc bằng khóa bí mật vì bảng exam_items không mở cho học sinh (có đáp án); kết
+ * quả chỉ dùng trên server, không trả ra trình duyệt. (Lệch mục 7.5 của kế hoạch — ghi ở docs/ke-hoach-luyen-thi.md.)
+ */
+export async function loadGeneratorPool(): Promise<PoolItem[] | null> {
+  const { data, error } = await rpc()
+    .from("exam_items")
+    .select("id, kind, lesson_slug, level, passage_id, event_id, correct_index")
+    .eq("workflow_status", "published")
+    .eq("grade", 12)
+    .limit(5000);
+  if (error || !data) return null;
+  return data.map((item) => ({
+    id: item.id,
+    kind: item.kind,
+    lessonSlug: item.lesson_slug,
+    level: item.level,
+    passageId: item.passage_id,
+    eventId: item.event_id,
+    correctIndex: item.correct_index,
+  }));
+}
+
+/** Câu người gọi đã gặp trong RECENT_DAYS ngày (mọi lượt của tài khoản, hoặc của thiết bị khi chưa đăng nhập). */
+export async function recentItemIds(caller: Caller): Promise<Set<string>> {
+  const since = new Date(Date.now() - RECENT_DAYS * 86_400_000).toISOString();
+  let query = rpc().from("exam_attempts").select("item_ids").gte("started_at", since).limit(200);
+  if (caller.userId) query = query.eq("user_id", caller.userId);
+  else if (caller.deviceHash) query = query.eq("device_hash", caller.deviceHash).is("user_id", null);
+  else return new Set();
+  const { data } = await query;
+  return new Set((data ?? []).flatMap((row) => row.item_ids));
+}
+
+export async function getGeneratedIntro(blueprint: string, caller: Caller) {
+  return rpc().rpc("get_generated_intro", { p_user_id: caller.userId, p_code: caller.code ?? "", p_device_hash: caller.deviceHash ?? "", p_blueprint: blueprint });
+}
+
+export async function startGeneratedAttempt(blueprint: Blueprint, caller: Caller, exam: GeneratedExam) {
+  return rpc().rpc("start_generated_attempt", {
+    p_user_id: caller.userId,
+    p_code: caller.code ?? "",
+    p_device_hash: caller.deviceHash ?? "",
+    p_blueprint: blueprint.id,
+    p_item_ids: exam.items.map((item) => item.itemId),
+    p_sections: exam.items.map((item) => item.section),
+    p_shifts: exam.items.map((item) => item.shift),
+    p_duration_min: blueprint.durationMin,
+  });
 }

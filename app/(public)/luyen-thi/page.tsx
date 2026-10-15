@@ -8,7 +8,10 @@ import { BuyPackForm } from "@/components/payments/BuyPackForm";
 import { TestModeNotice } from "@/components/payments/TestModeNotice";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Callout } from "@/components/ui/Callout";
+import { loadGeneratorPool } from "@/lib/exams/attempts-server";
+import { BLUEPRINTS } from "@/lib/exams/blueprint";
 import { examPaths } from "@/lib/exams/exam";
+import { canGenerate } from "@/lib/exams/generate";
 import { THPT_2025_LABEL } from "@/lib/exams/format";
 import { summarizeExamPack } from "@/lib/exams/pack";
 import { readPaymentConfig } from "@/lib/payments/config";
@@ -26,6 +29,7 @@ const BENEFITS = [
   "Giải thích từng câu, kèm liên kết về bài SGK để đọc lại; phân tích điểm theo bài, mức độ, dạng câu",
   "Luyện tập theo bài không giới hạn (chưa có gói: 10 câu / ngày)",
   "Sổ câu sai + ôn ngắt quãng: câu sai tự vào sổ, ôn đúng lịch (cần đăng nhập)",
+  "Tổng quan (điểm dự kiến, bản đồ thành thạo 17 bài) và lộ trình ôn theo mục tiêu điểm (cần đăng nhập)",
   "Con dấu “Luyện thi” trong Hộ chiếu khi đạt từ 7 điểm",
 ];
 
@@ -47,13 +51,24 @@ async function loadSets(): Promise<ExamSetCard[] | null> {
   }
 }
 
+/** Có ma trận nào đủ câu cho ≥ 3 đề không trùng — chỉ khi đó mới nhắc tới đề tự sinh (mục 4.4). */
+async function generatedReady(): Promise<boolean> {
+  try {
+    const pool = await loadGeneratorPool();
+    return Boolean(pool && BLUEPRINTS.some((blueprint) => canGenerate(pool, blueprint)));
+  } catch (error) {
+    unstable_rethrow(error);
+    return false;
+  }
+}
+
 function formatDate(iso: string): string {
   const [year, month, day] = new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).split("-");
   return `${day}/${month}/${year}`;
 }
 
 export default async function ExamPrepPage() {
-  const [product, sets] = await Promise.all([loadProduct(), loadSets()]);
+  const [product, sets, generated] = await Promise.all([loadProduct(), loadSets(), generatedReady()]);
   const config = readPaymentConfig();
   // Chỉ bán khi đếm được và có ít nhất một đề trả phí đã công bố — không bán gói rỗng.
   const pack = sets ? summarizeExamPack(sets) : null;
@@ -132,6 +147,20 @@ export default async function ExamPrepPage() {
           <span className="font-serif text-lg font-semibold text-foreground">Sổ câu sai</span>
           <span className="text-sm text-muted-foreground">Câu em làm sai tự vào sổ; ôn lại theo lịch giãn dần để nhớ lâu.</span>
         </Link>
+        <Link href={examPaths.overview} className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 hover:border-accent">
+          <span className="font-serif text-lg font-semibold text-foreground">Tổng quan</span>
+          <span className="text-sm text-muted-foreground">Điểm dự kiến, bài nào vững / cần ôn, chuỗi ngày học và việc nên làm tiếp.</span>
+        </Link>
+        <Link href={examPaths.plan} className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 hover:border-accent">
+          <span className="font-serif text-lg font-semibold text-foreground">Lộ trình ôn</span>
+          <span className="text-sm text-muted-foreground">Chọn mục tiêu điểm và số buổi mỗi tuần — web xếp lịch, tự đánh dấu buổi đã làm.</span>
+        </Link>
+        {generated && (
+          <Link href={examPaths.generatedHub} className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 hover:border-accent" data-testid="generated-link">
+            <span className="font-serif text-lg font-semibold text-foreground">Đề tự sinh</span>
+            <span className="text-sm text-muted-foreground">Mỗi lần một đề mới theo ma trận, ưu tiên câu em chưa làm.</span>
+          </Link>
+        )}
       </section>
 
       <section aria-labelledby="cac-de" className="mt-10 flex flex-col gap-4">

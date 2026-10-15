@@ -9,10 +9,19 @@ export const examPaths = {
   result: (attemptId: string) => `/luyen-thi/ket-qua/${attemptId}`,
   /** Luyện tập theo bài (GĐ4); ôn câu đến hạn; làm lại câu chưa đạt của một lượt; sổ câu sai. */
   practice: "/luyen-thi/luyen-tap",
+  practiceLesson: (lessonSlug: string) => `/luyen-thi/luyen-tap?bai=${lessonSlug}`,
   review: "/luyen-thi/luyen-tap?on-tap=1",
   retry: (attemptId: string) => `/luyen-thi/luyen-tap?tu-luot=${attemptId}`,
   notebook: "/luyen-thi/so-cau-sai",
+  /** Đề tự sinh theo ma trận, tổng quan, lộ trình ôn (GĐ5). */
+  generatedHub: "/luyen-thi/de-ngau-nhien",
+  generated: (blueprint: string) => `/luyen-thi/de-ngau-nhien/${blueprint}`,
+  overview: "/luyen-thi/tong-quan",
+  plan: "/luyen-thi/lo-trinh",
 };
+
+/** Khóa của đề tự sinh trong lịch sử / lượt dở trên máy (thay cho slug đề có sẵn). */
+export const generatedKey = (blueprint: string) => `de-ngau-nhien:${blueprint}`;
 
 /** Khóa lưu kết quả trong tiến độ học tập (Hộ chiếu lịch sử). */
 export const examSetId = (slug: string) => `luyen-thi:${slug}`;
@@ -55,6 +64,12 @@ export function examAccessMessage(reason: string | undefined): { message: string
       return { message: "Mã kích hoạt trên máy này đã bị thu hồi. Liên hệ quản trị viên nếu em nghĩ đây là nhầm lẫn.", needsActivation: true };
     case "expired":
       return { message: "Mã kích hoạt đã hết hạn sử dụng.", needsActivation: true };
+    case "pack_required":
+      return { message: "Đề tự sinh thuộc Gói luyện thi. Em kích hoạt mã trên máy này hoặc đăng nhập tài khoản đã mua gói để làm.", needsActivation: true };
+    case "not_enough_items":
+      return { message: "Ngân hàng câu hỏi chưa đủ câu cho dạng đề này. Em chọn dạng đề khác hoặc quay lại sau nhé.", needsActivation: false };
+    case "invalid_items":
+      return { message: "Một số câu vừa được cập nhật nên đề chưa tạo được. Em bấm bắt đầu lại nhé.", needsActivation: false };
     case "not_found":
       return { message: "Không tìm thấy đề này hoặc đề chưa được công bố.", needsActivation: false };
     case "empty":

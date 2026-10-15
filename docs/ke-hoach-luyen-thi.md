@@ -99,7 +99,7 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 | 2 | Lượt làm bài + chấm phía server, API mới, không lộ đáp án | Xong 15/10/2026 (test-report mục 23) — xem "Quyết định khi làm GĐ2" |
 | 3 | Phòng thi mới + trang kết quả | Xong 15/10/2026 (test-report mục 24) — xem "Quyết định khi làm GĐ3" |
 | 4 | Luyện tập, sổ câu sai, ôn ngắt quãng | Xong 15/10/2026 (test-report mục 25) — xem "Quyết định khi làm GĐ4" |
-| 5 | Đề tự sinh, tổng quan, lộ trình | |
+| 5 | Đề tự sinh, tổng quan, lộ trình | Xong 15/10/2026 (test-report mục 26) — xem "Quyết định khi làm GĐ5"; đề tự sinh hiện ẩn tới khi ngân hàng đủ câu (GĐ6) |
 | 6 | Nội dung (song song từ GĐ1): ≥ 360 câu trắc nghiệm, ≥ 60 câu Đúng/Sai, ≥ 60 câu tư liệu, ≥ 5 đề đầy đủ | |
 | 7 | Thống kê câu hỏi, hàng đợi báo lỗi, chấm lại | |
 | 8 | Trang bán hàng, kỹ năng, sổ tay, bản in | |
@@ -168,6 +168,33 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 - Hạn ôn là 0 giờ của ngày đến hạn theo giờ Việt Nam; E2E giả lập "sang ngày mai" bằng cách lùi `due_at` trong DB
   (`page.clock` không đổi được giờ của database).
 - Bỏ nút "Ôn bài yếu nhất → luyện theo bài" kiểu GĐ3 (vẫn dẫn tới trang đọc bài SGK); trang luyện tập chọn bài ngay ở đầu.
+
+### Quyết định khi làm GĐ5
+
+- **Ma trận** (`lib/exams/blueprint.ts`): `thpt_2025` 24 + 4 / 50 phút (Phần II ≥ 2 câu có tư liệu khi ngân hàng có),
+  `quick_15` 10 + 1 / 15 phút, `tf_only` 8 câu Đúng/Sai / 40 phút, `chu-de-N` 16 + 2 / 30 phút (6 chủ đề). Phân bố theo bài
+  tỉ lệ **số tiết** trong `lib/sgk/curriculum.ts`; mức độ theo `LEVEL_MIX_SUGGESTED`. Ghi rõ trên trang: không phải ma trận
+  của Bộ. Chỉ lấy câu lớp 12.
+- **Server chọn câu, SQL chỉ kiểm**: `lib/exams/generate.ts` (hàm thuần, có seed) chọn theo luật ưu tiên — tránh câu đã gặp
+  trong 14 ngày, ≤ 2 câu / sự kiện, Phần I không 2 câu cùng tư liệu — rồi nới dần khi thiếu (ghi chú cho học sinh thấy ở
+  đầu đề). Đáp án đúng rải A/B/C/D bằng độ xoay, chọn ngẫu nhiên giữa các chữ đang ít nhất (cả nút "Rải đều đáp án" ở
+  trang soạn đề cũng đổi theo — không còn mẫu A, B, C, D… đoán được). `start_generated_attempt` kiểm gói, mọi câu đã công
+  bố / không trùng / độ dài, rồi tạo lượt như đề thường (chấm, kết quả, sổ câu sai dùng chung).
+- **Lệch mục 7.5**: route đọc thông tin phân loại câu (id, dạng, bài, mức độ, tư liệu, sự kiện, đáp án gốc để rải đáp án)
+  bằng khóa bí mật, chỉ trên server, không trả ra trình duyệt — học sinh không có quyền đọc `exam_items`.
+- **Đang có lượt dở cùng ma trận** thì "Bắt đầu" trả lượt đó (như đề có sẵn); "Bắt đầu lại" nộp lượt cũ rồi sinh đề mới.
+  Đề tự sinh **không** tính vào Hộ chiếu (mỗi lần một đề khác).
+- **Chỉ hiện khi đủ câu**: danh sách và liên kết ở `/luyen-thi` cần đủ câu cho 3 đề không trùng; trang làm một ma trận cần
+  đủ cho 1 đề. Ngân hàng hiện chỉ có 20 câu trắc nghiệm, chưa có câu Đúng/Sai → mọi ma trận đang ẩn (chờ GĐ6).
+- **Tổng quan / lộ trình cần đăng nhập + gói gắn tài khoản** (mục 5). Đọc lượt làm bài bằng phiên của học sinh (RLS
+  `own_select`); mục tiêu điểm (`learner_profiles.exam_goal`) và lộ trình (`study_plan`, JSON ≤ 32 KB) ghi bằng phiên của
+  họ (RLS `own_update`), server action kiểm lại gói. Điểm dự kiến: 0,5 / 0,3 / 0,2 của 3 lượt đề đầy đủ gần nhất, ẩn khi
+  < 2 lượt. Bản đồ thành thạo tô màu khi bài có ≥ 20 câu đã chấm (vững ≥ 80%, khá 50–79%, cần ôn < 50%), có chữ ghi mức
+  bên cạnh màu. Đếm ngược chỉ khi có `NEXT_PUBLIC_EXAM_DATE`.
+- **Lộ trình**: mục tiêu 6 / 7 / 8 / 9+, 2–7 buổi / tuần; dài tới ngày thi (tối đa 26 tuần) hoặc 8 tuần khi chưa có ngày
+  thi. Mỗi tuần: buổi ôn sổ câu sai (khi ≥ 3 buổi), đề đầy đủ (mục tiêu 6: 2 tuần một đề; 7–8: mỗi tuần; 9+: 2 đề khi ≥ 4
+  buổi), còn lại luyện bài theo thứ tự yếu → chưa đủ dữ liệu → khá → vững. Buổi tự tick từ lượt nộp sau khi lập (luyện bài:
+  ≥ 5 câu của bài trong một lượt); không có tick tay. Trang luyện tập nhận `?bai=` để mở sẵn bài.
 
 ## 7. Phụ lục kỹ thuật
 

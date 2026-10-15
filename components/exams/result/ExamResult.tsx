@@ -11,12 +11,13 @@ import { Button, LinkButton } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
 import { kindRows, lessonRows, levelRows, matchesFilter, points, solutionFilterLabels, weakestLesson, type SolutionFilter } from "@/lib/exams/analytics";
 import { attemptPaths, parseAttemptView, type AttemptView } from "@/lib/exams/attempt";
-import { DEVICE_HEADER, examPaths, formatScore10 } from "@/lib/exams/exam";
+import { getBlueprint } from "@/lib/exams/blueprint";
+import { DEVICE_HEADER, examPaths, formatScore10, generatedKey } from "@/lib/exams/exam";
 import { formatDuration, parseHistory, previousAttempt, roomKeys, type HistoryEntry } from "@/lib/exams/room";
 import { getDeviceId, useHydrated } from "@/lib/hooks/useLicense";
 import { cn } from "@/lib/utils/cn";
 
-type Load = { state: "loading" } | { state: "missing" } | { state: "open"; slug: string | null } | { state: "ready"; view: AttemptView; previous: HistoryEntry | null };
+type Load = { state: "loading" } | { state: "missing" } | { state: "open"; href: string } | { state: "ready"; view: AttemptView; previous: HistoryEntry | null };
 
 const FILTERS: SolutionFilter[] = ["tat-ca", "sai", "bo-trong", "danh-dau"];
 
@@ -51,14 +52,15 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
         if (cancelled) return;
         const view = body?.ok ? parseAttemptView(body) : null;
         if (!view) return setLoad({ state: "missing" });
-        if (view.status !== "submitted" || view.score10 === null) return setLoad({ state: "open", slug: view.set?.slug ?? null });
+        if (view.status !== "submitted" || view.score10 === null) return setLoad({ state: "open", href: view.set ? examPaths.set(view.set.slug) : view.blueprint ? examPaths.generated(view.blueprint) : examPaths.hub });
         let history: HistoryEntry[] = [];
         try {
           history = parseHistory(window.localStorage.getItem(roomKeys.history));
         } catch {
           // Không đọc được lịch sử: bỏ phần so sánh.
         }
-        const previous = view.set && view.submittedAt ? previousAttempt(history, view.set.slug, view.id, view.submittedAt) : null;
+        const key = view.set?.slug ?? (view.blueprint ? generatedKey(view.blueprint) : null);
+        const previous = key && view.submittedAt ? previousAttempt(history, key, view.id, view.submittedAt) : null;
         setLoad({ state: "ready", view, previous });
       })
       .catch(() => {
@@ -90,7 +92,7 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
     return (
       <Callout variant="info" title="Bài chưa nộp">
         Em vẫn đang làm bài này.{" "}
-        <Link href={load.slug ? examPaths.set(load.slug) : examPaths.hub} className="text-accent underline">
+        <Link href={load.href} className="text-accent underline">
           Quay lại làm tiếp
         </Link>
       </Callout>
@@ -107,6 +109,8 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
   const times = view.questions.map((question) => view.answers[question.itemId]?.ms ?? 0);
   const counts = Object.fromEntries(FILTERS.map((key) => [key, view.questions.filter((question) => matchesFilter(key, question, view.answers[question.itemId])).length])) as Record<SolutionFilter, number>;
   const practice = view.mode === "practice" || view.mode === "review";
+  const blueprint = view.blueprint ? getBlueprint(view.blueprint) : null;
+  const againHref = view.set ? examPaths.set(view.set.slug) : blueprint ? examPaths.generated(blueprint.id) : null;
   // Câu chưa đạt tối đa (thi: kể cả bỏ trống; luyện tập: trong số câu đã kiểm tra) — như start_practice_attempt "retry".
   const retryable = view.questions.filter((question) => (practice ? question.checked : true) && (question.earnedMilli ?? 0) < (question.kind === "mcq" ? 250 : 1000)).length;
   const visible = view.questions.map((question, position) => ({ question, position })).filter(({ question }) => matchesFilter(filter, question, view.answers[question.itemId]));
@@ -115,7 +119,7 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
     <div className="flex flex-col gap-8">
       <section aria-labelledby="ket-qua" className="flex flex-col items-center gap-3 rounded-card border border-border bg-surface p-6 text-center shadow-card">
         <h2 id="ket-qua" className="font-serif text-xl font-bold text-foreground">
-          Kết quả: {view.set?.title ?? (view.mode === "review" ? "Ôn câu đến hạn" : "Luyện tập")}
+          Kết quả: {view.set?.title ?? (blueprint ? `Đề tự sinh — ${blueprint.label}` : view.mode === "review" ? "Ôn câu đến hạn" : "Luyện tập")}
         </h2>
         {timedOut && <p className="text-sm font-medium text-accent">Hết giờ — bài đã được tự nộp.</p>}
         <p className="font-serif text-5xl font-bold text-accent" data-testid="exam-score">
@@ -127,18 +131,18 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
         {practice ? (
           <p className="text-sm text-muted-foreground">Điểm tính trên {view.total} câu em đã kiểm tra.</p>
         ) : (
-          <StampNotice score={Math.round(score10 * 100)} total={1000} scale10 />
+          !blueprint && <StampNotice score={Math.round(score10 * 100)} total={1000} scale10 />
         )}
         {view.percentile !== null && <p className="text-sm text-foreground">Em cao hơn {view.percentile}% số lượt đã làm đề này.</p>}
         <div className="mt-1 flex flex-wrap justify-center gap-2">
-          {view.set && (
-            <LinkButton href={examPaths.set(view.set.slug)}>
+          {againHref && (
+            <LinkButton href={againHref}>
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              Làm lại đề này
+              {blueprint ? "Làm đề mới cùng dạng" : "Làm lại đề này"}
             </LinkButton>
           )}
           {retryable > 0 && (
-            <LinkButton href={examPaths.retry(view.id)} variant={view.set ? "secondary" : "primary"}>
+            <LinkButton href={examPaths.retry(view.id)} variant={againHref ? "secondary" : "primary"}>
               Làm lại các câu sai ({retryable})
             </LinkButton>
           )}

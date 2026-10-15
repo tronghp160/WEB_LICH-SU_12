@@ -124,6 +124,13 @@ try {
         const checked = await c.rpc("check_attempt_item", { p_attempt_id: "00000000-0000-0000-0000-000000000000", p_user_id: null, p_device_hash: "0".repeat(64), p_item_id: "00000000-0000-0000-0000-000000000000", p_answer: {} });
         return started.error && checked.error ? "❌" : "✅";
       } },
+    // ----- Đề tự sinh (GĐ5, migration 20261028000000_exam_generated.sql) -----
+    { name: "Gọi thẳng `get_generated_intro` / `start_generated_attempt`", expected: "❌❌❌❌❌", note: "Chỉ server gọi sau khi tự chọn câu theo ma trận",
+      run: async (c) => {
+        const intro = await c.rpc("get_generated_intro", { p_user_id: null, p_code: "", p_device_hash: "0".repeat(64), p_blueprint: "tf_only" });
+        const started = await c.rpc("start_generated_attempt", { p_user_id: null, p_code: "", p_device_hash: "0".repeat(64), p_blueprint: "tf_only", p_item_ids: [], p_sections: [], p_shifts: [], p_duration_min: 40 });
+        return intro.error && started.error ? "❌" : "✅";
+      } },
     { name: "Tạo tư liệu nháp", expected: "❌✅✅✅❌",
       run: (c) => c.from("exam_passages").insert({ title: `${PREFIX} tư liệu ${++counter}`, body: "Đoạn tư liệu thử đủ ba mươi ký tự cho ràng buộc độ dài.", source_citation: "Kiểm thử RLS" }).select("id").then(wrote) },
   ];

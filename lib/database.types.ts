@@ -1161,6 +1161,8 @@ export type Database = {
       exam_attempts: {
         Row: {
           answers: Json
+          // Ma trận của lượt đề tự sinh (GĐ5, migration 20261028000000) — null với đề có sẵn / luyện tập.
+          blueprint: string | null
           breakdown: Json | null
           choice_shifts: number[]
           created_at: string
@@ -1213,8 +1215,11 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string
+          // Mục tiêu điểm và lộ trình ôn (GĐ5, migration 20261028000000).
+          exam_goal: number | null
           id: string
           school: string | null
+          study_plan: Json | null
           terms_version: string
           updated_at: string
         }
@@ -1223,8 +1228,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name: string
+          exam_goal?: number | null
           id: string
           school?: string | null
+          study_plan?: Json | null
           terms_version: string
           updated_at?: string
         }
@@ -1233,8 +1240,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string
+          exam_goal?: number | null
           id?: string
           school?: string | null
+          study_plan?: Json | null
           terms_version?: string
           updated_at?: string
         }
@@ -1330,6 +1339,24 @@ export type Database = {
       }
       get_notebook: {
         Args: { p_user_id: string }
+        Returns: Json
+      }
+      // Đề tự sinh theo ma trận — migration 20261028000000_exam_generated.sql (viết tay).
+      get_generated_intro: {
+        Args: { p_user_id?: string | null; p_code: string; p_device_hash: string; p_blueprint: string }
+        Returns: Json
+      }
+      start_generated_attempt: {
+        Args: {
+          p_user_id?: string | null
+          p_code: string
+          p_device_hash: string
+          p_blueprint: string
+          p_item_ids: string[]
+          p_sections: number[]
+          p_shifts: number[]
+          p_duration_min: number
+        }
         Returns: Json
       }
       claim_license: {

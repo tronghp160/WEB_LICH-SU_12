@@ -3,6 +3,7 @@ import { PracticeRoom } from "@/components/exams/practice/PracticeRoom";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { isAttemptId } from "@/lib/exams/attempt";
 import { examPaths } from "@/lib/exams/exam";
+import { getSgkLesson } from "@/lib/sgk/curriculum";
 
 export const metadata: Metadata = {
   title: "Luyện tập theo bài — Luyện thi THPT",
@@ -10,11 +11,12 @@ export const metadata: Metadata = {
 };
 
 // Luyện tập (docs/ke-hoach-luyen-thi.md, mục 4.3 — GĐ4). ?on-tap=1: ôn câu đến hạn trong sổ câu sai; ?tu-luot=<id>:
-// làm lại câu chưa đạt của một lượt.
+// làm lại câu chưa đạt của một lượt; ?bai=<slug>: chọn sẵn một bài.
 export default async function PracticePage({ searchParams }: PageProps<"/luyen-thi/luyen-tap">) {
   const query = await searchParams;
   const retry = typeof query["tu-luot"] === "string" && isAttemptId(query["tu-luot"]) ? query["tu-luot"] : null;
   const mode = query["on-tap"] === "1" ? "review" : retry ? "retry" : "practice";
+  const lesson = typeof query.bai === "string" && getSgkLesson(query.bai) ? query.bai : null;
   const title = mode === "review" ? "Ôn câu đến hạn" : mode === "retry" ? "Làm lại câu sai" : "Luyện tập theo bài";
   return (
     <div className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6">
@@ -27,7 +29,7 @@ export default async function PracticePage({ searchParams }: PageProps<"/luyen-t
             : "Bấm “Kiểm tra” sau mỗi câu. Câu đúng được giãn lịch ôn, câu sai quay lại ôn từ ngày mai."}
         </p>
       </header>
-      <PracticeRoom initialMode={mode} retryFrom={retry} />
+      <PracticeRoom initialMode={mode} retryFrom={retry} initialLessons={lesson ? [lesson] : []} />
     </div>
   );
 }

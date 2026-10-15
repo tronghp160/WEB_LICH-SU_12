@@ -800,3 +800,34 @@ Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quy�
 | Ma trận quyền `tests/rls/exam-bank.mjs` | **85/85 ô** (thêm sổ câu sai, gọi thẳng hàm luyện tập) |
 | E2E `exam-room` 4/4 · `exam-attempts` 5/5 · `account` B6 3/3 · a11y `/luyen-thi*` 4/4 · `payments` 13/14 (ca T1 chờ câu UPDATE mô tả đề mẫu, mục 21) | đạt |
 | Lint, tsc, build | sạch |
+
+## 26. Luyện thi — GĐ5: đề tự sinh theo ma trận, tổng quan, lộ trình ôn (15/10/2026)
+
+Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quyết định khi làm GĐ5"). Migration
+`20261028000000_exam_generated.sql` — **người dùng đã chạy 15/10/2026**.
+
+- Database: cột `exam_attempts.blueprint`, `learner_profiles.exam_goal` / `study_plan`; `exam_attempt_view` trả thêm
+  `blueprint`; hàm `get_generated_intro`, `start_generated_attempt` (kiểm gói, chỉ câu đã công bố / không trùng, lượt dở
+  cùng ma trận → làm tiếp, lượt quá hạn được chấm). Chỉ `service_role` gọi.
+- Web: `lib/exams/blueprint.ts` (ma trận, phân bố theo số tiết), `lib/exams/generate.ts` (chọn câu có seed, tránh câu 14
+  ngày, ≤ 2 câu / sự kiện, rải đáp án ngẫu nhiên cân bằng, nới dần + ghi chú), route `/api/luyen-thi/de-ngau-nhien`, trang
+  `/luyen-thi/de-ngau-nhien` (chỉ liệt kê ma trận đủ 3 đề không trùng; ghi "không phải ma trận chính thức của Bộ") và
+  `/luyen-thi/de-ngau-nhien/[maTran]` (ExamRoom nhận `blueprint`); `/luyen-thi/tong-quan` (điểm dự kiến, mục tiêu, chuỗi
+  ngày, đếm ngược khi có ngày thi, việc nên làm tiếp, bản đồ thành thạo 17 bài, lịch sử); `/luyen-thi/lo-trinh` (mục tiêu
+  6–9+, 2–7 buổi / tuần, tự tick); `/luyen-thi/luyen-tap?bai=`; kết quả đề tự sinh: tiêu đề, "Làm đề mới cùng dạng", không
+  tính Hộ chiếu. Nút "Rải đều đáp án" ở trang soạn đề chọn ngẫu nhiên giữa các chữ đang ít nhất.
+- Ngân hàng thật hiện 20 câu trắc nghiệm, 0 câu Đúng/Sai → mọi ma trận đang ẩn (trang báo "đang bổ sung"); E2E tự thêm
+  24 câu Đúng/Sai thử rồi dọn.
+- Cùng ngày: chạy câu UPDATE mô tả `de-1` / `de-2` còn treo từ GĐ0 (mục 21) qua API — ca T1 của payments hết đỏ.
+
+| Nhóm | Kết quả |
+|---|---|
+| Kiểm sau migration (DB thật, khóa bí mật) | có cột mới; `get_generated_intro` / `start_generated_attempt` khi chưa có gói → `pack_required`, ma trận lạ → `unsupported_mode`; khóa anon gọi hai hàm → 42501 |
+| SQL `supabase/tests/exam_generated.sql` (PGlite, cả chuỗi migration) | **10/10**; `exam_practice.sql` 18/18, `exam_attempts.sql` 21/21, `exam_bank.sql` 31/31 |
+| Unit test | **717/717**, 51 file — thêm `exam-generate.test.ts` (ma trận, chia theo số tiết, cùng seed cùng đề, đáp án 6/6/6/6, mức độ, chủ đề, tránh câu gần đây + ghi chú, ≤ 2 câu / sự kiện, tư liệu Phần I / II, thiếu câu → null, `canGenerate`), `exam-overview.test.ts` (điểm dự kiến 0,5/0,3/0,2 và làm tròn 0,05, bản đồ thành thạo, chuỗi ngày theo giờ Việt Nam, việc nên làm tiếp, lộ trình: số tuần, mật độ đề đầy đủ, thứ tự bài, ≤ 32 KB, đọc lại hợp lệ, tick tự động, tuần hiện tại); `balancedShift` ngẫu nhiên khi hòa |
+| E2E `exam-generated.spec.ts` (mới, DB thật, không cần TEST_PW) | **5/5** — API: ma trận lạ 404, chưa có gói 403 `pack_required`. Giao diện: danh sách ghi rõ không phải ma trận của Bộ, chỉ hiện "Chỉ câu Đúng/Sai"; khách / tài khoản chưa có gói thấy lời mời; có gói làm đề 8 câu (40 phút, chỉ câu đã công bố) → 2,5 điểm, "Làm đề mới cùng dạng"; đề thứ hai không trùng câu nào với đề đầu, không lộ đáp án, gọi lại → cùng lượt; tổng quan: 17 bài "chưa đủ dữ liệu", chuỗi 1 ngày, lịch sử, "Làm tiếp bài đang dở", lưu mục tiêu 8; lộ trình 8 tuần × 3 buổi, lưu DB; 360 px không tràn ngang. Dữ liệu thử dọn hết (kiểm lại: 0 câu / lượt / tài khoản còn sót) |
+| E2E `exam-room` 4/4 (lần đầu 3/4 — tự nộp khi hết giờ gặp lỗi mạng, chạy lại đạt) · `exam-attempts` · `exam-practice` · `exam-bank` · a11y · `payments` (kể cả T1) · `account` | đạt (71 + 41 ca, bỏ qua các ca cần TEST_PW / Google) |
+| Ma trận quyền `tests/rls/exam-bank.mjs` | thêm dòng "gọi thẳng hàm đề tự sinh" (❌ cả 5 vai) — **chưa chạy** (cần mật khẩu thử của người dùng: `TEST_PW='…' node tests/rls/exam-bank.mjs`); đã kiểm riêng bằng khóa anon ở trên |
+| Lint, tsc, build | sạch |
+
+Ảnh: `docs/screenshots/luyen-thi-tong-quan-1280.png`, `docs/screenshots/luyen-thi-lo-trinh-360.png`.

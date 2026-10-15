@@ -191,7 +191,12 @@ describe("ghép đề: phần, xoay lựa chọn, rải đáp án (giống get_e
 
   it("thêm câu: đáp án rơi vào chữ đang ít nhất; rải lại cả đề → đều A/B/C/D", () => {
     expect(balancedShift([2, 0, 1, 1], 0)).toBe(1);
-    expect(balancedShift([1, 1, 1, 1], 3)).toBe(1);
+    // Nhiều chữ cùng ít nhất → chọn ngẫu nhiên trong số đó (không thành mẫu A, B, C, D… đoán được).
+    expect(balancedShift([1, 1, 1, 1], 3, () => 0)).toBe(1);
+    expect(balancedShift([1, 1, 1, 1], 3, () => 0.99)).toBe(0);
+    expect(balancedShift([0, 1, 0, 1], 0, () => 0.6)).toBe(2);
+    const targets = new Set(Array.from({ length: 40 }, () => (balancedShift([0, 0, 0, 0], 0) + 0) % 4));
+    expect(targets.size).toBeGreaterThan(1);
     const items = Array.from({ length: 12 }, (_, index) => ({ itemId: String(index), kind: "mcq" as const, correctIndex: 0, shift: 0 }));
     expect(letterCounts(items)).toEqual([12, 0, 0, 0]);
     expect(letterCounts(rebalanceShifts(items))).toEqual([3, 3, 3, 3]);

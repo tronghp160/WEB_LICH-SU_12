@@ -30,14 +30,15 @@ const PRACTICE_MESSAGES: Record<string, string> = {
 };
 const message = (reason: string | undefined) => (reason && PRACTICE_MESSAGES[reason]) || examAccessMessage(reason).message;
 
-type Props = { initialMode: "practice" | "review" | "retry"; retryFrom: string | null };
+/** `initialLessons`: bài chọn sẵn (?bai= — từ "việc nên làm tiếp" / lộ trình, GĐ5). */
+type Props = { initialMode: "practice" | "review" | "retry"; retryFrom: string | null; initialLessons?: string[] };
 
 /**
  * Luyện tập theo bài / dạng / mức độ (docs/ke-hoach-luyen-thi.md, mục 4.3): mỗi câu bấm "Kiểm tra" → server chấm, khóa
  * câu, trả lời giải của ĐÚNG câu đó, ghi sổ câu sai (khi đăng nhập). Không bấm giờ. Chưa có gói: 10 câu kiểm tra / ngày.
  * Cùng component cho "Ôn câu đến hạn" (sổ câu sai) và "Làm lại câu sai" của một lượt.
  */
-export function PracticeRoom({ initialMode, retryFrom }: Props) {
+export function PracticeRoom({ initialMode, retryFrom, initialLessons = [] }: Props) {
   const router = useRouter();
   const hydrated = useHydrated();
   const license = useLicense();
@@ -49,7 +50,7 @@ export function PracticeRoom({ initialMode, retryFrom }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quota, setQuota] = useState(false);
-  const [lessons, setLessons] = useState<string[]>([]);
+  const [lessons, setLessons] = useState<string[]>(initialLessons);
   const [kinds, setKinds] = useState<string[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
   const [passage, setPassage] = useState<"tat-ca" | "co" | "khong">("tat-ca");
