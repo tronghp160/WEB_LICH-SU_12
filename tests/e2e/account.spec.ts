@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { adminApi, asUser, hasHorizontalOverflow, hasSecretKey, login, TEST_PW } from "./support";
+import { adminApi, asUser, hasHorizontalOverflow, hasSecretKey, isGoogleEnabled, login, TEST_PW } from "./support";
 
 // Tài khoản học sinh — giai đoạn B2 (docs/ke-hoach-tai-khoan.md, mục 12, E2E (1)–(5)). Chạy trên database THẬT, cần
 // migration 20261020000000_learner_accounts.sql và SUPABASE_SECRET_KEY trong .env.local (tạo / dọn tài khoản thử bằng
@@ -202,6 +202,39 @@ test.describe.serial("Tài khoản học sinh (B2)", () => {
     await signIn(page, email, newPassword);
     await page.waitForURL(/\/tai-khoan$/);
   });
+});
+
+// Nút "Google" ở /dang-nhap và /dang-ky: nằm DƯỚI form email, sau dòng "hoặc … bằng". Chỉ kiểm chuyển hướng sang Google /
+// Supabase, không đăng nhập thật. Lưu đệm cài đặt ở server tối đa 5 phút — vừa đổi trong Supabase thì khởi động lại server.
+test.describe("Nút Google ở trang đăng nhập / đăng ký", () => {
+  const PAGES = [
+    { path: "/dang-nhap", name: "Đăng nhập bằng Google", submit: "Đăng nhập", divider: "hoặc đăng nhập bằng" },
+    { path: "/dang-ky", name: "Đăng ký bằng Google", submit: "Tạo tài khoản", divider: "hoặc đăng ký bằng" },
+  ];
+
+  for (const { path, name, submit, divider } of PAGES) {
+    test(`${path}: Google bật → nút "Google" dưới form, bấm thì sang trang chọn tài khoản`, async ({ page }) => {
+      test.skip(!(await isGoogleEnabled()), "Supabase chưa bật provider Google");
+      await page.goto(`${path}?next=%2Fluyen-thi`);
+      const google = page.getByRole("button", { name });
+      await expect(google).toHaveText("Google");
+      await expect(page.getByRole("separator", { name: divider })).toBeVisible();
+      const formBox = await page.getByRole("button", { name: submit, exact: true }).boundingBox();
+      const googleBox = await google.boundingBox();
+      expect(googleBox!.y).toBeGreaterThan(formBox!.y + formBox!.height);
+
+      await google.click();
+      await page.waitForURL((url) => url.hostname === "accounts.google.com" || /\.supabase\.co$/.test(url.hostname));
+    });
+
+    test(`${path}: Google tắt → không có nút Google`, async ({ page }) => {
+      test.skip(await isGoogleEnabled(), "Supabase đã bật provider Google");
+      await page.goto(path);
+      await expect(page.getByRole("button", { name: submit, exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: /Google/ })).toHaveCount(0);
+      await expect(page.getByRole("separator", { name: divider })).toHaveCount(0);
+    });
+  }
 });
 
 // Đăng nhập Google — giai đoạn B3 (mục 6.1). Google chặn trình duyệt tự động; ở đây giả lập "người vào lần đầu chưa đồng

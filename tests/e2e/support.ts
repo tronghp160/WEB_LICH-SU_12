@@ -32,6 +32,17 @@ export async function asUser(email: string, password: string | undefined = TEST_
   return client;
 }
 
+/** Supabase đã bật đăng nhập Google (cùng nguồn với lib/auth/providers.ts: GET /auth/v1/settings, khóa publishable). */
+export async function isGoogleEnabled(): Promise<boolean> {
+  const env = readEnv();
+  const response = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`, {
+    headers: { apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY },
+  });
+  if (!response.ok) return false;
+  const settings = (await response.json()) as { external?: { google?: unknown } };
+  return settings.external?.google === true;
+}
+
 /** Đã cấu hình khóa bí mật (cần cho việc dọn tài khoản Auth do bộ kiểm thử tạo ra). KHÔNG bao giờ in giá trị khóa. */
 export function hasSecretKey(): boolean {
   return Boolean(readEnv().SUPABASE_SECRET_KEY);
