@@ -1,0 +1,417 @@
+{
+  "passages": [
+    {
+      "key": "tuyen-ngon-doc-lap-doan-cuoi",
+      "title": "Tuyên ngôn độc lập (2-9-1945) — đoạn kết",
+      "body": "“Nước Việt Nam có quyền hưởng tự do và độc lập, và sự thật đã thành một nước tự do, độc lập. Toàn thể dân tộc Việt Nam quyết đem tất cả tinh thần và lực lượng, tính mạng và của cải để giữ vững quyền tự do, độc lập ấy.”",
+      "source_citation": "Hồ Chí Minh, Tuyên ngôn độc lập, đọc tại Quảng trường Ba Đình, Hà Nội, ngày 2-9-1945",
+      "lesson_slug": "6-cach-mang-thang-tam-nam-1945"
+    },
+    {
+      "key": "loi-keu-goi-toan-quoc-khang-chien",
+      "title": "Lời kêu gọi toàn quốc kháng chiến (12-1946)",
+      "body": "“Chúng ta muốn hòa bình, chúng ta phải nhân nhượng. Nhưng chúng ta càng nhân nhượng, thực dân Pháp càng lấn tới, vì chúng quyết tâm cướp nước ta lần nữa! Không! Chúng ta thà hy sinh tất cả, chứ nhất định không chịu mất nước, nhất định không chịu làm nô lệ.”",
+      "source_citation": "Hồ Chí Minh, Lời kêu gọi toàn quốc kháng chiến, ngày 19-12-1946",
+      "lesson_slug": "7-khang-chien-chong-phap"
+    }
+  ],
+  "items": [
+    {
+      "kind": "mcq",
+      "stem": "Hội nghị toàn quốc của Đảng (8-1945) quyết định phát động Tổng khởi nghĩa giành chính quyền họp ở đâu?",
+      "choices": [
+        "Đình Bảng (Bắc Ninh)",
+        "Hương Cảng (Trung Quốc)",
+        "Tân Trào (Tuyên Quang)",
+        "Pác Bó (Cao Bằng)"
+      ],
+      "correct": 2,
+      "explanation": "Hội nghị toàn quốc của Đảng họp ở Tân Trào ngày 14 và 15-8-1945, quyết định phát động Tổng khởi nghĩa; tiếp đó Quốc dân Đại hội cũng họp ở Tân Trào (16-8-1945).",
+      "lesson_slug": "6-cach-mang-thang-tam-nam-1945",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 6"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Thời cơ “ngàn năm có một” để nhân dân Việt Nam tiến hành Tổng khởi nghĩa tháng Tám năm 1945 xuất hiện khi",
+      "choices": [
+        "Pháp đưa quân trở lại Đông Dương",
+        "Nhật Bản đầu hàng Đồng minh không điều kiện",
+        "Nhật đảo chính Pháp ở Đông Dương",
+        "quân Đồng minh vào giải giáp quân Nhật"
+      ],
+      "correct": 1,
+      "explanation": "Ngày 15-8-1945 Nhật đầu hàng Đồng minh, quân Nhật ở Đông Dương rệu rã, chính quyền tay sai hoang mang — trước khi quân Đồng minh vào. Đó là thời cơ để Tổng khởi nghĩa.",
+      "lesson_slug": "6-cach-mang-thang-tam-nam-1945",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 6"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Ngày 30-8-1945 diễn ra sự kiện nào?",
+      "choices": [
+        "Vua Bảo Đại thoái vị",
+        "Khởi nghĩa giành chính quyền ở Hà Nội thắng lợi",
+        "Quốc dân Đại hội họp ở Tân Trào",
+        "Chủ tịch Hồ Chí Minh đọc Tuyên ngôn độc lập"
+      ],
+      "correct": 0,
+      "explanation": "Ngày 30-8-1945 vua Bảo Đại thoái vị, chế độ quân chủ chấm dứt. Hà Nội giành chính quyền ngày 19-8; Quốc dân Đại hội họp ngày 16-8; Tuyên ngôn độc lập được đọc ngày 2-9.",
+      "lesson_slug": "6-cach-mang-thang-tam-nam-1945",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 6"
+    },
+    {
+      "kind": "true_false",
+      "stem": "Cho thông tin: “Từ ngày 14 đến ngày 28-8-1945, cuộc Tổng khởi nghĩa giành chính quyền diễn ra trong cả nước.”",
+      "statements": [
+        {
+          "text": "Khởi nghĩa giành chính quyền ở Hà Nội thắng lợi trước Huế và Sài Gòn.",
+          "is_true": true,
+          "explanation": "Hà Nội ngày 19-8, Huế ngày 23-8, Sài Gòn ngày 25-8-1945."
+        },
+        {
+          "text": "Bắc Giang, Hải Dương, Hà Tĩnh và Quảng Nam là những địa phương giành chính quyền ở tỉnh lị sớm nhất (18-8-1945).",
+          "is_true": true,
+          "explanation": "Đây là bốn tỉnh giành chính quyền ở tỉnh lị sớm nhất trong cả nước."
+        },
+        {
+          "text": "Cách mạng tháng Tám thắng lợi chủ yếu nhờ quân Đồng minh đánh đuổi phát xít Nhật ở Việt Nam.",
+          "is_true": false,
+          "explanation": "Nhân dân Việt Nam tự lực giành chính quyền trước khi quân Đồng minh vào; Đồng minh chỉ tạo thời cơ khách quan khi đánh bại Nhật."
+        },
+        {
+          "text": "Tổng khởi nghĩa nổ ra khi quân Nhật đang ở thế mạnh, chưa đầu hàng Đồng minh.",
+          "is_true": false,
+          "explanation": "Tổng khởi nghĩa nổ ra sau khi Nhật đầu hàng Đồng minh (15-8-1945)."
+        }
+      ],
+      "explanation": "Câu kiểm tra diễn biến và nguyên nhân thắng lợi của Cách mạng tháng Tám.",
+      "lesson_slug": "6-cach-mang-thang-tam-nam-1945",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 6"
+    },
+    {
+      "kind": "true_false",
+      "stem": "Đọc đoạn tư liệu và cho biết mỗi ý sau đúng hay sai.",
+      "passage": "tuyen-ngon-doc-lap-doan-cuoi",
+      "statements": [
+        {
+          "text": "Đoạn tư liệu khẳng định quyền hưởng tự do, độc lập của nước Việt Nam.",
+          "is_true": true,
+          "explanation": "Câu đầu đoạn tư liệu nêu rõ điều này."
+        },
+        {
+          "text": "Đoạn tư liệu thể hiện quyết tâm của toàn dân tộc giữ vững quyền tự do, độc lập.",
+          "is_true": true,
+          "explanation": "“Toàn thể dân tộc Việt Nam quyết đem tất cả tinh thần và lực lượng…”."
+        },
+        {
+          "text": "Theo đoạn tư liệu, Việt Nam sẽ giữ vững độc lập bằng cách dựa hoàn toàn vào nước ngoài.",
+          "is_true": false,
+          "explanation": "Trái với tư liệu: dân tộc Việt Nam đem tất cả lực lượng của chính mình để giữ độc lập."
+        },
+        {
+          "text": "Đoạn tư liệu ra đời sau khi cuộc kháng chiến chống thực dân Pháp thắng lợi.",
+          "is_true": false,
+          "explanation": "Tuyên ngôn độc lập được đọc ngày 2-9-1945, trước cuộc kháng chiến chống Pháp."
+        }
+      ],
+      "explanation": "Câu đọc hiểu tư liệu: phân biệt nội dung có trong tư liệu với suy diễn sai và bối cảnh thời gian.",
+      "lesson_slug": "6-cach-mang-thang-tam-nam-1945",
+      "level": "van_dung",
+      "competency": "van_dung_kien_thuc",
+      "source_note": "Tuyên ngôn độc lập (2-9-1945); SGK Lịch sử 12 (KNTT), Bài 6"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Đường lối kháng chiến chống thực dân Pháp (1945 – 1954) của Đảng là",
+      "choices": [
+        "đánh nhanh, thắng nhanh, dựa vào viện trợ",
+        "chỉ đấu tranh ngoại giao, tránh xung đột",
+        "dựa vào quân Đồng minh để giải phóng đất nước",
+        "toàn dân, toàn diện, trường kì, tự lực cánh sinh"
+      ],
+      "correct": 3,
+      "explanation": "Đường lối kháng chiến: toàn dân, toàn diện, trường kì, tự lực cánh sinh và tranh thủ sự ủng hộ của quốc tế.",
+      "lesson_slug": "7-khang-chien-chong-phap",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 7"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Thắng lợi của chiến dịch Việt Bắc thu – đông năm 1947 đã làm phá sản chiến lược nào của thực dân Pháp?",
+      "choices": [
+        "Kế hoạch Rơ-ve",
+        "Kế hoạch Đờ Lát đơ Tát-xi-nhi",
+        "“Đánh nhanh, thắng nhanh”",
+        "Kế hoạch Na-va"
+      ],
+      "correct": 2,
+      "explanation": "Thắng lợi Việt Bắc thu – đông 1947 làm phá sản chiến lược “đánh nhanh, thắng nhanh”, buộc Pháp chuyển sang đánh lâu dài.",
+      "lesson_slug": "7-khang-chien-chong-phap",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 7"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Đại hội đại biểu toàn quốc lần thứ II của Đảng (2-1951) đã quyết định",
+      "choices": [
+        "phát động Tổng khởi nghĩa giành chính quyền",
+        "đưa Đảng ra hoạt động công khai với tên Đảng Lao động Việt Nam",
+        "đề ra đường lối đổi mới toàn diện đất nước",
+        "thành lập Mặt trận Việt Minh"
+      ],
+      "correct": 1,
+      "explanation": "Đại hội II (2-1951) quyết định đưa Đảng ra hoạt động công khai, lấy tên Đảng Lao động Việt Nam. Đường lối đổi mới thuộc Đại hội VI (1986); Việt Minh thành lập năm 1941; Tổng khởi nghĩa năm 1945.",
+      "lesson_slug": "7-khang-chien-chong-phap",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 7"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Năm 1953, Pháp và Mỹ đề ra kế hoạch quân sự nào nhằm giành thắng lợi quyết định trong vòng 18 tháng?",
+      "choices": [
+        "Kế hoạch Na-va",
+        "Kế hoạch Rơ-ve",
+        "Kế hoạch Xta-lây – Tay-lo",
+        "Kế hoạch Mác-san"
+      ],
+      "correct": 0,
+      "explanation": "Kế hoạch Na-va (1953) hi vọng trong 18 tháng giành thắng lợi quyết định. Kế hoạch Rơ-ve có từ năm 1949; Xta-lây – Tay-lo là kế hoạch của Mỹ ở miền Nam (1961); Mác-san là kế hoạch viện trợ Tây Âu.",
+      "lesson_slug": "7-khang-chien-chong-phap",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 7"
+    },
+    {
+      "kind": "true_false",
+      "stem": "Cho thông tin: “Ngày 6-3-1946, Chủ tịch Hồ Chí Minh thay mặt Chính phủ kí với đại diện Chính phủ Pháp bản Hiệp định Sơ bộ.”",
+      "statements": [
+        {
+          "text": "Theo Hiệp định, Pháp công nhận Việt Nam là một quốc gia tự do, có chính phủ, nghị viện, quân đội và tài chính riêng.",
+          "is_true": true,
+          "explanation": "Đây là nội dung chính của Hiệp định Sơ bộ."
+        },
+        {
+          "text": "Việt Nam đồng ý cho 15 000 quân Pháp ra miền Bắc thay quân Trung Hoa Dân quốc.",
+          "is_true": true,
+          "explanation": "Số quân này sẽ rút dần trong thời hạn 5 năm."
+        },
+        {
+          "text": "Hiệp định Sơ bộ công nhận Việt Nam là một quốc gia độc lập hoàn toàn.",
+          "is_true": false,
+          "explanation": "Hiệp định chỉ công nhận “quốc gia tự do”, chưa phải độc lập hoàn toàn."
+        },
+        {
+          "text": "Sau khi kí Hiệp định Sơ bộ, chiến tranh giữa Việt Nam và Pháp chấm dứt hẳn.",
+          "is_true": false,
+          "explanation": "Pháp tiếp tục lấn tới; cuối năm 1946 cuộc kháng chiến toàn quốc bùng nổ."
+        }
+      ],
+      "explanation": "Câu kiểm tra nội dung và ý nghĩa của Hiệp định Sơ bộ 6-3-1946.",
+      "lesson_slug": "7-khang-chien-chong-phap",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 7"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Đoạn tư liệu thể hiện rõ nhất điều gì?",
+      "passage": "loi-keu-goi-toan-quoc-khang-chien",
+      "choices": [
+        "Chủ trương hòa hoãn lâu dài với thực dân Pháp",
+        "Mong muốn dựa vào nước ngoài để giữ hòa bình",
+        "Kế hoạch tổng tiến công kết thúc chiến tranh",
+        "Quyết tâm bảo vệ độc lập, không chịu mất nước"
+      ],
+      "correct": 3,
+      "explanation": "“Thà hy sinh tất cả, chứ nhất định không chịu mất nước, nhất định không chịu làm nô lệ” thể hiện quyết tâm bảo vệ độc lập. Tư liệu nói đã nhân nhượng nhưng Pháp lấn tới, nên không còn hòa hoãn; tư liệu không nói tới dựa vào nước ngoài hay kế hoạch tổng tiến công.",
+      "lesson_slug": "7-khang-chien-chong-phap",
+      "level": "van_dung",
+      "competency": "van_dung_kien_thuc",
+      "source_note": "Lời kêu gọi toàn quốc kháng chiến (19-12-1946); SGK Lịch sử 12 (KNTT), Bài 7"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Phong trào Đồng khởi (1959 – 1960) nổ ra tiêu biểu nhất ở tỉnh nào?",
+      "choices": [
+        "Tây Ninh",
+        "Cà Mau",
+        "Bến Tre",
+        "Quảng Ngãi"
+      ],
+      "correct": 2,
+      "explanation": "Phong trào Đồng khởi bùng lên mạnh mẽ, tiêu biểu nhất ở Bến Tre (1-1960), rồi lan rộng khắp miền Nam.",
+      "lesson_slug": "8-khang-chien-chong-my-cuu-nuoc",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 8"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Mặt trận Dân tộc giải phóng miền Nam Việt Nam ra đời ngày",
+      "choices": [
+        "30-4-1975",
+        "20-12-1960",
+        "19-12-1946",
+        "27-1-1973"
+      ],
+      "correct": 1,
+      "explanation": "Mặt trận Dân tộc giải phóng miền Nam Việt Nam ra đời ngày 20-12-1960, một thành quả của phong trào Đồng khởi.",
+      "lesson_slug": "8-khang-chien-chong-my-cuu-nuoc",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 8"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Chiến thắng Ấp Bắc (1-1963) chứng tỏ quân dân miền Nam có khả năng đánh bại chiến lược chiến tranh nào của Mỹ?",
+      "choices": [
+        "“Chiến tranh đặc biệt”",
+        "“Chiến tranh cục bộ”",
+        "“Việt Nam hóa chiến tranh”",
+        "“Chiến tranh tổng lực”"
+      ],
+      "correct": 0,
+      "explanation": "Ấp Bắc (1-1963) diễn ra trong thời kì Mỹ thực hiện “Chiến tranh đặc biệt” (1961 – 1965). Vạn Tường (8-1965) gắn với “Chiến tranh cục bộ”.",
+      "lesson_slug": "8-khang-chien-chong-my-cuu-nuoc",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 8"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Chiến thắng Vạn Tường (Quảng Ngãi, 8-1965) mở đầu cao trào “tìm Mỹ mà đánh” trong thời kì Mỹ tiến hành chiến lược",
+      "choices": [
+        "“Chiến tranh đặc biệt”",
+        "“Việt Nam hóa chiến tranh”",
+        "“Chiến tranh đơn phương”",
+        "“Chiến tranh cục bộ”"
+      ],
+      "correct": 3,
+      "explanation": "Vạn Tường là trận đầu quân dân miền Nam đánh thắng quân viễn chinh Mỹ trong “Chiến tranh cục bộ” (1965 – 1968).",
+      "lesson_slug": "8-khang-chien-chong-my-cuu-nuoc",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 8"
+    },
+    {
+      "kind": "true_false",
+      "stem": "Cho thông tin: “Ngày 27-1-1973, Hiệp định Pa-ri về chấm dứt chiến tranh, lập lại hòa bình ở Việt Nam được kí chính thức.”",
+      "statements": [
+        {
+          "text": "Hoa Kỳ cam kết tôn trọng độc lập, chủ quyền, thống nhất và toàn vẹn lãnh thổ của Việt Nam.",
+          "is_true": true,
+          "explanation": "Đây là điều khoản quan trọng nhất của Hiệp định Pa-ri."
+        },
+        {
+          "text": "Hiệp định quy định quân đội Mỹ và quân đồng minh của Mỹ được tiếp tục ở lại miền Nam.",
+          "is_true": false,
+          "explanation": "Hiệp định quy định Mỹ rút hết quân đội và quân đồng minh trong 60 ngày."
+        },
+        {
+          "text": "Hiệp định Pa-ri đánh dấu việc hoàn thành thống nhất đất nước.",
+          "is_true": false,
+          "explanation": "Đất nước được giải phóng năm 1975 và thống nhất về mặt nhà nước năm 1976."
+        },
+        {
+          "text": "Hiệp định Pa-ri là kết quả của cuộc đấu tranh quân sự, chính trị và ngoại giao.",
+          "is_true": true,
+          "explanation": "Thắng lợi trên chiến trường (đặc biệt “Điện Biên Phủ trên không” cuối năm 1972) buộc Mỹ kí hiệp định."
+        }
+      ],
+      "explanation": "Câu kiểm tra nội dung và ý nghĩa của Hiệp định Pa-ri năm 1973.",
+      "lesson_slug": "8-khang-chien-chong-my-cuu-nuoc",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 8"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Ngày 17-2-1979 gắn với sự kiện nào trong lịch sử bảo vệ Tổ quốc?",
+      "choices": [
+        "Trận chiến bảo vệ đảo Gạc Ma ở Trường Sa",
+        "Quân Khơ-me Đỏ bắt đầu tấn công đảo Phú Quốc",
+        "Quân Trung Quốc tấn công dọc biên giới phía Bắc Việt Nam",
+        "Thủ đô Phnôm Pênh được giải phóng khỏi chế độ Pôn Pốt"
+      ],
+      "correct": 2,
+      "explanation": "Ngày 17-2-1979, Trung Quốc huy động quân tấn công dọc tuyến biên giới phía Bắc nước ta. Phnôm Pênh giải phóng ngày 7-1-1979; Gạc Ma năm 1988.",
+      "lesson_slug": "9-bao-ve-to-quoc-tu-sau-thang-4-1975",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 9"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Ngày 7-1-1979, quân tình nguyện Việt Nam phối hợp với lực lượng cách mạng Cam-pu-chia",
+      "choices": [
+        "giải phóng toàn bộ quần đảo Trường Sa",
+        "giải phóng Thủ đô Phnôm Pênh khỏi chế độ diệt chủng Pôn Pốt",
+        "kí hiệp ước biên giới giữa hai nước",
+        "đẩy lùi quân Trung Quốc ở biên giới phía Bắc"
+      ],
+      "correct": 1,
+      "explanation": "Ngày 7-1-1979, Thủ đô Phnôm Pênh được giải phóng, chế độ diệt chủng Pôn Pốt bị lật đổ — kết quả của cuộc chiến đấu bảo vệ biên giới Tây Nam và giúp nhân dân Cam-pu-chia.",
+      "lesson_slug": "9-bao-ve-to-quoc-tu-sau-thang-4-1975",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 9"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Trận chiến bảo vệ chủ quyền ngày 14-3-1988 diễn ra ở quần đảo nào?",
+      "choices": [
+        "Trường Sa",
+        "Hoàng Sa",
+        "Côn Sơn",
+        "Thổ Chu"
+      ],
+      "correct": 0,
+      "explanation": "Ngày 14-3-1988, các chiến sĩ hải quân Việt Nam chiến đấu bảo vệ chủ quyền tại đảo Gạc Ma thuộc quần đảo Trường Sa.",
+      "lesson_slug": "9-bao-ve-to-quoc-tu-sau-thang-4-1975",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 9"
+    },
+    {
+      "kind": "true_false",
+      "stem": "Cho thông tin: “Sau tháng 4-1975, nhân dân Việt Nam tiếp tục phải tiến hành các cuộc đấu tranh bảo vệ chủ quyền, toàn vẹn lãnh thổ của Tổ quốc.”",
+      "statements": [
+        {
+          "text": "Cuộc chiến đấu bảo vệ biên giới Tây Nam là cuộc chiến chống lại tập đoàn Khơ-me Đỏ (Pôn Pốt).",
+          "is_true": true,
+          "explanation": "Tập đoàn Khơ-me Đỏ nhiều lần tấn công biên giới Tây Nam nước ta."
+        },
+        {
+          "text": "Việt Nam đã giúp nhân dân Cam-pu-chia thoát khỏi chế độ diệt chủng.",
+          "is_true": true,
+          "explanation": "Ngày 7-1-1979 Phnôm Pênh được giải phóng."
+        },
+        {
+          "text": "Cuộc chiến đấu bảo vệ biên giới phía Bắc diễn ra trước cuộc chiến đấu bảo vệ biên giới Tây Nam.",
+          "is_true": false,
+          "explanation": "Khơ-me Đỏ gây xung đột ở biên giới Tây Nam từ năm 1975; chiến tranh biên giới phía Bắc bắt đầu ngày 17-2-1979."
+        },
+        {
+          "text": "Cuộc đấu tranh bảo vệ chủ quyền biển, đảo chỉ diễn ra trước năm 1975.",
+          "is_true": false,
+          "explanation": "Từ tuyệt đối “chỉ”: năm 1988 vẫn diễn ra trận chiến bảo vệ Gạc Ma (Trường Sa), và đấu tranh bảo vệ chủ quyền biển đảo vẫn tiếp tục đến nay."
+        }
+      ],
+      "explanation": "Câu kiểm tra các cuộc đấu tranh bảo vệ Tổ quốc sau năm 1975.",
+      "lesson_slug": "9-bao-ve-to-quoc-tu-sau-thang-4-1975",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 9"
+    }
+  ]
+}

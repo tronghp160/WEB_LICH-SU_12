@@ -877,3 +877,24 @@ phép làm tiếp không hỏi lại) sau khi thử PGlite; kiểm: hàm chưa c
 | Lint, tsc, build | sạch |
 
 Ảnh xem trước: `public/anh/luyen-thi/phong-thi.webp`, `ket-qua.webp` (chụp từ bản production, đề miễn phí `de-1`).
+
+## 29. Luyện thi — GĐ6 (lô nháp đầu): câu hỏi cho 17 bài + kiểm tra ngân hàng (16/10/2026)
+
+Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` ("Ghi chú GĐ6"). Không có migration.
+
+- Nội dung: `supabase/content/ngan-hang/chu-de-1-2.json`, `chu-de-3.json`, `chu-de-4-6.json` — **68 câu nháp** (50 trắc
+  nghiệm, 18 Đúng/Sai, 2 câu dùng tư liệu trích nguyên văn), mỗi bài 3–4 câu trắc nghiệm + 1 câu Đúng/Sai, đáp án trắc
+  nghiệm rải A/B/C/D 13/13/12/12. Do Claude soạn từ dữ kiện cơ bản của SGK Lịch sử 12 — **phải được giáo viên đối chiếu SGK
+  trước khi công bố**; nguồn mới ghi tới bài.
+- Nạp vào database thật ở trạng thái **nháp** bằng `supabase/seed-ngan-hang.sql` (dựng bằng `scripts/build-exam-bank-sql.mjs`),
+  tôi chạy bằng `DATABASE_URL` (người dùng cho phép làm tiếp không hỏi lại). Trước: 20 câu trắc nghiệm đã công bố. Sau: thêm
+  50 trắc nghiệm nháp + 18 Đúng/Sai nháp + 2 tư liệu nháp; câu đã công bố không đổi. Học sinh không thấy câu nháp; đề tự
+  sinh và trang bán hàng chỉ đếm câu đã công bố.
+
+| Nhóm | Kết quả |
+|---|---|
+| `npm run kiem-tra-ngan-hang` (mới — `tests/unit/exam-bank-content.test.ts`) | **7/7** — mỗi tệp qua `planImport` (hàm của trang "Nhập từ JSON") không lỗi; không cảnh báo soạn câu (lần đầu bắt **3 câu** có đáp án đúng dài hơn hẳn → đã sửa phương án nhiễu); không trùng / gần giống giữa các tệp; Đúng/Sai có cả ý đúng lẫn ý sai; không chữ cái nào quá 40% đáp án; mọi câu gắn bài SGK, nguồn ghi tới bài |
+| SQL nháp trên PGlite | chạy 2 lần: 68 câu nháp, 2 tư liệu, 2 câu có tư liệu — lần 2 không tạo trùng |
+| Unit test | **739/739**, 54 file |
+| E2E `exam-generated` · `exam-practice` · `exam-shop` (sau khi nạp nháp) | **16 qua**; `exam-bank` 6 ca bỏ qua (cần TEST_PW) |
+| Lint | sạch |

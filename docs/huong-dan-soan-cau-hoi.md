@@ -46,7 +46,9 @@ Kế hoạch tổng thể: `docs/ke-hoach-luyen-thi.md`.
 ## Quy trình
 
 1. Soạn trên giao diện, hoặc soạn tệp JSON (`supabase/content/ngan-hang/<bài>.json`, định dạng ở trang "Nhập từ JSON")
-   rồi bấm **Kiểm tra** — sửa hết lỗi trước khi **Ghi**. Mọi câu vào trạng thái nháp.
+   rồi bấm **Kiểm tra** — sửa hết lỗi trước khi **Ghi**. Mọi câu vào trạng thái nháp. Với tệp JSON trong repo, chạy
+   `npm run kiem-tra-ngan-hang` (lỗi, trùng, câu gần giống, đáp án dài hơn hẳn, Đúng/Sai toàn đúng / toàn sai) rồi
+   `node scripts/build-exam-bank-sql.mjs` để dựng `supabase/seed-ngan-hang.sql`.
 2. Gửi duyệt (từng câu, hoặc chọn nhiều câu ở danh sách → "Gửi duyệt các câu đã chọn").
 3. Kiểm duyệt viên đọc ở chế độ xem trước (có đáp án, lời giải) → công bố hoặc trả về kèm lý do.
 4. Ghép đề ở "Đề luyện thi": đề đầy đủ đúng 24 + 4, bấm "Rải đều đáp án A/B/C/D", gửi duyệt. Công bố đề sẽ công bố luôn

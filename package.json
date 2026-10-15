@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "kiem-tra-ngan-hang": "vitest run tests/unit/exam-bank-content.test.ts"
   },
   "dependencies": {
     "@payos/node": "2.0.5",

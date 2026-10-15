@@ -100,7 +100,7 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 | 3 | Phòng thi mới + trang kết quả | Xong 15/10/2026 (test-report mục 24) — xem "Quyết định khi làm GĐ3" |
 | 4 | Luyện tập, sổ câu sai, ôn ngắt quãng | Xong 15/10/2026 (test-report mục 25) — xem "Quyết định khi làm GĐ4" |
 | 5 | Đề tự sinh, tổng quan, lộ trình | Xong 15/10/2026 (test-report mục 26) — xem "Quyết định khi làm GĐ5"; đề tự sinh hiện ẩn tới khi ngân hàng đủ câu (GĐ6) |
-| 6 | Nội dung (song song từ GĐ1): ≥ 360 câu trắc nghiệm, ≥ 60 câu Đúng/Sai, ≥ 60 câu tư liệu, ≥ 5 đề đầy đủ | |
+| 6 | Nội dung (song song từ GĐ1): ≥ 360 câu trắc nghiệm, ≥ 60 câu Đúng/Sai, ≥ 60 câu tư liệu, ≥ 5 đề đầy đủ | **Đang làm** — lô nháp đầu 16/10/2026: 50 trắc nghiệm + 18 Đúng/Sai (2 có tư liệu) cho cả 17 bài, đã nạp vào ngân hàng ở trạng thái **nháp**, chờ giáo viên đối chiếu SGK và duyệt (test-report mục 29) |
 | 7 | Thống kê câu hỏi, hàng đợi báo lỗi, chấm lại | Xong 16/10/2026 (test-report mục 27) — xem "Quyết định khi làm GĐ7" |
 | 8 | Trang bán hàng, kỹ năng, sổ tay, bản in | Xong 16/10/2026 (test-report mục 28) — xem "Quyết định khi làm GĐ8" |
 | 9 | (Tùy chọn) Thi thử định kỳ | |
@@ -239,6 +239,21 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 - Menu "Ôn tập" thêm Kỹ năng làm bài, Sổ tay ôn thi; sitemap thêm các trang công khai (không có trang kết quả / tổng quan).
 - **Hiệu năng**: Lighthouse mobile `/luyen-thi` 86 (desktop 98) trên máy phát triển, bằng mức chung của web lúc đo (trang chủ
   87, trang kỹ năng tĩnh 86) — chưa đạt mục tiêu 90 của kế hoạch; cần đo lại trên Vercel trước khi kết luận.
+
+### Ghi chú GĐ6 (nội dung)
+
+- Lô nháp đầu do Claude soạn (`supabase/content/ngan-hang/chu-de-1-2.json`, `chu-de-3.json`, `chu-de-4-6.json`): mỗi bài
+  3–4 câu trắc nghiệm + 1 câu Đúng/Sai, chỉ dùng dữ kiện cơ bản của SGK Lịch sử 12, không trùng 20 câu đã công bố; 2 câu
+  dùng tư liệu trích nguyên văn (đoạn kết Tuyên ngôn độc lập; Lời kêu gọi toàn quốc kháng chiến). Nguồn mới ghi tới **bài**
+  — người duyệt bổ sung **mục** khi đối chiếu SGK. Không gắn sự kiện (`event`) — gắn khi duyệt nếu cần.
+- **Không tự công bố**: đã nạp vào database ở trạng thái nháp (`supabase/seed-ngan-hang.sql`, chạy lại không tạo trùng).
+  Giáo viên / kiểm duyệt viên: lọc "Nháp" ở `/quan-tri/ngan-hang-cau-hoi`, đọc bản xem trước, sửa nếu cần, gửi duyệt rồi
+  công bố. Câu không dùng thì xóa (câu nháp xóa được).
+- `npm run kiem-tra-ngan-hang` kiểm mọi tệp JSON bằng đúng hàm của trang "Nhập từ JSON" + trùng giữa các tệp, câu gần
+  giống, cảnh báo soạn câu (đáp án dài hơn hẳn — đã bắt và sửa 3 câu), Đúng/Sai phải có cả ý đúng lẫn ý sai, phân bố đáp
+  án, nguồn ghi tới bài. Chạy cùng bộ unit test.
+- Còn thiếu so với mục tiêu tối thiểu: ~290 câu trắc nghiệm, ~42 câu Đúng/Sai, ~58 câu có tư liệu, 5 đề đầy đủ — cần người
+  soạn có chuyên môn; khi đủ câu Đúng/Sai, đề tự sinh tự hiện (GĐ5) và ghép được đề `thpt_2025`.
 
 ## 7. Phụ lục kỹ thuật
 

@@ -1,0 +1,399 @@
+{
+  "items": [
+    {
+      "kind": "mcq",
+      "stem": "Hiến chương Liên hợp quốc được thông qua tại hội nghị quốc tế nào?",
+      "choices": [
+        "Hội nghị Tê-hê-ran (I-ran) năm 1943",
+        "Hội nghị Xan Phran-xi-xcô (Mỹ) năm 1945",
+        "Hội nghị I-an-ta (Liên Xô) năm 1945",
+        "Hội nghị Pốt-xđam (Đức) năm 1945"
+      ],
+      "correct": 1,
+      "explanation": "Hiến chương Liên hợp quốc được thông qua tại Hội nghị Xan Phran-xi-xcô (từ tháng 4 đến tháng 6-1945). Hội nghị I-an-ta (2-1945) chỉ thỏa thuận việc thành lập tổ chức này; Pốt-xđam và Tê-hê-ran là các hội nghị khác của phe Đồng minh.",
+      "lesson_slug": "1-lien-hop-quoc",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 1"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Trụ sở chính của Liên hợp quốc đặt tại thành phố nào?",
+      "choices": [
+        "Niu Oóc (Mỹ)",
+        "Giơ-ne-vơ (Thụy Sĩ)",
+        "Pa-ri (Pháp)",
+        "Luân Đôn (Anh)"
+      ],
+      "correct": 0,
+      "explanation": "Trụ sở chính của Liên hợp quốc đặt tại Niu Oóc (Mỹ). Giơ-ne-vơ là nơi đặt một số cơ quan, tổ chức của Liên hợp quốc nhưng không phải trụ sở chính.",
+      "lesson_slug": "1-lien-hop-quoc",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 1"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Cơ quan nào của Liên hợp quốc giữ vai trò trọng yếu trong việc duy trì hòa bình và an ninh quốc tế?",
+      "choices": [
+        "Đại hội đồng",
+        "Ban Thư kí",
+        "Tòa án Quốc tế",
+        "Hội đồng Bảo an"
+      ],
+      "correct": 3,
+      "explanation": "Hội đồng Bảo an là cơ quan giữ vai trò trọng yếu trong duy trì hòa bình và an ninh quốc tế; các quyết định quan trọng cần sự nhất trí của 5 ủy viên thường trực. Đại hội đồng gồm mọi thành viên, nghị quyết mang tính khuyến nghị.",
+      "lesson_slug": "1-lien-hop-quoc",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 1"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Việt Nam lần đầu được bầu làm ủy viên không thường trực Hội đồng Bảo an Liên hợp quốc ở nhiệm kì nào?",
+      "choices": [
+        "1995 – 1996",
+        "2020 – 2021",
+        "2008 – 2009",
+        "1977 – 1978"
+      ],
+      "correct": 2,
+      "explanation": "Việt Nam là ủy viên không thường trực Hội đồng Bảo an lần đầu ở nhiệm kì 2008 – 2009, lần thứ hai ở nhiệm kì 2020 – 2021. Năm 1977 là năm Việt Nam gia nhập Liên hợp quốc.",
+      "lesson_slug": "1-lien-hop-quoc",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 1"
+    },
+    {
+      "kind": "true_false",
+      "stem": "Cho thông tin: “Liên hợp quốc chính thức ra đời ngày 24-10-1945. Mục đích hàng đầu của tổ chức là duy trì hòa bình và an ninh quốc tế.”",
+      "statements": [
+        {
+          "text": "Liên hợp quốc ra đời khi Chiến tranh thế giới thứ hai vừa kết thúc.",
+          "is_true": true,
+          "explanation": "Chiến tranh thế giới thứ hai kết thúc tháng 9-1945; Liên hợp quốc chính thức ra đời ngày 24-10-1945."
+        },
+        {
+          "text": "Hội nghị I-an-ta (2-1945) đã thỏa thuận về việc thành lập tổ chức Liên hợp quốc.",
+          "is_true": true,
+          "explanation": "Một trong những quyết định của Hội nghị I-an-ta là thành lập tổ chức Liên hợp quốc để duy trì hòa bình, an ninh thế giới."
+        },
+        {
+          "text": "Mọi nghị quyết của Đại hội đồng Liên hợp quốc đều bắt buộc các nước thành viên phải thi hành.",
+          "is_true": false,
+          "explanation": "Nghị quyết của Đại hội đồng mang tính khuyến nghị; quyết định có tính ràng buộc thuộc về Hội đồng Bảo an."
+        },
+        {
+          "text": "Việt Nam là thành viên của Liên hợp quốc ngay từ khi tổ chức này ra đời.",
+          "is_true": false,
+          "explanation": "Đánh tráo thời gian: Việt Nam gia nhập Liên hợp quốc ngày 20-9-1977."
+        }
+      ],
+      "explanation": "Câu kiểm tra bối cảnh ra đời, cơ cấu và quan hệ của Việt Nam với Liên hợp quốc.",
+      "lesson_slug": "1-lien-hop-quoc",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 1"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Sự kiện nào được coi là mở đầu Chiến tranh lạnh?",
+      "choices": [
+        "Liên Xô thử thành công bom nguyên tử (1949)",
+        "Mỹ đưa ra học thuyết Tơ-ru-man (3-1947)",
+        "Hội nghị I-an-ta được triệu tập (2-1945)",
+        "Tổ chức Hiệp ước Vác-sa-va ra đời (5-1955)"
+      ],
+      "correct": 1,
+      "explanation": "Học thuyết Tơ-ru-man (3-1947) đánh dấu sự khởi đầu của Chiến tranh lạnh. Hội nghị I-an-ta diễn ra trước đó; Hiệp ước Vác-sa-va và việc Liên Xô có bom nguyên tử diễn ra khi Chiến tranh lạnh đã bắt đầu.",
+      "lesson_slug": "2-trat-tu-the-gioi-trong-chien-tranh-lanh",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 2"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Tổ chức Hiệp ước Bắc Đại Tây Dương (NATO) được thành lập năm nào?",
+      "choices": [
+        "1949",
+        "1947",
+        "1955",
+        "1991"
+      ],
+      "correct": 0,
+      "explanation": "NATO ra đời tháng 4-1949, là liên minh quân sự do Mỹ đứng đầu. Năm 1955 là năm thành lập Tổ chức Hiệp ước Vác-sa-va của Liên Xô và các nước Đông Âu.",
+      "lesson_slug": "2-trat-tu-the-gioi-trong-chien-tranh-lanh",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 2"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Kế hoạch Mác-san (1947) của Mỹ là kế hoạch",
+      "choices": [
+        "thành lập liên minh quân sự với các nước Đông Âu",
+        "chạy đua chinh phục vũ trụ với Liên Xô",
+        "hỗ trợ các nước Mỹ La-tinh giành độc lập",
+        "viện trợ kinh tế cho các nước Tây Âu khôi phục sau chiến tranh"
+      ],
+      "correct": 3,
+      "explanation": "Kế hoạch Mác-san viện trợ cho các nước Tây Âu khôi phục kinh tế, đồng thời lôi kéo các nước này vào liên minh chống Liên Xô — góp phần chia châu Âu thành hai khối đối lập.",
+      "lesson_slug": "2-trat-tu-the-gioi-trong-chien-tranh-lanh",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 2"
+    },
+    {
+      "kind": "true_false",
+      "stem": "Cho thông tin: “Sau Chiến tranh thế giới thứ hai, trật tự thế giới hai cực I-an-ta được xác lập; Chiến tranh lạnh diễn ra từ năm 1947 đến năm 1989.”",
+      "statements": [
+        {
+          "text": "Đứng đầu hai cực trong trật tự I-an-ta là Liên Xô và Mỹ.",
+          "is_true": true,
+          "explanation": "Trật tự hai cực I-an-ta do Liên Xô và Mỹ đứng đầu mỗi cực."
+        },
+        {
+          "text": "Chiến tranh lạnh là cuộc chiến tranh trực tiếp bằng quân sự giữa Liên Xô và Mỹ.",
+          "is_true": false,
+          "explanation": "Chiến tranh lạnh là sự đối đầu căng thẳng trên nhiều lĩnh vực; hai nước không trực tiếp đánh nhau bằng quân sự."
+        },
+        {
+          "text": "NATO được thành lập trước Tổ chức Hiệp ước Vác-sa-va.",
+          "is_true": true,
+          "explanation": "NATO ra đời năm 1949, Tổ chức Hiệp ước Vác-sa-va năm 1955."
+        },
+        {
+          "text": "Trật tự hai cực I-an-ta sụp đổ ngay tại cuộc gặp Man-ta năm 1989.",
+          "is_true": false,
+          "explanation": "Cuộc gặp Man-ta (12-1989) tuyên bố chấm dứt Chiến tranh lạnh; trật tự hai cực chỉ sụp đổ khi Liên Xô tan rã năm 1991."
+        }
+      ],
+      "explanation": "Phân biệt trật tự hai cực với Chiến tranh lạnh và các mốc thời gian liên quan.",
+      "lesson_slug": "2-trat-tu-the-gioi-trong-chien-tranh-lanh",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 2"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Trật tự thế giới hai cực I-an-ta sụp đổ hoàn toàn khi",
+      "choices": [
+        "Bức tường Béc-lin bị phá bỏ (1989)",
+        "Nước Đức tái thống nhất (1990)",
+        "Liên Xô tan rã (1991)",
+        "Cuộc gặp Man-ta kết thúc (1989)"
+      ],
+      "correct": 2,
+      "explanation": "Liên Xô tan rã cuối năm 1991, một cực của trật tự I-an-ta không còn — trật tự hai cực sụp đổ. Các sự kiện 1989 – 1990 là những bước dẫn tới sự sụp đổ đó.",
+      "lesson_slug": "3-trat-tu-the-gioi-sau-chien-tranh-lanh",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 3"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Sau Chiến tranh lạnh, hầu hết các quốc gia điều chỉnh chiến lược phát triển theo hướng",
+      "choices": [
+        "đóng cửa, hạn chế quan hệ quốc tế",
+        "lấy phát triển kinh tế làm trọng điểm",
+        "tăng cường chạy đua vũ trang",
+        "tham gia các liên minh quân sự đối đầu"
+      ],
+      "correct": 1,
+      "explanation": "Sau Chiến tranh lạnh, các nước tập trung vào phát triển kinh tế, coi đó là trọng điểm để xây dựng sức mạnh quốc gia; hòa bình, hợp tác và phát triển trở thành xu thế chủ đạo.",
+      "lesson_slug": "3-trat-tu-the-gioi-sau-chien-tranh-lanh",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 3"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Xu hướng phát triển của trật tự thế giới sau Chiến tranh lạnh là",
+      "choices": [
+        "hình thành trật tự đa cực, nhiều trung tâm",
+        "trở lại trật tự hai cực như trước",
+        "trật tự đơn cực ổn định do một nước chi phối hoàn toàn",
+        "không còn quan hệ giữa các cường quốc"
+      ],
+      "correct": 0,
+      "explanation": "Sau năm 1991, thế giới phát triển theo xu hướng đa cực với nhiều trung tâm quyền lực; Mỹ muốn xác lập trật tự đơn cực nhưng không thực hiện được.",
+      "lesson_slug": "3-trat-tu-the-gioi-sau-chien-tranh-lanh",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 3"
+    },
+    {
+      "kind": "true_false",
+      "stem": "Cho thông tin: “Năm 1991, Liên Xô tan rã. Thế giới bước vào thời kì sau Chiến tranh lạnh với nhiều biến đổi.”",
+      "statements": [
+        {
+          "text": "Sự tan rã của Liên Xô làm trật tự hai cực I-an-ta sụp đổ.",
+          "is_true": true,
+          "explanation": "Một trong hai cực không còn nên trật tự I-an-ta chấm dứt."
+        },
+        {
+          "text": "Sau năm 1991, xung đột và tranh chấp trên thế giới chấm dứt hoàn toàn.",
+          "is_true": false,
+          "explanation": "Từ tuyệt đối “hoàn toàn”: xung đột sắc tộc, tôn giáo, tranh chấp lãnh thổ vẫn diễn ra ở nhiều nơi."
+        },
+        {
+          "text": "Sự kiện ngày 11-9-2001 ở Mỹ cho thấy chủ nghĩa khủng bố là mối đe dọa an ninh toàn cầu.",
+          "is_true": true,
+          "explanation": "Vụ khủng bố ngày 11-9-2001 làm thay đổi nhận thức về an ninh của nhiều nước."
+        },
+        {
+          "text": "Sau Chiến tranh lạnh, chạy đua vũ trang trở thành xu thế chủ đạo của thế giới.",
+          "is_true": false,
+          "explanation": "Xu thế chủ đạo là hòa bình, hợp tác và phát triển; các nước lấy phát triển kinh tế làm trọng điểm."
+        }
+      ],
+      "explanation": "Câu kiểm tra hiểu biết về tình hình thế giới sau Chiến tranh lạnh.",
+      "lesson_slug": "3-trat-tu-the-gioi-sau-chien-tranh-lanh",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 3"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Văn kiện đánh dấu sự ra đời của Hiệp hội các quốc gia Đông Nam Á (ASEAN) năm 1967 là",
+      "choices": [
+        "Hiệp ước Ba-li",
+        "Hiến chương ASEAN",
+        "Tầm nhìn ASEAN 2020",
+        "Tuyên bố Băng Cốc"
+      ],
+      "correct": 3,
+      "explanation": "ASEAN ra đời với Tuyên bố Băng Cốc (8-8-1967). Hiệp ước Ba-li kí năm 1976; Hiến chương ASEAN thông qua năm 2007.",
+      "lesson_slug": "4-su-ra-doi-va-phat-trien-cua-asean",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 4"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Hiệp ước Thân thiện và hợp tác ở Đông Nam Á (Hiệp ước Ba-li) được kí kết năm nào?",
+      "choices": [
+        "1984",
+        "1995",
+        "1976",
+        "1967"
+      ],
+      "correct": 2,
+      "explanation": "Hiệp ước Ba-li được kí tại Hội nghị cấp cao ASEAN lần thứ nhất ở Ba-li (In-đô-nê-xi-a) tháng 2-1976, xác định các nguyên tắc cơ bản trong quan hệ giữa các nước.",
+      "lesson_slug": "4-su-ra-doi-va-phat-trien-cua-asean",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 4"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Quốc gia nào trở thành thành viên thứ mười của ASEAN (năm 1999)?",
+      "choices": [
+        "Bru-nây",
+        "Cam-pu-chia",
+        "Lào",
+        "Mi-an-ma"
+      ],
+      "correct": 1,
+      "explanation": "Cam-pu-chia gia nhập ASEAN năm 1999, là thành viên thứ mười. Bru-nây gia nhập năm 1984; Lào và Mi-an-ma năm 1997.",
+      "lesson_slug": "4-su-ra-doi-va-phat-trien-cua-asean",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 4"
+    },
+    {
+      "kind": "true_false",
+      "stem": "Cho thông tin: “Từ 5 nước sáng lập năm 1967, đến năm 1999 ASEAN đã có 10 quốc gia thành viên.”",
+      "statements": [
+        {
+          "text": "Hiệp ước Ba-li (1976) xác định các nguyên tắc cơ bản trong quan hệ giữa các nước thành viên ASEAN.",
+          "is_true": true,
+          "explanation": "Đây là nội dung chính của Hiệp ước Thân thiện và hợp tác ở Đông Nam Á."
+        },
+        {
+          "text": "Bru-nây gia nhập ASEAN sau Việt Nam.",
+          "is_true": false,
+          "explanation": "Đánh tráo thời gian: Bru-nây gia nhập năm 1984, Việt Nam năm 1995."
+        },
+        {
+          "text": "Năm 1999, ASEAN gồm 10 quốc gia thành viên.",
+          "is_true": true,
+          "explanation": "Cam-pu-chia gia nhập năm 1999, ASEAN có 10 thành viên."
+        },
+        {
+          "text": "Hiến chương ASEAN được thông qua ngay khi ASEAN được thành lập năm 1967.",
+          "is_true": false,
+          "explanation": "Hiến chương ASEAN được thông qua năm 2007, có hiệu lực từ năm 2008."
+        }
+      ],
+      "explanation": "Câu kiểm tra các mốc phát triển của ASEAN.",
+      "lesson_slug": "4-su-ra-doi-va-phat-trien-cua-asean",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 4"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Cộng đồng ASEAN chính thức được thành lập vào thời gian nào?",
+      "choices": [
+        "Ngày 31-12-2015",
+        "Ngày 8-8-1967",
+        "Ngày 28-7-1995",
+        "Ngày 15-12-2008"
+      ],
+      "correct": 0,
+      "explanation": "Cộng đồng ASEAN chính thức thành lập ngày 31-12-2015. Ngày 8-8-1967 ASEAN ra đời; 28-7-1995 Việt Nam gia nhập; 15-12-2008 Hiến chương ASEAN có hiệu lực.",
+      "lesson_slug": "5-cong-dong-asean",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 5"
+    },
+    {
+      "kind": "mcq",
+      "stem": "Mục tiêu của Cộng đồng Kinh tế ASEAN (AEC) là xây dựng ASEAN thành",
+      "choices": [
+        "một khu vực dùng chung một đồng tiền",
+        "một liên minh quân sự khu vực",
+        "một nhà nước liên bang chung",
+        "một thị trường và cơ sở sản xuất thống nhất"
+      ],
+      "correct": 3,
+      "explanation": "AEC hướng tới một thị trường và cơ sở sản xuất thống nhất, tự do lưu chuyển hàng hóa, dịch vụ, đầu tư. ASEAN không dùng đồng tiền chung, không phải liên minh quân sự và các nước vẫn giữ chủ quyền.",
+      "lesson_slug": "5-cong-dong-asean",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 5"
+    },
+    {
+      "kind": "true_false",
+      "stem": "Cho thông tin: “Cộng đồng ASEAN được xây dựng dựa trên ba trụ cột: Cộng đồng Chính trị – An ninh, Cộng đồng Kinh tế và Cộng đồng Văn hóa – Xã hội.”",
+      "statements": [
+        {
+          "text": "Cộng đồng ASEAN chính thức được thành lập vào cuối năm 2015.",
+          "is_true": true,
+          "explanation": "Ngày 31-12-2015, Cộng đồng ASEAN chính thức thành lập."
+        },
+        {
+          "text": "Cộng đồng Kinh tế là một trong ba trụ cột của Cộng đồng ASEAN.",
+          "is_true": true,
+          "explanation": "Thông tin có trong đề dẫn."
+        },
+        {
+          "text": "Thành lập Cộng đồng ASEAN đồng nghĩa với việc các nước thành viên từ bỏ chủ quyền quốc gia.",
+          "is_true": false,
+          "explanation": "ASEAN hợp tác trên cơ sở tôn trọng độc lập, chủ quyền của mỗi nước."
+        },
+        {
+          "text": "Sau khi Cộng đồng ASEAN ra đời, ASEAN không còn phải đối mặt với thách thức nào.",
+          "is_true": false,
+          "explanation": "Từ tuyệt đối: ASEAN vẫn còn nhiều thách thức như chênh lệch phát triển, tranh chấp chủ quyền, an ninh phi truyền thống."
+        }
+      ],
+      "explanation": "Câu kiểm tra hiểu biết về Cộng đồng ASEAN và bản chất hợp tác của ASEAN.",
+      "lesson_slug": "5-cong-dong-asean",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 12 (KNTT), Bài 5"
+    }
+  ]
+}
