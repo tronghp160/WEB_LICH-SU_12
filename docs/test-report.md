@@ -387,7 +387,7 @@ sự đang hoạt động thì đi tiếp (quyết định Q1). Nút Google **ch
 
 | # | Kịch bản | Kỳ vọng | Kết quả |
 |---|---|---|---|
-| G1 | Gmail chưa từng đăng ký → Tiếp tục với Google | `/dang-ky/hoan-tat`, tên + ảnh từ Google → Hoàn tất → `/tai-khoan` | chưa kiểm |
+| G1 | Gmail chưa từng đăng ký → bấm nút Google | `/dang-ky/hoan-tat`, tên + ảnh từ Google → Hoàn tất → `/tai-khoan` | chưa kiểm |
 | G2 | Gmail trùng email đã đăng ký bằng mật khẩu | Vào **cùng** tài khoản, không hỏi lại điều khoản | chưa kiểm |
 | G3 | Bấm "Hủy" ở màn hình Google | `/auth/loi?ly-do=google-huy` | chưa kiểm |
 | G4 | Mở lại link `/auth/callback?code=…` lần hai | Đang đăng nhập → đi tiếp; đã đăng xuất → `google-het-han` | chưa kiểm |
@@ -625,3 +625,32 @@ kiện riêng → nút "Xem trang sự kiện" tự ẩn.
 | Unit test | **634/634** |
 | Lint, tsc, build | sạch; thêm `● /bai-hoc/duong-truong-son` (+ trình chiếu) |
 | E2E `lesson`, `battle`, `presentation`, `a11y`, `sgk` (bản production) | **91/91** — thêm 3 ca: bản đồ 7 bước (3 tuyến chi viện + tàu không số ở bước 2, Đồng Lộc bị đánh phá, Sài Gòn được giải phóng), không có nút tới sự kiện chưa có nhưng có lối về Bài 8, trắc nghiệm + trình chiếu, 360 px; trợ năng thêm trang mới × sáng/tối |
+
+## 20. Nút đăng nhập Google theo ảnh minh họa (15/10/2026)
+
+Nhánh `feat/google-login-ui`. Chỉ đổi giao diện — luồng OAuth, `safeNext`, `/auth/callback` giữ nguyên.
+
+- `GoogleButton`: viền xám mảnh (`#dadce0`), nền trắng ở cả sáng / tối, bo góc `rounded-xl`, cao 48 px, chiếm hết chiều
+  ngang; chữ **"Google"**, tên cho trình đọc màn hình "Đăng nhập bằng Google" (trang đăng ký: "Đăng ký bằng Google");
+  thêm prop `label` / `ariaLabel`.
+- `/dang-nhap`, `/dang-ky`: nút chuyển xuống **dưới** form email, sau dòng "hoặc đăng nhập bằng" / "hoặc đăng ký bằng"
+  (theo ảnh minh họa; đặt trên form thì học sinh dùng Gmail thấy nhanh hơn — đổi lại chỉ cần đảo thứ tự trong 2 trang).
+- Đồng bộ chữ "Tiếp tục với Google" ở trang lỗi `/auth/loi`, thông báo trang Bảo mật, câu gợi ý trang đăng nhập.
+- Khi chạy dev mà Supabase chưa bật Google: log server in **một lần** "Nút Google đang ẩn vì Supabase chưa bật provider
+  Google (Authentication → Providers)" (không in URL / khóa).
+- README: mục "Bật đăng nhập Google" (các bước Google Cloud + Supabase, bảng URL cần dán, khắc phục lỗi).
+
+| Nhóm | Kết quả |
+|---|---|
+| Unit test | **639/639**, 44 file — thêm `google-button.test.ts` (5 ca): chữ "Google" + `aria-label`, input ẩn `next`, đổi nhãn, đang chờ → nút khóa + "Đang mở Google…", lỗi từ action hiện `role="alert"`; nhãn `OrDivider` |
+| Lint, tsc | sạch |
+| E2E `account.spec.ts` — nhóm "Nút Google" (4 ca, chạy trên `next dev`) | Google tắt (cấu hình thật): **2/2** — không có nút, không có dòng "hoặc … bằng". Google bật: tự bỏ qua khi Supabase chưa bật; đã chạy bằng cách **tạm** ép cờ bật ở máy (đã hoàn lại, không commit): **2/2** — nút nằm dưới nút gửi form, bấm thì chuyển sang `*.supabase.co/auth/v1/authorize` |
+| Trợ năng axe `/dang-nhap`, `/dang-ky` × sáng/tối (lúc nút đang hiện) | **4/4** đạt; ảnh chụp 1280 px và 360 px không tràn ngang |
+
+**Kiểm tay thêm** (cùng bảng G1–G7 ở mục 13–14, làm sau khi bật Google):
+
+| # | Kịch bản | Kỳ vọng | Kết quả |
+|---|---|---|---|
+| G8 | Máy dùng chung — đăng xuất rồi bấm Google lại | Màn chọn tài khoản Google vẫn hiện (`prompt=select_account`) | chưa kiểm |
+| G9 | Điện thoại 360 px | Nút không tràn, bấm được, quay về đúng trang `next` | chưa kiểm |
+| G10 | Đang ở `/luyen-thi/de-2` (cần đăng nhập) → Google | Quay lại đúng `/luyen-thi/de-2` | chưa kiểm |

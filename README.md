@@ -74,12 +74,53 @@ cp .env.example .env.local   # rồi điền giá trị thật
 **Tài khoản học sinh** cần cấu hình tay trên Supabase (mục 9 `docs/ke-hoach-tai-khoan.md`): bật *Confirm email*; *Site
 URL* = `NEXT_PUBLIC_SITE_URL`; *Redirect URLs* thêm `<địa chỉ web>/**`; dán 3 mẫu email trong `supabase/email-templates/`;
 và **SMTP riêng** (ví dụ Resend) — SMTP mặc định của Supabase chỉ gửi tới email trong nhóm dự án, tối đa 2 email/giờ.
-Đăng nhập Google: bật provider Google (Client ID / Secret từ Google Cloud) và *Manual linking* (để liên kết Google ở
-`/tai-khoan/bao-mat`). Người đã có tài khoản học sinh muốn làm nhân sự: quản trị viên dùng **“Cấp quyền cho tài khoản đã
+Đăng nhập Google: xem mục [Bật đăng nhập Google](#bật-đăng-nhập-google) bên dưới. Người đã có tài khoản học sinh muốn làm nhân sự: quản trị viên dùng **“Cấp quyền cho tài khoản đã
 có”** ở trang Nhân sự (không tạo mật khẩu mới).
 
 Lấy các giá trị Supabase trong Dashboard → *Project Settings → API* (và *Connect* cho `DATABASE_URL`). Mọi biến thanh
 toán đều **chỉ phía server** (không có tiền tố `NEXT_PUBLIC_`).
+
+### Bật đăng nhập Google
+
+Mã đã có sẵn (nút "Google" dưới form ở `/dang-nhap`, `/dang-ky`; liên kết / gỡ ở `/tai-khoan/bao-mat`). Nút **tự ẩn**
+khi Supabase chưa bật provider Google (đọc `/auth/v1/settings`, lưu đệm 5 phút) — khi chạy dev, log server nhắc một lần.
+Chỉ cần cấu hình tay, **không** thêm biến môi trường nào vào web:
+
+1. **Google Cloud Console** (<https://console.cloud.google.com>) → tạo project →
+   - *Google Auth Platform → Branding*: tên ứng dụng `Lịch sử Việt Nam 12`, email hỗ trợ, logo, trang chủ,
+     `https://<tên-miền>/chinh-sach-bao-mat`, `https://<tên-miền>/dieu-khoan`, *Authorized domains* = tên miền web.
+   - *Audience*: External. Lúc thử để *Testing* và thêm Gmail của nhóm vào *Test users*; công khai thì *Publish app*.
+   - *Data access*: chỉ `openid`, `userinfo.email`, `userinfo.profile`.
+   - *Clients → Create client → Web application*, điền bảng dưới, lưu **Client ID** + **Client Secret**. Secret chỉ dán
+     vào Supabase — không vào `.env.local`, không commit.
+2. **Supabase Dashboard** →
+   - *Authentication → Sign In / Providers → Google*: Enable, dán Client ID + Secret, Save.
+   - *Authentication → URL Configuration*: *Site URL* = `NEXT_PUBLIC_SITE_URL`; *Redirect URLs* như bảng dưới.
+   - Bật *Manual linking* (để dùng "Liên kết Google" ở `/tai-khoan/bao-mat`).
+3. Đợi tối đa 5 phút hoặc khởi động lại `npm run dev` → nút Google tự hiện.
+
+| Dán ở đâu | Giá trị |
+|---|---|
+| Google → *Authorized JavaScript origins* | `http://localhost:3000`, `https://<tên-miền>` |
+| Google → *Authorized redirect URIs* | `https://<project-ref>.supabase.co/auth/v1/callback` (chép đúng từ trang provider Google trong Supabase) |
+| Supabase → *Redirect URLs* | `http://localhost:3000/auth/callback`, `https://<tên-miền>/auth/callback`, `https://<tên-miền>/auth/confirm`; bản preview Vercel: `https://*-<team>.vercel.app/**` |
+
+Màn "Chọn tài khoản" là trang của Google (luôn hiện nhờ `prompt=select_account`). Mặc định nó ghi "Tiếp tục tới
+`<project-ref>.supabase.co`". Muốn hiện tên ứng dụng: điền *Branding* rồi gửi **Brand verification** (miễn phí, vài ngày
+làm việc). Muốn hiện tên miền riêng: dùng **Custom Domain** của Supabase (trả phí, ví dụ `auth.<tên-miền>`) — khi đó đổi
+*Authorized redirect URI* thành `https://auth.<tên-miền>/auth/v1/callback` và `NEXT_PUBLIC_SUPABASE_URL` sang tên miền đó.
+
+**Khắc phục lỗi**
+
+| Triệu chứng | Nguyên nhân | Cách sửa |
+|---|---|---|
+| Không thấy nút Google | Provider chưa bật / còn lưu đệm 5 phút | Bước 2, đợi 5 phút hoặc khởi động lại dev |
+| `redirect_uri_mismatch` | *Authorized redirect URI* ở Google sai | Dán đúng `https://<project-ref>.supabase.co/auth/v1/callback` |
+| Đăng nhập xong về trang chủ, không qua `/auth/callback` | `/auth/callback` chưa có trong *Redirect URLs* | Bước 2, thêm URL |
+| `/auth/loi?ly-do=google-het-han` | Mở callback ở trình duyệt khác / cookie bị chặn | Bấm lại nút Google trên cùng trình duyệt |
+| Google báo "Access blocked … not completed verification" | Ứng dụng đang *Testing*, Gmail chưa là *Test user* | Thêm *Test user* hoặc *Publish app* |
+
+Kiểm tay sau khi bật: các ca G1–G10 trong `docs/test-report.md` (mục 13, 14, 20).
 
 ### Tạo database
 

@@ -38,6 +38,14 @@ export async function getAuthSettings(): Promise<AuthSettings> {
   }
 }
 
+let hiddenGoogleNoticeShown = false;
+
 export async function isGoogleAuthEnabled(): Promise<boolean> {
-  return (await getAuthSettings()).google;
+  const { google } = await getAuthSettings();
+  // Chỉ khi phát triển, nhắc một lần cho người cấu hình (không in URL / khóa).
+  if (!google && process.env.NODE_ENV !== "production" && !hiddenGoogleNoticeShown) {
+    hiddenGoogleNoticeShown = true;
+    console.info("Nút Google đang ẩn vì Supabase chưa bật provider Google (Authentication → Providers).");
+  }
+  return google;
 }
