@@ -97,7 +97,9 @@ Chỉ cần cấu hình tay, **không** thêm biến môi trường nào vào we
    - *Authentication → Sign In / Providers → Google*: Enable, dán Client ID + Secret, Save.
    - *Authentication → URL Configuration*: *Site URL* = `NEXT_PUBLIC_SITE_URL`; *Redirect URLs* như bảng dưới.
    - Bật *Manual linking* (để dùng "Liên kết Google" ở `/tai-khoan/bao-mat`).
-3. Đợi tối đa 5 phút hoặc khởi động lại `npm run dev` → nút Google tự hiện.
+3. Nút Google tự hiện khi lưu đệm hết hạn: đợi 5 phút rồi tải lại trang **hai lần** (lần đầu vẫn nhận bản cũ, đồng thời
+   kích hoạt làm mới). Muốn hiện ngay: dừng `npm run dev`, xóa thư mục `.next/dev/cache/fetch-cache` rồi chạy lại
+   (`next start` thì xóa `.next/cache/fetch-cache`). Chỉ khởi động lại thì **không** đủ, vì lưu đệm nằm trên đĩa.
 
 | Dán ở đâu | Giá trị |
 |---|---|
@@ -114,7 +116,7 @@ làm việc). Muốn hiện tên miền riêng: dùng **Custom Domain** của Su
 
 | Triệu chứng | Nguyên nhân | Cách sửa |
 |---|---|---|
-| Không thấy nút Google | Provider chưa bật / còn lưu đệm 5 phút | Bước 2, đợi 5 phút hoặc khởi động lại dev |
+| Không thấy nút Google | Provider chưa bật / còn lưu đệm (trên đĩa, khởi động lại không xóa) | Bước 2; đợi 5 phút rồi tải lại hai lần, hoặc dừng dev, xóa `.next/dev/cache/fetch-cache`, chạy lại |
 | `redirect_uri_mismatch` | *Authorized redirect URI* ở Google sai | Dán đúng `https://<project-ref>.supabase.co/auth/v1/callback` |
 | Đăng nhập xong về trang chủ, không qua `/auth/callback` | `/auth/callback` chưa có trong *Redirect URLs* | Bước 2, thêm URL |
 | `/auth/loi?ly-do=google-het-han` | Mở callback ở trình duyệt khác / cookie bị chặn | Bấm lại nút Google trên cùng trình duyệt |

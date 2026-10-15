@@ -205,7 +205,8 @@ test.describe.serial("Tài khoản học sinh (B2)", () => {
 });
 
 // Nút "Google" ở /dang-nhap và /dang-ky: nằm DƯỚI form email, sau dòng "hoặc … bằng". Chỉ kiểm chuyển hướng sang Google /
-// Supabase, không đăng nhập thật. Lưu đệm cài đặt ở server tối đa 5 phút — vừa đổi trong Supabase thì khởi động lại server.
+// Supabase, không đăng nhập thật. Cài đặt lưu đệm trên đĩa (lib/auth/providers.ts), khởi động lại server không xóa — vừa
+// đổi trong Supabase thì xóa `.next/cache/fetch-cache` trước khi chạy, kẻo ca đầu tiên nhận bản cũ.
 test.describe("Nút Google ở trang đăng nhập / đăng ký", () => {
   const PAGES = [
     { path: "/dang-nhap", name: "Đăng nhập bằng Google", submit: "Đăng nhập", divider: "hoặc đăng nhập bằng" },

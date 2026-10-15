@@ -4,7 +4,12 @@ import "server-only";
 // cần khóa publishable). Google chỉ hoạt động sau khi cấu hình tay; khi chưa bật, Supabase trả JSON lỗi thô ở /authorize
 // → ẩn nút Google thay vì để học sinh gặp trang đó.
 
-/** Lưu đệm kết quả 5 phút: đổi cài đặt trong Supabase thì tối đa 5 phút sau trang mới theo. */
+/**
+ * Lưu đệm kết quả 5 phút trong data cache của Next. Cache ghi ra đĩa (`.next/cache/fetch-cache` khi `next start`,
+ * `.next/dev/cache/fetch-cache` khi `next dev`) nên khởi động lại server KHÔNG xóa. Kiểu stale-while-revalidate: quá 5
+ * phút, request đầu vẫn nhận bản cũ và kích hoạt làm mới nền, request sau mới theo cài đặt mới. Muốn áp dụng ngay: dừng
+ * server, xóa thư mục `fetch-cache` tương ứng rồi chạy lại.
+ */
 const SETTINGS_REVALIDATE_SECONDS = 300;
 
 export type AuthSettings = {
