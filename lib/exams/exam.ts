@@ -72,7 +72,10 @@ export function parseExamPayload(value: unknown): ExamPayload | null {
 
 export type ExamScore = { correct: number; total: number; unanswered: number; score10: number };
 
-/** Chấm bài: thang 10, làm tròn 2 chữ số (đề 40 câu → mỗi câu 0,25 điểm như đề thi thật). */
+/**
+ * Chấm đề chỉ có trắc nghiệm (đề mẫu): quy về thang 10 theo tỉ lệ câu đúng, làm tròn 2 chữ số. Đề đầy đủ có Đúng/Sai chấm
+ * theo lib/exams/format.ts (TRUE_FALSE_POINTS) — từ GĐ2 chấm phía server.
+ */
 export function scoreExam(questions: readonly ExamQuestion[], answers: readonly (number | null)[]): ExamScore {
   let correct = 0;
   let unanswered = 0;

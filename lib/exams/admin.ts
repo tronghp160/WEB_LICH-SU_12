@@ -3,6 +3,7 @@
 
 import { z } from "zod";
 import { canEditContent } from "@/lib/admin/content-kinds";
+import { suggestedMinutes, THPT_2025_LABEL } from "@/lib/exams/format";
 import { sgkLessons } from "@/lib/sgk/curriculum";
 import { requiredText } from "@/lib/validation/content";
 import type { StaffRole, WorkflowStatus } from "@/lib/utils/labels";
@@ -12,10 +13,7 @@ export const examAdminPaths = {
   edit: (slug: string) => `/quan-tri/de-luyen-thi/${slug}`,
 };
 
-/** Đề đầy đủ theo cấu trúc đề thi tốt nghiệp: 40 câu, 50 phút. */
-export const FULL_EXAM_QUESTIONS = 40;
-export const FULL_EXAM_MINUTES = 50;
-/** Ít hơn số câu này thì chưa cho gửi duyệt (đề mẫu tối thiểu). */
+/** Ít hơn số câu này thì chưa cho gửi duyệt (đề mẫu tối thiểu). Cấu trúc đề đầy đủ: lib/exams/format.ts. */
 export const MIN_EXAM_QUESTIONS = 10;
 
 export const EXAM_CHOICE_FIELDS = ["choice_0", "choice_1", "choice_2", "choice_3"] as const;
@@ -79,21 +77,22 @@ export type ExamReadiness = { blockers: string[]; warnings: string[] };
 
 /**
  * Kiểm tra trước khi GỬI DUYỆT / CÔNG BỐ: blockers chặn hẳn, warnings chỉ nhắc người duyệt.
- * Đề đầy đủ là 40 câu / 50 phút; đề mẫu ngắn hơn vẫn được, miễn từ 10 câu.
+ * Đề đầy đủ là 24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút (lib/exams/format.ts). Trang quản trị hiện mới soạn được câu
+ * trắc nghiệm (dạng Đúng/Sai có từ GĐ1, docs/ke-hoach-luyen-thi.md) nên mọi đề đều là đề mẫu — gửi duyệt được, miễn từ 10 câu.
  */
 export function examReadiness(set: { duration_min: number }, questions: readonly ReadinessQuestion[]): ExamReadiness {
   const blockers: string[] = [];
   const warnings: string[] = [];
   if (questions.length < MIN_EXAM_QUESTIONS) {
     blockers.push(`Đề cần ít nhất ${MIN_EXAM_QUESTIONS} câu (hiện có ${questions.length}).`);
-  } else if (questions.length !== FULL_EXAM_QUESTIONS) {
-    warnings.push(`Đề thi thật có ${FULL_EXAM_QUESTIONS} câu; đề này có ${questions.length} câu — nên ghi rõ "đề mẫu" trong tên hoặc mô tả.`);
+  } else {
+    warnings.push(`Đề thi thật gồm ${THPT_2025_LABEL}; đề này có ${questions.length} câu trắc nghiệm — nên ghi rõ "đề mẫu" trong tên hoặc mô tả.`);
   }
   if (questions.some((question) => question.explanation.trim().length < 5)) blockers.push("Có câu thiếu lời giải thích.");
   if (questions.some((question) => question.source_note.trim().length < 3)) blockers.push("Có câu thiếu nguồn.");
 
   if (questions.length >= MIN_EXAM_QUESTIONS) {
-    const expected = Math.round((questions.length / FULL_EXAM_QUESTIONS) * FULL_EXAM_MINUTES);
+    const expected = suggestedMinutes(questions.length);
     if (Math.abs(set.duration_min - expected) > Math.max(5, expected * 0.25)) {
       warnings.push(`Thời gian ${set.duration_min} phút chưa tương xứng với ${questions.length} câu (gợi ý khoảng ${expected} phút).`);
     }

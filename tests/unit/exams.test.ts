@@ -15,10 +15,10 @@ const question = (position: number, correctIndex: number): ExamQuestion => ({
 });
 
 describe("chấm đề luyện thi", () => {
-  it("thang 10, đề 40 câu mỗi câu 0,25 điểm", () => {
-    const questions = Array.from({ length: 40 }, (_, index) => question(index + 1, 0));
-    const answers = questions.map((_, index) => (index < 29 ? 0 : 1));
-    expect(scoreExam(questions, answers)).toEqual({ correct: 29, total: 40, unanswered: 0, score10: 7.25 });
+  it("đề mẫu chỉ có trắc nghiệm: quy về thang 10 theo tỉ lệ câu đúng", () => {
+    const questions = Array.from({ length: 24 }, (_, index) => question(index + 1, 0));
+    const answers = questions.map((_, index) => (index < 18 ? 0 : 1));
+    expect(scoreExam(questions, answers)).toEqual({ correct: 18, total: 24, unanswered: 0, score10: 7.5 });
   });
 
   it("câu bỏ trống tính sai và được đếm riêng", () => {
@@ -104,19 +104,19 @@ describe("lời giới thiệu gói luyện thi khớp số đề đã công b�
   });
 
   it("nhiều đề khác số câu / thời gian → ghi khoảng", () => {
-    const summary = summarizeExamPack([set(false, 10, 15), set(false, 40, 50)]);
-    expect(summary.headline).toContain("Đang mở 2 đề luyện, mỗi đề 10–40 câu, bấm giờ 15–50 phút");
+    const summary = summarizeExamPack([set(false, 10, 15), set(false, 28, 50)]);
+    expect(summary.headline).toContain("Đang mở 2 đề luyện, mỗi đề 10–28 câu, bấm giờ 15–50 phút");
   });
 
   it("đủ mục tiêu → không còn câu 'cập nhật dần'", () => {
-    const sets = Array.from({ length: EXAM_PACK_TARGET }, () => set(false, 40, 50));
+    const sets = Array.from({ length: EXAM_PACK_TARGET }, () => set(false, 28, 50));
     const summary = summarizeExamPack(sets);
-    expect(summary.headline).toBe(`${EXAM_PACK_TARGET} đề luyện, mỗi đề 40 câu, bấm giờ 50 phút`);
+    expect(summary.headline).toBe(`${EXAM_PACK_TARGET} đề luyện, mỗi đề 28 câu, bấm giờ 50 phút`);
   });
 
   it("lời giới thiệu luôn nêu đúng số đề trả phí (không bao giờ hứa hơn)", () => {
     for (let count = 1; count <= 12; count++) {
-      const summary = summarizeExamPack(Array.from({ length: count }, () => set(false, 40, 50)));
+      const summary = summarizeExamPack(Array.from({ length: count }, () => set(false, 28, 50)));
       expect(summary.paidCount).toBe(count);
       expect(summary.headline).toMatch(new RegExp(`(^|Đang mở )${count} đề luyện`));
     }

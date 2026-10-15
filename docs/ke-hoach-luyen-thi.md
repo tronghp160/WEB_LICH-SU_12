@@ -1,0 +1,132 @@
+# Kế hoạch nâng cấp Luyện thi THPT – Lịch sử
+
+> Bản rút gọn để làm mốc trong repo. Bản đầy đủ do chủ dự án giao ngày 15/10/2026 (`ke-hoach-nang-cap-luyen-thi.md`).
+> Số mục giữ nguyên như bản đầy đủ để ghi chú trong code (`docs/ke-hoach-luyen-thi.md, mục X`) trỏ đúng chỗ.
+> Mục tiêu: biến `/luyen-thi` từ "2 đề mẫu 10 câu" thành phòng luyện thi đúng cấu trúc đề thật, có phân tích cá nhân.
+
+## Quy tắc làm việc
+
+- Làm **từng giai đoạn (GĐ)** theo mục 6, đúng thứ tự. Hết mỗi GĐ: lint, unit, E2E liên quan, SQL test, cập nhật
+  `docs/test-report.md`, commit riêng, báo chủ dự án trước khi sang GĐ sau.
+- Không đổi giá gói, `valid_until`; không xóa đơn hàng / mã kích hoạt.
+- Giữ hành vi đang chạy: làm đề bằng mã + thiết bị (không cần tài khoản), gói gắn tài khoản, con dấu Hộ chiếu từ 7 điểm,
+  khóa tiến độ `luyen-thi:<slug>`, đồng bộ qua `/api/tien-do`.
+- Migration chỉ thêm / chuyển dữ liệu; `exam_questions` chỉ bỏ ở một migration dọn dẹp riêng sau khi đã kiểm tra.
+- Bảng mới theo **Quy tắc database** trong `AGENTS.md` (RLS, `revoke` rồi mới `grant`; hàm `security definer` có
+  `set search_path = ''`, chỉ `service_role` gọi). Migration: đưa chủ dự án xem trước, chủ dự án tự chạy trong SQL Editor.
+- Câu hỏi tự soạn, mỗi câu có `source_note`; không chép đề của nhà xuất bản / trung tâm / trang khác.
+
+## 1. Hiện trạng và vấn đề
+
+### 1.2. Vấn đề cần sửa
+
+1. **Cấu trúc đề.** Đề tốt nghiệp THPT môn Lịch sử từ năm 2025 (Quyết định 764/QĐ-BGDĐT, chương trình 2018):
+   **Phần I – 24 câu trắc nghiệm** (0,25 điểm/câu) + **Phần II – 4 câu Đúng/Sai**, mỗi câu 4 ý (đúng 1 ý: 0,1; 2 ý: 0,25;
+   3 ý: 0,5; 4 ý: 1 điểm), **50 phút**. Code cũ coi đề đầy đủ là 40 câu trắc nghiệm — sửa ở GĐ0 (`lib/exams/format.ts`).
+   Kiểm tra ngày 15/10/2026: chưa thấy văn bản chính thức nào về đề năm 2027 → giữ cấu trúc từ 2025.
+2. Đề thật thiên về **đọc hiểu tư liệu**; web chưa có câu kèm đoạn tư liệu dùng chung.
+3. Đề thật có cả **kiến thức lớp 11**; web chỉ có khung 17 bài lớp 12.
+4. **Lộ đáp án trước khi nộp**: `get_exam_set` trả đáp án + lời giải cho trình duyệt; chấm ở client.
+5. Mất bài khi tải lại trang / đổi máy.
+6. Không có phân tích cá nhân, sổ câu sai.
+7. Quá ít nội dung (20 câu đề đã công bố, 30 câu trắc nghiệm theo bài).
+8. Công cụ soạn đề chậm: từng câu một, không nhập hàng loạt, không dùng lại câu giữa các đề.
+
+## 2. Sản phẩm đích
+
+Phòng thi đúng đề thật (24 + 4, 50 phút, tự lưu, làm tiếp, đánh dấu câu, phím tắt) · trang kết quả phân tích theo bài /
+mức độ / dạng câu · ≥ 10 đề đầy đủ + đề tự sinh theo ma trận · luyện theo bài / dạng, chấm ngay · sổ câu sai + ôn ngắt
+quãng (Leitner) · bảng điều khiển (điểm dự kiến, bản đồ thành thạo 17 bài, đếm ngược) · lộ trình ôn · chuyên đề kỹ năng
+Đúng/Sai, đọc tư liệu · sổ tay ôn thi · in đề + phiếu trả lời giấy.
+
+## 3. Thiết kế dữ liệu
+
+- **3.1** Enum: `exam_item_kind (mcq, true_false)`, `exam_item_level (nhan_biet, thong_hieu, van_dung)`,
+  `exam_competency (tim_hieu_lich_su, nhan_thuc_tu_duy, van_dung_kien_thuc)`, `exam_attempt_mode (exam, practice, review,
+  paper)`, `exam_attempt_status (in_progress, submitted, abandoned)`.
+- **3.2** `exam_passages`: đoạn tư liệu dùng chung (`body` 30–2000 ký tự, `source_citation` bắt buộc, `workflow_status`).
+- **3.3** `exam_items`: ngân hàng câu hỏi. `mcq` → 4 `choices` + `correct_index`; `true_false` → `statements` jsonb đúng
+  4 ý `{text, is_true, explanation}`. `grade` 11/12, `lesson_slug` / `topic_tag`, `level`, `competency`, `event_id`,
+  `source_note`, `fingerprint` (unique, chống trùng), `legacy_question_id` (chuyển từ `exam_questions`).
+- **3.4** `exam_set_items (set_id, item_id, section 1|2, position)`.
+- **3.5** `exam_sets` thêm `format ('thpt_2025' | 'mini' | 'chuyen_de')`, `published_at`, `difficulty 1–3`; `de-1`, `de-2` → `mini`.
+- **3.6** `exam_attempts`: lượt làm bài chấm phía server (`item_ids`, `answers` jsonb, `deadline_at`, `score10`,
+  `breakdown`…). Ghi chỉ qua hàm `security definer`.
+- **3.7** `learner_item_state`: sổ câu sai + hộp Leitner, chỉ cho tài khoản.
+- **3.8** `exam_item_reports`: người học báo lỗi câu (giới hạn tần suất).
+- **3.9** Thống kê câu (tỉ lệ đúng, độ phân hóa) — chỉ quản trị, chỉ hiện khi ≥ 30 lượt.
+- **3.10** Hàm SQL: `exam_access`, `start_exam_attempt` (trả câu KHÔNG kèm đáp án), `start_generated_attempt`,
+  `save_attempt_answers`, `submit_exam_attempt` (chấm trong SQL, trả đáp án + lời giải), `get_attempt_result`,
+  `get_due_review_items`, `report_exam_item`, `regrade_item`.
+
+### 3.11. Chấm điểm
+
+Giống hệt ở SQL và `lib/exams/scoring.ts`. Trắc nghiệm: 0,25/câu. Đúng/Sai theo số ý đúng 0/1/2/3/4 → 0 / 0,1 / 0,25 /
+0,5 / 1 (ý bỏ trống tính sai). Đề `thpt_2025` tối đa 10 điểm. Đề khác cấu trúc: `score10 = raw / max × 10`, làm tròn 2 chữ
+số. Con dấu Hộ chiếu giữ ngưỡng ≥ 7; lượt đề mới lưu `best = round(score10 × 100)`, `total = 1000`.
+
+## 4. Tính năng
+
+- **4.1** Phòng thi `components/exams/runner/*`: câu trắc nghiệm, câu Đúng/Sai (nút bật Đúng / Sai cho từng ý), khung tư
+  liệu chia đôi màn hình, phiếu trả lời, đồng hồ theo `deadline_at` của server, hộp thoại nộp bài; tự lưu (localStorage +
+  `PATCH` gom nhóm 2 giây), làm tiếp, đánh dấu, phím tắt, toàn màn hình, cỡ chữ.
+- **4.2** Kết quả `/luyen-thi/ket-qua/[id]`: điểm từng phần, biểu đồ theo bài / mức độ / dạng / thời gian, lọc lời giải,
+  làm lại câu sai, báo lỗi câu.
+- **4.3** Luyện tập `/luyen-thi/luyen-tap`: lọc bài / dạng / mức độ, chấm ngay từng câu; miễn phí 10 câu/ngày.
+- **4.4** Đề tự sinh `/luyen-thi/de-ngau-nhien` theo ma trận `lib/exams/blueprint.ts` (ma trận do web tự đặt, **không
+  phải ma trận chính thức của Bộ**); chỉ hiện khi ngân hàng đủ ≥ 3 đề không trùng.
+- **4.5** Sổ câu sai `/luyen-thi/so-cau-sai`: Leitner 1 / 3 / 7 / 14 / 30 ngày, giờ Việt Nam; cần đăng nhập.
+- **4.6** Tổng quan `/luyen-thi/tong-quan`: điểm dự kiến (≥ 2 lượt đầy đủ), bản đồ thành thạo, chuỗi ngày, **đếm ngược
+  theo `NEXT_PUBLIC_EXAM_DATE` (`lib/exams/config.ts`) — trống thì không hiện**, việc nên làm tiếp, lịch sử lượt.
+- **4.7** Lộ trình `/luyen-thi/lo-trinh` theo mục tiêu điểm và số tuần.
+- **4.8** Chuyên đề kỹ năng (miễn phí) + sổ tay ôn thi từng bài (thuộc gói, 1 bài xem thử).
+- **4.9** In đề + phiếu trả lời giấy, nhập đáp án để chấm (không in đáp án).
+- **4.10** Báo lỗi câu hỏi → hàng đợi quản trị → chấm lại các lượt cũ khi sửa đáp án.
+- **4.11** (Tùy chọn) Thi thử định kỳ — chỉ làm khi chủ dự án đồng ý.
+
+## 5. Miễn phí và có gói
+
+17 bài SGK, bản đồ, trắc nghiệm theo bài vẫn miễn phí. Miễn phí: 1 đề đầy đủ, luyện 10 câu/ngày, kết quả cơ bản, chuyên
+đề kỹ năng, 1 bài sổ tay. Có gói: mọi đề, đề tự sinh, luyện không giới hạn, phân tích đầy đủ, sổ câu sai, tổng quan, lộ
+trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đã có thật (dựng từ dữ liệu, `lib/exams/pack.ts`).
+
+## 6. Lộ trình
+
+| GĐ | Nội dung | Trạng thái |
+|---|---|---|
+| 0 | Sửa cấu trúc 40 câu → 24 + 4 (`lib/exams/format.ts`), câu chữ trang, `lib/exams/config.ts` (ngày thi), tài liệu này | Xong 15/10/2026 |
+| 1 | Ngân hàng câu hỏi, dạng Đúng/Sai, tư liệu; quản trị ngân hàng, soạn đề từ ngân hàng, nhập JSON | |
+| 2 | Lượt làm bài + chấm phía server, API mới, không lộ đáp án | |
+| 3 | Phòng thi mới + trang kết quả | |
+| 4 | Luyện tập, sổ câu sai, ôn ngắt quãng | |
+| 5 | Đề tự sinh, tổng quan, lộ trình | |
+| 6 | Nội dung (song song từ GĐ1): ≥ 360 câu trắc nghiệm, ≥ 60 câu Đúng/Sai, ≥ 60 câu tư liệu, ≥ 5 đề đầy đủ | |
+| 7 | Thống kê câu hỏi, hàng đợi báo lỗi, chấm lại | |
+| 8 | Trang bán hàng, kỹ năng, sổ tay, bản in | |
+| 9 | (Tùy chọn) Thi thử định kỳ | |
+
+## 7. Phụ lục kỹ thuật
+
+Định dạng JSON nhập ngân hàng (`supabase/content/ngan-hang/*.json`), hướng dẫn soạn câu (`docs/huong-dan-soan-cau-hoi.md`)
+và checklist bảo mật xem bản đầy đủ, mục 7.2–7.5. Checklist bảo mật bắt buộc mỗi GĐ: đáp án không có trong HTML / RSC /
+API trước khi nộp; RLS + `revoke` cho bảng mới; lượt làm bài chỉ chủ đọc / ghi; giới hạn tần suất; không ghi mã kích hoạt
+/ mã thiết bị thô vào nhật ký.
+
+## 8. Tiêu chí "xứng đáng tiền" (trước khi quảng bá gói)
+
+≥ 5 đề `thpt_2025` đã duyệt (mục tiêu 10) · đề tự sinh ra ≥ 3 đề không trùng · mọi câu có lời giải, Đúng/Sai giải từng ý ·
+không mất bài khi tải lại / mất mạng / đổi máy · kết quả chỉ ra ≥ 1 điểm yếu và 1 việc nên làm · sổ câu sai chạy đúng qua
+nhiều ngày · trang bán hàng chỉ nói điều có thật · 3–5 học sinh lớp 12 dùng thử và góp ý.
+
+## 9. Quyết định cần chủ dự án xác nhận (đang dùng mặc định)
+
+| # | Câu hỏi | Mặc định |
+|---|---|---|
+| 1 | Mở phạm vi lớp 11? | Có cột `grade` từ GĐ1; nội dung ưu tiên lớp 12, trang bán hàng ghi "hiện tập trung lớp 12" |
+| 2 | Tính năng cá nhân bắt buộc đăng nhập? | Có; người chỉ dùng mã vẫn làm đề, xem kết quả trên máy này |
+| 3 | Hạn mức luyện miễn phí | 10 câu/ngày |
+| 4 | Giá gói | Giữ 29.000đ |
+| 5 | Đưa đề chính thức / minh họa của Bộ lên web? | Không; chỉ đặt liên kết tới nguồn chính thức |
+| 6 | Ngày thi 2027 | Để trống `NEXT_PUBLIC_EXAM_DATE` tới khi Bộ công bố |
+| 7 | Ma trận đề tự sinh | Giá trị gợi ý trong `blueprint.ts`, cần giáo viên xem lại |
+| 8 | Thi thử định kỳ (GĐ9) | Không, để sau |

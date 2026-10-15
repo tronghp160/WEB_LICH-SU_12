@@ -57,9 +57,18 @@ describe("điều kiện gửi duyệt đề", () => {
     expect(examReadiness({ duration_min: 15 }, [q(1, 0), q(2, 1)]).blockers).toEqual(["Đề cần ít nhất 10 câu (hiện có 2)."]);
   });
 
-  it("đề đầy đủ 40 câu, 50 phút, đáp án rải đều → không có cảnh báo", () => {
-    const questions = Array.from({ length: 40 }, (_, index) => q(index + 1, index % 4));
-    expect(examReadiness({ duration_min: 50 }, questions)).toEqual({ blockers: [], warnings: [] });
+  it("24 câu trắc nghiệm, 30 phút, đáp án rải đều → chỉ nhắc đề thật còn 4 câu Đúng/Sai (không còn chuẩn 40 câu)", () => {
+    const questions = Array.from({ length: 24 }, (_, index) => q(index + 1, index % 4));
+    expect(examReadiness({ duration_min: 30 }, questions)).toEqual({
+      blockers: [],
+      warnings: ['Đề thi thật gồm 24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút; đề này có 24 câu trắc nghiệm — nên ghi rõ "đề mẫu" trong tên hoặc mô tả.'],
+    });
+  });
+
+  it("thời gian gợi ý theo điểm của đề thật: 1,25 phút / câu trắc nghiệm", () => {
+    const questions = Array.from({ length: 10 }, (_, index) => q(index + 1, index % 4));
+    expect(examReadiness({ duration_min: 15 }, questions).warnings).toHaveLength(1);
+    expect(examReadiness({ duration_min: 30 }, questions).warnings[1]).toBe("Thời gian 30 phút chưa tương xứng với 10 câu (gợi ý khoảng 13 phút).");
   });
 
   it("đề mẫu 10 câu: được gửi duyệt nhưng nhắc ghi rõ đề mẫu; thời gian lệch và đáp án dồn một chữ → cảnh báo", () => {

@@ -1,5 +1,6 @@
 -- Đề luyện thi MẪU để demo gói luyện thi (docs/ke-hoach-thanh-toan.md, GĐ3): đề 1 (miễn phí) và đề 2 (thuộc gói),
--- mỗi đề 10 câu, 15 phút. Bản đầy đủ 40 câu / 50 phút sẽ soạn ở trang quản trị và đi qua kiểm duyệt (GĐ5).
+-- mỗi đề 10 câu trắc nghiệm, 15 phút. Đề đầy đủ theo cấu trúc thi tốt nghiệp từ 2025 (24 câu trắc nghiệm + 4 câu
+-- Đúng/Sai, 50 phút) soạn ở trang quản trị và đi qua kiểm duyệt (docs/ke-hoach-luyen-thi.md).
 --
 -- Nội dung bám SGK Lịch sử 12 (Kết nối tri thức với cuộc sống); mỗi câu ghi nguồn và liên kết về bài SGK / sự kiện đã
 -- công bố trên web. Để dễ duyệt, ĐÁP ÁN ĐÚNG LUÔN VIẾT ĐẦU TIÊN; khi chèn, các lựa chọn được xoay vòng theo vị trí câu
@@ -13,14 +14,14 @@ begin;
 
 update public.exam_sets
    set title = 'Đề luyện thi số 1 (đề mẫu)',
-       description = 'Đề mẫu 10 câu, 15 phút — làm thử miễn phí. Bản đầy đủ 40 câu đang được biên soạn.',
+       description = 'Đề mẫu 10 câu trắc nghiệm, 15 phút — làm thử miễn phí. Đề đầy đủ (24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút) đang được biên soạn.',
        duration_min = 15,
        workflow_status = 'published'
  where slug = 'de-1';
 
 update public.exam_sets
    set title = 'Đề luyện thi số 2 (đề mẫu)',
-       description = 'Đề mẫu 10 câu, 15 phút — thuộc Gói luyện thi. Bản đầy đủ 40 câu đang được biên soạn.',
+       description = 'Đề mẫu 10 câu trắc nghiệm, 15 phút — thuộc Gói luyện thi. Đề đầy đủ (24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút) đang được biên soạn.',
        duration_min = 15,
        workflow_status = 'published'
  where slug = 'de-2';

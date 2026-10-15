@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { createExamSetAction } from "@/lib/actions/exams";
 import { requireRole } from "@/lib/auth";
 import { examAdminPaths } from "@/lib/exams/admin";
+import { THPT_2025_LABEL } from "@/lib/exams/format";
 import { listExamSetsForStaff } from "@/lib/queries/admin-exams";
 
 export const metadata: Metadata = { title: "Đề luyện thi" };
@@ -25,8 +26,8 @@ export default async function ExamSetsAdminPage({ searchParams }: PageProps<"/qu
         <div>
           <h1 className="font-serif text-3xl font-bold text-foreground">Đề luyện thi</h1>
           <p className="mt-1 max-w-2xl text-muted-foreground">
-            Đề 40 câu bấm giờ cho Gói luyện thi THPT. Biên tập viên soạn và gửi duyệt; kiểm duyệt viên công bố. Đề trong gói chỉ
-            làm được khi đã kích hoạt mã.
+            Đề bấm giờ cho Gói luyện thi THPT (đề thi thật: {THPT_2025_LABEL}). Biên tập viên soạn và gửi duyệt; kiểm duyệt viên
+            công bố. Đề trong gói chỉ làm được khi đã kích hoạt mã.
             {pending > 0 && <strong className="text-foreground"> {pending} đề đang chờ duyệt.</strong>}
           </p>
         </div>

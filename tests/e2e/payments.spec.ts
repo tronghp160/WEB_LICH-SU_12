@@ -117,6 +117,9 @@ test.describe("Kích hoạt mã và làm đề luyện thi", () => {
       await expect(headline).toContainText(new RegExp(`(^|Đang mở )${paid} đề luyện`));
     }
     await expect(page.getByText(/10 đề × 40 câu/)).toHaveCount(0);
+    // Cấu trúc đề thật từ 2025 (docs/ke-hoach-luyen-thi.md, GĐ0): không còn chỗ nào nói đề 40 câu.
+    await expect(page.getByTestId("exam-format-note")).toContainText("24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút");
+    await expect(page.getByText(/40 câu/)).toHaveCount(0);
   });
 
   test("đề miễn phí làm được ngay, không cần mã", async ({ page }) => {

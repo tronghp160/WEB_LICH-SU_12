@@ -37,7 +37,7 @@ export const ADMIN_MENU: readonly AdminMenuItem[] = [
     href: "/quan-tri/de-luyen-thi",
     icon: GraduationCap,
     roles: ["editor", "reviewer", "system_admin"],
-    description: "Soạn đề 40 câu cho Gói luyện thi THPT, gửi duyệt và công bố.",
+    description: "Soạn đề cho Gói luyện thi THPT, gửi duyệt và công bố.",
   },
   {
     label: "Kiểm duyệt",

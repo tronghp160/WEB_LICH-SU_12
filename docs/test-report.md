@@ -671,3 +671,24 @@ Nhánh `feat/google-login-ui`. Chỉ đổi giao diện — luồng OAuth, `safe
 |---|---|
 | Lint, tsc, `npm run build` | sạch |
 | **Toàn bộ E2E** (bản production, sau khi thêm headers) | **195 đạt**, 21 bỏ qua (thiếu `TEST_PW`, Google chưa bật, `E2E_SMTP`), **1 đỏ không do nhánh này**: `ui-v2.spec.ts` "lọc theo Bài 9" — lựa chọn "Bài 9" bị khóa vì database hiện **chưa có sự kiện đã công bố nào gắn Bài 9** (`MapExplorer` khóa bài "chưa có sự kiện"). Chạy lại 3 lần đều đỏ cùng lý do; cần công bố / gắn lại sự kiện cho Bài 9 hoặc đổi test sang bài có dữ liệu |
+
+## 21. Luyện thi — GĐ0: sửa cấu trúc đề 40 câu → 24 + 4 (15/10/2026)
+
+Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md`. Không có migration.
+
+- Kiểm tra trước GĐ0: chưa thấy văn bản chính thức nào của Bộ GD&ĐT về đề thi năm 2027 → giữ cấu trúc từ 2025
+  (Quyết định 764/QĐ-BGDĐT): **24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút**.
+- `lib/exams/format.ts` (mới): cấu trúc `thpt_2025`, bảng điểm Đúng/Sai 0 / 0,1 / 0,25 / 0,5 / 1, tổng tối đa 10, thời gian
+  gợi ý chia 50 phút theo điểm (1,25 phút / câu trắc nghiệm, 5 phút / câu Đúng/Sai).
+- `lib/exams/admin.ts`: bỏ `FULL_EXAM_QUESTIONS = 40`; `examReadiness` luôn nhắc đề thật gồm 24 + 4 (trang quản trị mới soạn
+  được trắc nghiệm nên mọi đề là đề mẫu), thời gian gợi ý theo `format.ts`.
+- Câu chữ: trang `/luyen-thi` (metadata, thêm ghi chú cấu trúc đề thật + "đề hiện có là đề mẫu"), trang quản trị Đề luyện
+  thi, gợi ý ô Thời gian, mô tả menu quản trị, ghi chú `scoreExam`, mô tả đề mẫu trong `seed-exam-mau.sql`.
+- `lib/exams/config.ts` (mới): `NEXT_PUBLIC_EXAM_DATE` (YYYY-MM-DD; rỗng / sai → không đếm ngược), `daysUntilExam` theo
+  lịch Việt Nam. Thêm vào `.env.example` (để trống).
+
+| Nhóm | Kết quả |
+|---|---|
+| Unit test | **645/645**, 45 file — thêm `exam-format.test.ts` (5 ca: cấu trúc 24 + 4 = 10 điểm, bảng điểm Đúng/Sai, thời gian gợi ý, đọc ngày thi, đếm ngày theo giờ Việt Nam); sửa ca kỳ vọng 40 câu trong `exams.test.ts`, `exams-admin.test.ts` |
+| Lint, tsc, build | sạch |
+| E2E `payments.spec.ts` (thêm kiểm: ghi chú cấu trúc 24 + 4, **không còn chữ "40 câu"** trên `/luyen-thi`) | 13/14 — ca T1 đỏ vì mô tả `de-1`, `de-2` trong database vẫn ghi "Bản đầy đủ 40 câu…" → chờ chạy câu UPDATE mô tả (chỉ dữ liệu) rồi chạy lại |

@@ -7,6 +7,7 @@ import { BuyPackForm } from "@/components/payments/BuyPackForm";
 import { TestModeNotice } from "@/components/payments/TestModeNotice";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Callout } from "@/components/ui/Callout";
+import { THPT_2025_LABEL } from "@/lib/exams/format";
 import { summarizeExamPack } from "@/lib/exams/pack";
 import { readPaymentConfig } from "@/lib/payments/config";
 import { formatVnd } from "@/lib/payments/pricing";
@@ -15,7 +16,7 @@ import { EXAM_PACK_SLUG, getActiveProduct } from "@/lib/queries/payments";
 
 export const metadata: Metadata = {
   title: "Luyện thi tốt nghiệp THPT môn Lịch sử",
-  description: "Đề luyện thi tốt nghiệp THPT môn Lịch sử bấm giờ theo cấu trúc đề thi, có giải thích từng câu. Nội dung SGK trên web vẫn miễn phí.",
+  description: "Đề luyện thi tốt nghiệp THPT môn Lịch sử bấm giờ, có giải thích từng câu. Nội dung SGK trên web vẫn miễn phí.",
 };
 
 // Dòng đầu (số đề / số câu / thời gian) dựng từ các đề ĐÃ CÔNG BỐ — lib/exams/pack.ts.
@@ -62,7 +63,12 @@ export default async function ExamPrepPage() {
         <h1 className="mt-1 font-serif text-3xl font-bold text-foreground sm:text-4xl">Luyện thi tốt nghiệp THPT – Lịch sử</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Toàn bộ 17 bài SGK, bản đồ, trắc nghiệm theo bài trên web vẫn <strong>miễn phí</strong>. Gói luyện thi là phần làm thêm cho
-          các em muốn tập làm đề đúng cấu trúc trước kỳ thi.
+          các em muốn tập làm đề bấm giờ trước kỳ thi.
+        </p>
+        {/* Chưa có đề đầy đủ (cần dạng Đúng/Sai — docs/ke-hoach-luyen-thi.md, GĐ1): nói rõ đề hiện có là đề mẫu. */}
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground" data-testid="exam-format-note">
+          Đề thi tốt nghiệp môn Lịch sử từ năm 2025 gồm {THPT_2025_LABEL}. Các đề hiện có là đề mẫu ngắn, chỉ có câu trắc nghiệm;
+          đề đầy đủ theo đúng cấu trúc này đang được biên soạn.
         </p>
       </header>
 
@@ -72,7 +78,7 @@ export default async function ExamPrepPage() {
             Gói gồm những gì?
           </h2>
           <ul className="mt-4 flex flex-col gap-3">
-            {[pack?.headline ?? "Đề luyện bấm giờ theo cấu trúc đề thi", ...BENEFITS].map((benefit, index) => (
+            {[pack?.headline ?? "Đề luyện bấm giờ, có giải thích từng câu", ...BENEFITS].map((benefit, index) => (
               <li key={benefit} className="flex items-start gap-2 text-foreground" data-testid={index === 0 ? "pack-headline" : undefined}>
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-gold-deep" aria-hidden="true" />
                 {benefit}

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { updateExamSetAction } from "@/lib/actions/exams";
+import { THPT_2025, THPT_2025_PARTS } from "@/lib/exams/format";
 import { initialActionState } from "@/lib/actions/state";
 
 type Props = {
@@ -31,7 +32,7 @@ export function ExamSetForm({ set, readOnly }: Props) {
           {(props) => <Textarea {...props} rows={2} defaultValue={typed?.description ?? set.description ?? ""} maxLength={500} />}
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field name="duration_min" label="Thời gian (phút)" required error={errors.duration_min} hint="Đề đầy đủ 40 câu: 50 phút.">
+          <Field name="duration_min" label="Thời gian (phút)" required error={errors.duration_min} hint={`Đề đầy đủ (${THPT_2025_PARTS}): ${THPT_2025.durationMin} phút.`}>
             {(props) => <Input {...props} type="number" min={5} max={180} defaultValue={typed?.duration_min ?? String(set.duration_min)} />}
           </Field>
           <Field name="sort_order" label="Thứ tự hiển thị" error={errors.sort_order}>
