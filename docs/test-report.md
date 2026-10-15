@@ -897,4 +897,5 @@ Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` ("Ghi chú G�
 | SQL nháp trên PGlite | chạy 2 lần: 68 câu nháp, 2 tư liệu, 2 câu có tư liệu — lần 2 không tạo trùng |
 | Unit test | **739/739**, 54 file |
 | E2E `exam-generated` · `exam-practice` · `exam-shop` (sau khi nạp nháp) | **16 qua**; `exam-bank` 6 ca bỏ qua (cần TEST_PW) |
+| E2E cần TEST_PW (16/10/2026, người dùng chạy với mật khẩu thử) `exam-bank` · `staff` · `staff-create` | **17/17** sau khi sửa 2 kỳ vọng cũ ở `staff-create` (chưa chạy từ khi đổi giao diện): câu báo email đã có tài khoản giờ kèm hướng dẫn "Cấp quyền cho tài khoản đã có" (B7, commit 3614216); menu biên tập viên có thêm "Đề luyện thi", "Ngân hàng câu hỏi" (GĐ1). Dữ liệu thử sót: 0 hồ sơ / 0 câu / 0 tài khoản |
 | Lint | sạch |

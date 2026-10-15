@@ -83,7 +83,7 @@ test.describe.serial("UC13: admin tạo tài khoản editor mới", () => {
     await page.locator("#field-role").selectOption("editor");
     await page.locator("#field-password").fill("Matkhau12345");
     await page.getByRole("button", { name: "Tạo tài khoản" }).click();
-    await expect(page.locator("#field-email-error")).toHaveText("Email này đã có tài khoản.");
+    await expect(page.locator("#field-email-error")).toHaveText("Email này đã có tài khoản. Dùng “Cấp quyền cho tài khoản đã có” bên dưới.");
 
     expect((await admin.from("staff_profiles").select("id")).data).toHaveLength(before);
   });
@@ -127,7 +127,13 @@ test.describe.serial("UC13: admin tạo tài khoản editor mới", () => {
     await page.getByRole("button", { name: "Đăng nhập" }).click();
     await page.waitForURL(/\/quan-tri$/);
     await expect(page.locator("h1")).toContainText(`Xin chào, ${NEW_NAME}`);
-    await expect(page.getByRole("navigation", { name: "Menu khu vực nội bộ" }).locator("a")).toHaveText(["Tổng quan", "Nội dung", "Bài SGK"]);
+    await expect(page.getByRole("navigation", { name: "Menu khu vực nội bộ" }).locator("a")).toHaveText([
+      "Tổng quan",
+      "Nội dung",
+      "Bài SGK",
+      "Đề luyện thi",
+      "Ngân hàng câu hỏi",
+    ]);
 
     await page.goto("/quan-tri/noi-dung");
     await expect(page).toHaveURL(/\/quan-tri\/noi-dung$/);
