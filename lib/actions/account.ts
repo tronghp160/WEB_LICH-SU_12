@@ -205,7 +205,7 @@ export async function updatePasswordAction(_previous: NewPasswordState, formData
 export type GoogleSignInState = { error?: string };
 
 /**
- * "Tiếp tục với Google" (mục 6.1): luồng PKCE phía server — @supabase/ssr lưu code_verifier vào cookie, Google → Supabase →
+ * Nút "Google" ở trang đăng nhập / đăng ký (mục 6.1): luồng PKCE phía server — @supabase/ssr lưu code_verifier vào cookie, Google → Supabase →
  * /auth/callback?code=…&next=…. `redirectTo` dựng từ siteUrl(), không từ header Host. Không xin scope ngoài
  * openid/email/profile; `prompt=select_account` để máy dùng chung (máy trường) luôn hỏi chọn tài khoản.
  */

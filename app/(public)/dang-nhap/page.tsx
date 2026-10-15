@@ -49,17 +49,15 @@ export default async function SignInPage({ searchParams }: PageProps<"/dang-nhap
         </>
       }
     >
-      {google && (
-        <>
-          <GoogleButton next={next} />
-          <OrDivider />
-        </>
-      )}
       <SignInForm next={next} />
       {google && (
-        <p className="mt-4 text-xs text-muted-foreground">
-          Em từng vào bằng Google? Hãy bấm “Tiếp tục với Google” ở trên — tài khoản tạo bằng Google chưa có mật khẩu riêng.
-        </p>
+        <>
+          <OrDivider label="hoặc đăng nhập bằng" />
+          <GoogleButton next={next} />
+          <p className="mt-4 text-xs text-muted-foreground">
+            Em từng vào bằng Google? Hãy bấm nút “Google” ngay bên trên — tài khoản tạo bằng Google chưa có mật khẩu riêng.
+          </p>
+        </>
       )}
     </AccountShell>
   );

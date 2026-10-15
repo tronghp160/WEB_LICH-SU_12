@@ -13,7 +13,7 @@ import { ACCOUNT_DATA_EXPORT, ACCOUNT_SECURITY } from "@/lib/auth/routes";
 export const metadata: Metadata = { title: "Bảo mật tài khoản", robots: { index: false, follow: false } };
 
 const NOTICES: Record<string, string> = {
-  "lien-ket-google": "Đã liên kết Google. Lần sau em bấm “Tiếp tục với Google” là vào được tài khoản này.",
+  "lien-ket-google": "Đã liên kết Google. Lần sau em bấm nút “Google” ở trang đăng nhập là vào được tài khoản này.",
   "go-google": "Đã gỡ Google khỏi tài khoản. Em đăng nhập bằng email và mật khẩu nhé.",
 };
 

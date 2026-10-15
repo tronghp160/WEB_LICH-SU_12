@@ -18,11 +18,20 @@ function GoogleLogo() {
   );
 }
 
+type GoogleButtonProps = {
+  next: string;
+  /** Chữ trên nút — mặc định "Google", đủ nghĩa khi nằm ngay dưới dòng "hoặc đăng nhập bằng". */
+  label?: string;
+  /** Tên cho trình đọc màn hình ("Google" một mình không đủ nghĩa); phải chứa chữ trên nút (WCAG 2.5.3). */
+  ariaLabel?: string;
+};
+
 /**
- * Nút "Tiếp tục với Google" (mục 6.1). Gửi form tới Server Action → chuyển sang trang chọn tài khoản Google. Chỉ hiện khi
- * Google đã bật trong Supabase (trang gọi isGoogleAuthEnabled()).
+ * Nút đăng nhập Google (mục 6.1): viền xám mảnh, nền trắng ở cả chế độ sáng lẫn tối (hướng dẫn thương hiệu Google cho
+ * phép), bo góc, chiếm hết chiều ngang. Gửi form tới Server Action → chuyển sang trang chọn tài khoản Google. Chỉ hiện
+ * khi Google đã bật trong Supabase (trang gọi isGoogleAuthEnabled()).
  */
-export function GoogleButton({ next }: { next: string }) {
+export function GoogleButton({ next, label = "Google", ariaLabel = "Đăng nhập bằng Google" }: GoogleButtonProps) {
   const [state, formAction, pending] = useActionState(signInWithGoogleAction, initial);
 
   return (
@@ -32,17 +41,18 @@ export function GoogleButton({ next }: { next: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-12 items-center justify-center gap-3 rounded-full border border-[#747775] bg-white px-6 text-base font-medium text-[#1f1f1f] transition-colors hover:bg-[#f2f2f2] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label={pending ? "Đang mở Google…" : ariaLabel}
+        className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-[#dadce0] bg-white px-6 text-base font-medium text-[#1f1f1f] transition-colors hover:bg-[#f8f9fa] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-not-allowed disabled:opacity-60"
       >
         <GoogleLogo />
-        {pending ? "Đang mở Google…" : "Tiếp tục với Google"}
+        {pending ? "Đang mở Google…" : label}
       </button>
     </form>
   );
 }
 
-/** Đường kẻ "hoặc" giữa nút Google và form email. */
-export function OrDivider({ label = "hoặc dùng email" }: { label?: string }) {
+/** Đường kẻ "hoặc" giữa form email và nút Google. */
+export function OrDivider({ label = "hoặc đăng nhập bằng" }: { label?: string }) {
   return (
     <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground" role="separator" aria-label={label}>
       <span className="h-px flex-1 bg-border" aria-hidden="true" />

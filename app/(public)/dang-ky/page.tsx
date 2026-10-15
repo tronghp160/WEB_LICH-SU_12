@@ -32,13 +32,13 @@ export default async function SignUpPage({ searchParams }: PageProps<"/dang-ky">
         </>
       }
     >
+      <SignUpForm next={next} />
       {google && (
         <>
-          <GoogleButton next={next} />
-          <OrDivider />
+          <OrDivider label="hoặc đăng ký bằng" />
+          <GoogleButton next={next} ariaLabel="Đăng ký bằng Google" />
         </>
       )}
-      <SignUpForm next={next} />
     </AccountShell>
   );
 }

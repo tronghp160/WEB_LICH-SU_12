@@ -25,7 +25,7 @@ const REASONS: Record<string, Reason> = {
   "google-het-han": {
     title: "Chưa đăng nhập bằng Google",
     message:
-      "Phiên đăng nhập Google đã hết hạn, hoặc được mở ở một trình duyệt khác. Em bấm “Tiếp tục với Google” lại trên cùng trình duyệt nhé.",
+      "Phiên đăng nhập Google đã hết hạn, hoặc được mở ở một trình duyệt khác. Em bấm nút “Google” lại trên cùng trình duyệt nhé.",
     google: true,
   },
   "google-da-gan": {
