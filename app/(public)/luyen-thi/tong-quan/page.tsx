@@ -38,6 +38,20 @@ function Header() {
           Tổng quan luyện thi
         </h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">Điểm dự kiến, bài nào vững, bài nào cần ôn và việc nên làm tiếp — tính từ các lượt em đã làm khi đăng nhập.</p>
+        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          <Link href={examPaths.list} className="text-accent underline">
+            Danh sách đề
+          </Link>
+          <Link href={examPaths.skills} className="text-accent underline">
+            Kỹ năng làm bài
+          </Link>
+          <Link href={examPaths.handbook} className="text-accent underline">
+            Sổ tay ôn thi
+          </Link>
+          <Link href="/luyen-thi?gioi-thieu=1" className="text-accent underline">
+            Trang giới thiệu gói
+          </Link>
+        </p>
       </header>
     </>
   );
@@ -273,8 +287,8 @@ export default async function OverviewPage({ searchParams }: PageProps<"/luyen-t
             </table>
           </div>
         )}
-        <LinkButton href={examPaths.hub} variant="secondary" className="self-start">
-          Làm đề
+        <LinkButton href={examPaths.list} variant="secondary" className="self-start">
+          Danh sách đề
         </LinkButton>
       </section>
     </Shell>

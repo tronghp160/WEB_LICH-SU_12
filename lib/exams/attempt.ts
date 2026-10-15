@@ -13,6 +13,8 @@ export const attemptPaths = {
   report: "/api/luyen-thi/bao-loi",
   intro: (slug: string) => `/api/luyen-thi/${slug}`,
   start: (slug: string) => `/api/luyen-thi/${slug}/bat-dau`,
+  /** Tạo / mở lại lượt in đề (chế độ paper, GĐ8). */
+  paper: (slug: string) => `/api/luyen-thi/${slug}/ban-in`,
   /** Đề tự sinh theo ma trận (GĐ5): GET = trang trước khi làm, POST = sinh đề và bắt đầu. */
   generated: (blueprint: string) => `/api/luyen-thi/de-ngau-nhien?ma-tran=${encodeURIComponent(blueprint)}`,
   attempt: (id: string) => `/api/luyen-thi/luot/${id}`,

@@ -9,7 +9,7 @@ import { sgkQuizPaths } from "@/lib/sgk/review";
 /** sitemap.xml: trang tĩnh, mục lục và các bài SGK, chuyên đề, và mọi sự kiện / nhân vật / địa điểm / chủ đề ĐÃ CÔNG BỐ (đọc bằng quyền khách). */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const staticPaths = ["/", "/muc-luc", "/kham-pha", "/huong-dan", "/trac-nghiem/the-ghi-nho", "/bai-hoc", "/trac-nghiem", "/trac-nghiem/tong-hop", "/trac-nghiem/doan-nam", "/dong-thoi-gian", "/ban-do", "/di-tich-gan-em", "/tra-cuu", "/luyen-thi", "/ung-ho", "/dieu-khoan", "/chinh-sach-bao-mat"];
+  const staticPaths = ["/", "/muc-luc", "/kham-pha", "/huong-dan", "/trac-nghiem/the-ghi-nho", "/bai-hoc", "/trac-nghiem", "/trac-nghiem/tong-hop", "/trac-nghiem/doan-nam", "/dong-thoi-gian", "/ban-do", "/di-tich-gan-em", "/tra-cuu", "/luyen-thi", "/luyen-thi/ky-nang", "/luyen-thi/ky-nang/dung-sai", "/luyen-thi/ky-nang/doc-tu-lieu", "/luyen-thi/so-tay", "/luyen-thi/so-tay/6-cach-mang-thang-tam-nam-1945", "/ung-ho", "/dieu-khoan", "/chinh-sach-bao-mat"];
   const entries: MetadataRoute.Sitemap = [
     ...staticPaths.map((path) => ({ url: `${base}${path}`, changeFrequency: "weekly" as const, priority: path === "/" ? 1 : 0.8 })),
     ...[...interactiveEntries, ...immersiveEntries].map((entry) => ({ url: `${base}${entry.href}`, priority: 0.9 })),

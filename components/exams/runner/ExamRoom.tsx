@@ -519,6 +519,11 @@ export function ExamRoom({ slug, title, durationMin, free, format, blueprint }: 
           </Button>
         )}
         {errorNote}
+        {!blueprint && (
+          <Link href={examPaths.print(slug)} className="text-sm text-accent underline" data-testid="print-link">
+            In đề + phiếu trả lời để làm trên giấy
+          </Link>
+        )}
       </div>
     );
   }

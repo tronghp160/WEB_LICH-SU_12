@@ -164,7 +164,7 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
               Ôn bài yếu nhất: {weakest.label.split(".")[0]}
             </LinkButton>
           )}
-          <LinkButton href={examPaths.hub} variant="secondary">
+          <LinkButton href={examPaths.list} variant="secondary">
             Thi đề khác
           </LinkButton>
         </div>

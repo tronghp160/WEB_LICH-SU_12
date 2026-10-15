@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // Trợ năng tự động (KE_HOACH_NANG_CAP_GIAO_DIEN.md, mục 10.2): axe-core trên các trang chính, giao diện sáng và tối.
 // Không chấp nhận lỗi mức "serious" hoặc "critical". Bỏ qua phần nền bản đồ (ô ảnh OpenStreetMap do Leaflet vẽ).
 
-const PAGES = ["/", "/muc-luc", "/muc-luc/chu-de-3", "/bai/7-khang-chien-chong-phap", "/bai-hoc/chien-dich-dien-bien-phu", "/bai-hoc/dien-bien-phu-tren-khong-1972", "/bai-hoc/duong-truong-son", "/trac-nghiem", "/ho-chieu", "/dong-thoi-gian", "/kham-pha", "/huong-dan", "/luyen-thi", "/luyen-thi/de-1", "/kich-hoat", "/ung-ho", "/thanh-toan/tra-cuu", "/dang-nhap", "/dang-ky", "/quen-mat-khau", "/dieu-khoan", "/chinh-sach-bao-mat", "/auth/loi?ly-do=google-huy"];
+const PAGES = ["/", "/muc-luc", "/muc-luc/chu-de-3", "/bai/7-khang-chien-chong-phap", "/bai-hoc/chien-dich-dien-bien-phu", "/bai-hoc/dien-bien-phu-tren-khong-1972", "/bai-hoc/duong-truong-son", "/trac-nghiem", "/ho-chieu", "/dong-thoi-gian", "/kham-pha", "/huong-dan", "/luyen-thi", "/luyen-thi/de-1", "/luyen-thi/ky-nang/dung-sai", "/luyen-thi/ky-nang/doc-tu-lieu", "/luyen-thi/so-tay", "/luyen-thi/so-tay/6-cach-mang-thang-tam-nam-1945", "/kich-hoat", "/ung-ho", "/thanh-toan/tra-cuu", "/dang-nhap", "/dang-ky", "/quen-mat-khau", "/dieu-khoan", "/chinh-sach-bao-mat", "/auth/loi?ly-do=google-huy"];
 
 for (const theme of ["light", "dark"] as const) {
   test.describe(`Trợ năng (${theme === "light" ? "sáng" : "tối"})`, () => {

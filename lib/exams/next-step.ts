@@ -100,7 +100,7 @@ export function nextSteps(input: { attempts: readonly AttemptSummary[]; mastery:
   const lastFull = input.attempts.filter((attempt) => attempt.kind === "full" && attempt.status === "submitted").sort(byNewest)[0];
   const weekAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
   if (!lastFull || (lastFull.submittedAt ?? lastFull.startedAt) < weekAgo) {
-    steps.push({ key: "full", label: "Làm một đề đầy đủ bấm giờ", detail: "50 phút như thi thật — để biết điểm dự kiến.", href: examPaths.hub });
+    steps.push({ key: "full", label: "Làm một đề đầy đủ bấm giờ", detail: "50 phút như thi thật — để biết điểm dự kiến.", href: examPaths.list });
   }
   return steps.slice(0, 3);
 }

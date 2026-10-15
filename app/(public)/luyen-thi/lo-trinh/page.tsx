@@ -52,7 +52,7 @@ async function load(): Promise<{ overview: LearnerOverview | null; failed: boole
 }
 
 function taskView(task: PlanTask): { label: string; href: string } {
-  if (task.kind === "full") return { label: "Làm một đề đầy đủ bấm giờ (50 phút)", href: examPaths.hub };
+  if (task.kind === "full") return { label: "Làm một đề đầy đủ bấm giờ (50 phút)", href: examPaths.list };
   if (task.kind === "review") return { label: "Ôn câu đến hạn trong sổ câu sai", href: examPaths.review };
   const lesson = lessonInfo.get(task.lesson);
   return { label: `Luyện Bài ${lesson?.number ?? "?"}: ${lesson?.shortTitle ?? task.lesson} (từ 5 câu)`, href: examPaths.practiceLesson(task.lesson) };

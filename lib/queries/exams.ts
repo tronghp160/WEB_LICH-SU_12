@@ -54,3 +54,12 @@ export async function getPublishedExamSet(slug: string) {
   if (error) throw error;
   return data;
 }
+
+/** Số câu ĐÃ CÔNG BỐ lớp 12 theo dạng (trang giới thiệu gói — chỉ số lượng, đếm bằng khóa bí mật). */
+export async function getBankCounts(): Promise<{ mcq: number; trueFalse: number }> {
+  const admin = createAdminClient();
+  const count = (kind: "mcq" | "true_false") =>
+    admin.from("exam_items").select("id", { count: "exact", head: true }).eq("workflow_status", "published").eq("grade", 12).eq("kind", kind);
+  const [mcq, trueFalse] = await Promise.all([count("mcq"), count("true_false")]);
+  return { mcq: mcq.count ?? 0, trueFalse: trueFalse.count ?? 0 };
+}

@@ -854,3 +854,26 @@ lại), sau khi thử trên PGlite; kiểm bằng select (RLS bật 2 bảng, kh
 | E2E `exam-quality.spec.ts` (mới, DB thật, quản trị viên tạm với mật khẩu ngẫu nhiên lúc chạy) | **4/4** — API báo lỗi (chưa nộp 404, lý do lạ / ghi chú dài 400, máy khác 404, hợp lệ 200, thiết bị lưu dạng băm); học sinh báo lỗi trên trang kết quả; quản trị viên thấy hàng đợi, thống kê câu, chấm lại (1/1 lượt, nhật ký 5 → 10), đánh dấu đã sửa, trang thống kê, cột "Đạt 100% (1 lượt)"; học sinh thấy 10 điểm + "Điểm đã được cập nhật do sửa đáp án câu 1". Dữ liệu thử dọn hết (kiểm lại: 0 câu / đề / báo cáo / nhân sự / tài khoản zz) |
 | E2E `exam-room` · `exam-attempts` · `exam-practice` · `exam-generated` · `exam-bank` · a11y · `payments` | **79 qua**, 6 bỏ qua (cần TEST_PW / Google) |
 | Lint, tsc, build | sạch |
+
+## 28. Luyện thi — GĐ8: trang bán hàng, kỹ năng làm bài, sổ tay, bản in (16/10/2026)
+
+Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quyết định khi làm GĐ8"). Migration
+`20261030000000_exam_paper.sql` (một hàm `start_paper_attempt`) — **tôi chạy 16/10/2026** bằng `DATABASE_URL` (người dùng cho
+phép làm tiếp không hỏi lại) sau khi thử PGlite; kiểm: hàm chưa có trước khi chạy, sau chạy `authenticated` không gọi được,
+`service_role` gọi được.
+
+- Web: `/luyen-thi` (lợi ích dựng từ số liệu thật — `packBenefits`, làm thử đề miễn phí, xem trước, hỏi đáp; người có gói
+  tài khoản → Tổng quan, `?gioi-thieu=1` xem lại); `/luyen-thi/ky-nang`, `/ky-nang/dung-sai`, `/ky-nang/doc-tu-lieu` (miễn
+  phí, 5 + 5 ví dụ có lời giải); `/luyen-thi/so-tay`, `/so-tay/[bai]` (+ `/api/luyen-thi/so-tay/[bai]` cho gói bằng mã);
+  `/luyen-thi/[slug]/in`, `/nhap-dap-an` (+ `/api/luyen-thi/[slug]/ban-in`); menu Ôn tập, sitemap.
+
+| Nhóm | Kết quả |
+|---|---|
+| SQL `supabase/tests/exam_paper.sql` | **5/5** trên PGlite và **5/5 trên DB thật** (tự hoàn tác) — đề miễn phí: lượt paper không hạn, đúng thứ tự + độ xoay, không lộ đáp án; in lại → cùng lượt, trang làm online không coi là bài dở; nhập đáp án + nộp chấm theo độ xoay (10 điểm), có đáp án; đề trong gói chưa có mã → invalid_code, đề lạ → not_found, không thiết bị → no_device; quyền. `exam_attempts` 21/21, `exam_quality` 9/9 vẫn đạt |
+| Unit test | **732/732**, 53 file — thêm `exam-shop.test.ts` (`packBenefits` chỉ nêu điều có thật, mốc thời gian sổ tay, ví dụ kỹ năng: 4 ý có cả đúng lẫn sai, có lời giải, bài tồn tại) |
+| E2E `exam-shop.spec.ts` (mới, DB thật) | **6/6** — trang bán hàng: số câu ngân hàng khớp DB, không nhắc câu Đúng/Sai khi chưa có, nút làm thử trỏ `de-1`, ảnh xem trước, 5 câu hỏi đáp, không còn "40 câu"; người có gói → Tổng quan, "Trang giới thiệu gói" mở lại được; kỹ năng: bảng điểm 0,1 / 0,25…, lời giải ẩn tới khi mở; sổ tay: Bài 6 ai cũng xem, Bài 8 khách thấy lời mời + API 403, có gói xem được + nút in; bản in `de-1`: có phiếu trả lời, không có lời giải / "Đáp án:", nhập 2/10 câu → trang kết quả, lượt `paper` không hạn; đề 2 chưa có mã → không in; máy khác không mở được lượt in |
+| E2E cũ | a11y (thêm 4 trang mới) · payments · payments-admin · account · exam-room · exam-attempts · exam-practice · exam-generated · exam-quality · exam-bank · public: **139 qua**, 14 bỏ qua (cần TEST_PW / Google / cổng giả lập); 1 ca account (8) đổi theo hành vi mới (đăng nhập có gói → Tổng quan, rồi `?gioi-thieu=1` thấy gói của tài khoản) → B6 3/3. Log "[WebServer] The destination stream closed early" xuất hiện cả ở bộ cũ (trình duyệt rời trang khi server đang truyền) — không ảnh hưởng kết quả |
+| Lighthouse 12.2 (bản production cục bộ, Edge) | `/luyen-thi` mobile: Hiệu năng **86**, Trợ năng 100, Thực hành tốt 96, SEO 100, LCP 4,1 s, TBT 100 ms, CLS 0; desktop: **98** / 100 / 96 / 100, LCP 1,0 s. Mốc cùng lúc: trang chủ mobile 87, trang kỹ năng tĩnh 86 → **chưa đạt mục tiêu 90 trên mobile**, là mức chung của web trên máy này; đo lại trên Vercel |
+| Lint, tsc, build | sạch |
+
+Ảnh xem trước: `public/anh/luyen-thi/phong-thi.webp`, `ket-qua.webp` (chụp từ bản production, đề miễn phí `de-1`).

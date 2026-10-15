@@ -27,6 +27,7 @@ Nội dung bám theo SGK Lịch sử 12 (bộ *Kết nối tri thức với cu�
 | Tra cứu | `/tra-cuu` | Tìm sự kiện, nhân vật, địa điểm; gõ không dấu vẫn được |
 | Chi tiết | `/su-kien/…`, `/nhan-vat/…`, `/dia-diem/…`, `/chu-de/…` | Nội dung, ảnh có ghi công, nguồn tham khảo |
 | Luyện thi THPT | `/luyen-thi`, `/luyen-thi/[slug]`, `/kich-hoat` | Đề bấm giờ có giải thích từng câu; đề 1 miễn phí, các đề khác trong gói trả phí (mở bằng mã kích hoạt `LT12-…`, tối đa 3 thiết bị). Trang tự ghi đúng số đề đã công bố |
+| Kỹ năng, sổ tay, bản in | `/luyen-thi/ky-nang`, `/luyen-thi/so-tay`, `/luyen-thi/[slug]/in` | Cách làm câu Đúng/Sai và đọc tư liệu (miễn phí, ví dụ có lời giải); sổ tay ôn thi từng bài dựng từ nội dung đã kiểm duyệt (Bài 6 xem thử, còn lại thuộc gói); in đề + phiếu trả lời, nhập đáp án giấy để chấm. Trang `/luyen-thi` dựng phần "Gói gồm những gì?" từ số liệu thật; người có gói gắn tài khoản được chuyển sang Tổng quan |
 | Luyện tập, ôn thi cá nhân | `/luyen-thi/luyen-tap`, `/luyen-thi/so-cau-sai`, `/luyen-thi/de-ngau-nhien`, `/luyen-thi/tong-quan`, `/luyen-thi/lo-trinh` | Luyện theo bài chấm ngay từng câu (miễn phí 10 câu / ngày); sổ câu sai ôn ngắt quãng; đề tự sinh theo ma trận (chỉ hiện khi ngân hàng đủ câu cho 3 đề không trùng); tổng quan (điểm dự kiến, bản đồ thành thạo 17 bài, chuỗi ngày học); lộ trình ôn theo mục tiêu điểm. Phần cá nhân cần đăng nhập, phần nâng cao thuộc gói |
 | Thanh toán | `/thanh-toan/ket-qua`, `/thanh-toan/tra-cuu` | Chuyển khoản VietQR qua payOS (hoặc cổng giả lập khi phát triển); xem lại đơn và mã bằng mã đơn + email |
 | Ủng hộ | `/ung-ho` | Ủng hộ tự nguyện, Bức tường cảm ơn (lời nhắn được duyệt trước khi hiện) |
@@ -162,6 +163,8 @@ npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-quiz.sql
 #    Kiểm thử (tự hoàn tác): supabase/tests/exam_generated.sql
 # 13. Luyện thi — báo lỗi câu hỏi, chấm lại, thống kê câu (GĐ7): migrations/20261029000000_exam_quality.sql
 #    Kiểm thử (tự hoàn tác): supabase/tests/exam_quality.sql
+# 14. Luyện thi — in đề + phiếu trả lời giấy (GĐ8): migrations/20261030000000_exam_paper.sql
+#    Kiểm thử (tự hoàn tác): supabase/tests/exam_paper.sql
 ```
 
 > `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands

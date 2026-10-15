@@ -102,7 +102,7 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 | 5 | Đề tự sinh, tổng quan, lộ trình | Xong 15/10/2026 (test-report mục 26) — xem "Quyết định khi làm GĐ5"; đề tự sinh hiện ẩn tới khi ngân hàng đủ câu (GĐ6) |
 | 6 | Nội dung (song song từ GĐ1): ≥ 360 câu trắc nghiệm, ≥ 60 câu Đúng/Sai, ≥ 60 câu tư liệu, ≥ 5 đề đầy đủ | |
 | 7 | Thống kê câu hỏi, hàng đợi báo lỗi, chấm lại | Xong 16/10/2026 (test-report mục 27) — xem "Quyết định khi làm GĐ7" |
-| 8 | Trang bán hàng, kỹ năng, sổ tay, bản in | |
+| 8 | Trang bán hàng, kỹ năng, sổ tay, bản in | Xong 16/10/2026 (test-report mục 28) — xem "Quyết định khi làm GĐ8" |
 | 9 | (Tùy chọn) Thi thử định kỳ | |
 
 ### Quyết định khi làm GĐ1 (khác / chi tiết hơn bản đầy đủ)
@@ -213,6 +213,32 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
   hoạt động (tài khoản hoặc thiết bị), phân bố điểm — chỉ số đếm, không có thông tin cá nhân.
 - Người dùng cho phép làm tiếp không hỏi lại (15/10/2026): tôi tự chạy migration GĐ7 bằng `DATABASE_URL` sau khi thử
   PGlite, rồi chạy kiểm thử SQL (tự hoàn tác) ngay trên DB thật và gọi thử hàm qua API.
+
+### Quyết định khi làm GĐ8
+
+- **Trang `/luyen-thi`**: "Gói gồm những gì?" dựng bằng `packBenefits()` từ số liệu thật — số đề đầy đủ, số câu đã công
+  bố trong ngân hàng (và số câu Đúng/Sai), đề tự sinh chỉ khi đủ câu, số bài có sổ tay. Ghi chú cấu trúc đề đổi theo việc
+  đã có đề đầy đủ hay chưa. Thêm nút "Làm thử đề miễn phí", khối "Xem trước" (ảnh chụp đề miễn phí thật từ bản production,
+  `public/anh/luyen-thi/*.webp`), hỏi đáp 5 câu. **Không tự đặt chính sách hoàn tiền** (chưa có văn bản): câu hỏi về đơn
+  hàng hướng tới Tra cứu đơn + email liên hệ + Điều khoản.
+- **Người có gói gắn tài khoản** vào `/luyen-thi` được chuyển sang `/luyen-thi/tong-quan`; `?gioi-thieu=1` xem lại trang
+  giới thiệu; các nút "danh sách đề / thi đề khác / làm đề đầy đủ" trỏ tới `/luyen-thi?gioi-thieu=1#cac-de` để không bị
+  chuyển vòng. Người có gói bằng MÃ (không đăng nhập) vẫn xem trang giới thiệu (server không thấy mã trong máy).
+- **Kỹ năng** `/luyen-thi/ky-nang` (+ `/dung-sai`, `/doc-tu-lieu`): miễn phí, do web biên soạn (`lib/exams/skills.ts`), mỗi
+  trang 5 ví dụ, lời giải ẩn trong `<details>` (không cần JavaScript). Chỉ dùng dữ kiện cơ bản của SGK; trích nguyên văn chỉ
+  lấy từ văn kiện công khai (Tuyên ngôn độc lập, Lời kêu gọi toàn quốc kháng chiến, văn kiện Đại hội VI); đoạn tóm lược ghi
+  rõ là lời của web. **Cần giáo viên xem lại** như ma trận (mục 9).
+- **Sổ tay** `/luyen-thi/so-tay/[bai]`: dựng từ khung SGK (cần đạt, mục) + sự kiện đã công bố của từng mục + nhân vật gắn sự
+  kiện + "câu hay bị nhầm" (≥ 30 lượt, tỉ lệ đạt < 60%, kèm đáp án — chỉ người có gói thấy). Bài 6 xem thử. Gói tài khoản
+  kiểm phía server; gói bằng mã: trang tải qua `/api/luyen-thi/so-tay/[bai]` (kiểm gói bằng `get_generated_intro`). Chưa có
+  phần "biên tập viên viết thêm" (không có bảng nội dung riêng) — để sau.
+- **Bản in** `/luyen-thi/[slug]/in`: lượt chế độ `paper` (hàm `start_paper_attempt`, không hạn nộp; in lại khi chưa nộp →
+  cùng lượt, cùng thứ tự lựa chọn), in đề + phiếu trả lời, có "mã bài in" (8 ký tự đầu của lượt) để đối chiếu. Nhập đáp án ở
+  `/luyen-thi/[slug]/nhap-dap-an?luot=…` trên cùng máy / tài khoản → chấm như bài online. Lượt `paper` không vào sổ câu sai
+  và không tính vào thống kê câu (chỉ lượt `exam`).
+- Menu "Ôn tập" thêm Kỹ năng làm bài, Sổ tay ôn thi; sitemap thêm các trang công khai (không có trang kết quả / tổng quan).
+- **Hiệu năng**: Lighthouse mobile `/luyen-thi` 86 (desktop 98) trên máy phát triển, bằng mức chung của web lúc đo (trang chủ
+  87, trang kỹ năng tĩnh 86) — chưa đạt mục tiêu 90 của kế hoạch; cần đo lại trên Vercel trước khi kết luận.
 
 ## 7. Phụ lục kỹ thuật
 

@@ -3,7 +3,18 @@
 
 export const examPaths = {
   hub: "/luyen-thi",
+  /** Trang giới thiệu + danh sách đề cho người ĐÃ có gói (không bị chuyển sang tổng quan — GĐ8). */
+  list: "/luyen-thi?gioi-thieu=1#cac-de",
+  skills: "/luyen-thi/ky-nang",
   set: (slug: string) => `/luyen-thi/${slug}`,
+  /** Bản in đề + phiếu trả lời; nhập đáp án đã làm trên giấy (GĐ8). */
+  print: (slug: string) => `/luyen-thi/${slug}/in`,
+  paperEntry: (slug: string, attemptId: string) => `/luyen-thi/${slug}/nhap-dap-an?luot=${attemptId}`,
+  /** Kỹ năng làm bài, sổ tay ôn thi (GĐ8). */
+  skillTrueFalse: "/luyen-thi/ky-nang/dung-sai",
+  skillSources: "/luyen-thi/ky-nang/doc-tu-lieu",
+  handbook: "/luyen-thi/so-tay",
+  handbookLesson: (lessonSlug: string) => `/luyen-thi/so-tay/${lessonSlug}`,
   activate: "/kich-hoat",
   /** Trang kết quả một lượt (chỉ chủ lượt xem được — dữ liệu tải qua API kèm mã thiết bị). */
   result: (attemptId: string) => `/luyen-thi/ket-qua/${attemptId}`,

@@ -234,3 +234,19 @@ export async function reportExamItem(caller: Caller, body: ReportBody) {
     p_note: body.note,
   });
 }
+
+// ----- Bản in đề (GĐ8, migration 20261030000000_exam_paper.sql) -----
+
+export async function startPaperAttempt(slug: string, caller: Caller) {
+  return rpc().rpc("start_paper_attempt", { p_slug: slug, p_code: caller.code ?? "", p_device_hash: caller.deviceHash ?? "", p_user_id: caller.userId });
+}
+
+/**
+ * Người gọi có gói luyện thi còn hiệu lực không (tài khoản hoặc mã trên máy) — dùng hàm get_generated_intro (cùng luật
+ * kiểm gói của đề tự sinh) cho các phần "thuộc gói" không gắn với đề nào (sổ tay ôn thi).
+ */
+export async function callerHasPack(caller: Caller): Promise<boolean> {
+  if (!caller.userId && !caller.deviceHash) return false;
+  const { data } = await rpc().rpc("get_generated_intro", { p_user_id: caller.userId, p_code: caller.code ?? "", p_device_hash: caller.deviceHash ?? "", p_blueprint: "quick_15" });
+  return Boolean(data && typeof data === "object" && !Array.isArray(data) && data.ok === true);
+}

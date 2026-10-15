@@ -693,7 +693,9 @@ test.describe.serial("Gói luyện thi theo tài khoản (B6)", () => {
     await second.goto("/luyen-thi/de-2");
     await expect(second.getByRole("link", { name: "Đăng nhập để mở đề" })).toBeVisible();
     await signIn(second, email, PASSWORD, "/dang-nhap?next=%2Fluyen-thi");
-    await second.waitForURL(/\/luyen-thi$/);
+    // Đã có gói gắn tài khoản → /luyen-thi chuyển sang Tổng quan (GĐ8 luyện thi); trang giới thiệu vẫn xem được.
+    await second.waitForURL(/\/luyen-thi\/tong-quan$/);
+    await second.goto("/luyen-thi?gioi-thieu=1");
     await expect(second.getByTestId("pack-account")).toContainText(code);
     await expectExamOpensByAccount(second);
     // Chủ đơn xem được trang kết quả ở máy khác (không có cookie của đơn).

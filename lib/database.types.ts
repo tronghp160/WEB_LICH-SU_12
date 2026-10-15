@@ -1386,6 +1386,11 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Json
       }
+      // Bản in đề — migration 20261030000000_exam_paper.sql (viết tay).
+      start_paper_attempt: {
+        Args: { p_slug: string; p_code: string; p_device_hash: string; p_user_id?: string | null }
+        Returns: Json
+      }
       // Chất lượng câu hỏi — migration 20261029000000_exam_quality.sql (viết tay).
       report_exam_item: {
         Args: { p_user_id?: string | null; p_device_hash: string; p_attempt_id: string; p_item_id: string; p_reason: string; p_note: string }

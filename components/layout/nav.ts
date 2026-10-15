@@ -47,6 +47,8 @@ export const REVIEW_LINKS: NavLink[] = [
   { href: quizPaths.all, label: "Trắc nghiệm tổng hợp", description: "Câu hỏi ngẫu nhiên cả chương trình", icon: ListChecks },
   { href: quizPaths.yearGame, label: "Nhìn ảnh đoán năm", description: "Ảnh tư liệu thật, đoán năm diễn ra", icon: Images },
   { href: "/luyen-thi", label: "Luyện thi THPT", description: "Đề luyện bấm giờ, có giải thích từng câu", icon: GraduationCap },
+  { href: "/luyen-thi/ky-nang", label: "Kỹ năng làm bài", description: "Câu Đúng/Sai, đọc tư liệu — miễn phí", icon: HelpCircle },
+  { href: "/luyen-thi/so-tay", label: "Sổ tay ôn thi", description: "Mốc thời gian, sự kiện từng bài; in được", icon: BookOpen },
   { href: "/ho-chieu", label: "Tiến độ học tập", description: "Hộ chiếu lịch sử: con dấu đã nhận", icon: Stamp },
 ];
 
