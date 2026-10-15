@@ -654,3 +654,20 @@ Nhánh `feat/google-login-ui`. Chỉ đổi giao diện — luồng OAuth, `safe
 | G8 | Máy dùng chung — đăng xuất rồi bấm Google lại | Màn chọn tài khoản Google vẫn hiện (`prompt=select_account`) | chưa kiểm |
 | G9 | Điện thoại 360 px | Nút không tràn, bấm được, quay về đúng trang `next` | chưa kiểm |
 | G10 | Đang ở `/luyen-thi/de-2` (cần đăng nhập) → Google | Quay lại đúng `/luyen-thi/de-2` | chưa kiểm |
+
+**Cải thiện kèm theo (cùng nhánh):**
+
+- **Security headers** (`next.config.ts`, mọi route): `X-Content-Type-Options: nosniff`, `Referrer-Policy:
+  strict-origin-when-cross-origin`, `X-Frame-Options: DENY`, `Permissions-Policy: camera=(), microphone=(),
+  geolocation=(self)`, `Strict-Transport-Security` (chỉ production). CSP ở chế độ **`Content-Security-Policy-Report-Only`**
+  (chỉ báo, chưa chặn); nguồn lấy từ mã thật. Quét bằng trình duyệt (trang chính, bản đồ 3D, phim 3D, tái hiện, video
+  YouTube, "Gần em"; bộ dò được kiểm bằng một ảnh `http:` cố tình chèn): **0 vi phạm**. Muốn chuyển sang chặn thật: đổi
+  tên header thành `Content-Security-Policy` sau khi kiểm thêm trang quản trị và thanh toán payOS thật.
+- **Ảnh đại diện Google:** tách `components/account/Avatar.tsx` (`referrerPolicy="no-referrer"`, ảnh lỗi → chữ cái đầu)
+  dùng chung cho menu tài khoản và `/tai-khoan` — trước đây `/tai-khoan` hiện icon ảnh vỡ khi ảnh Google lỗi.
+- Không làm C3 (font cục bộ): build trên máy này và trên Vercel đều tải được Google Fonts.
+
+| Nhóm | Kết quả |
+|---|---|
+| Lint, tsc, `npm run build` | sạch |
+| **Toàn bộ E2E** (bản production, sau khi thêm headers) | **195 đạt**, 21 bỏ qua (thiếu `TEST_PW`, Google chưa bật, `E2E_SMTP`), **1 đỏ không do nhánh này**: `ui-v2.spec.ts` "lọc theo Bài 9" — lựa chọn "Bài 9" bị khóa vì database hiện **chưa có sự kiện đã công bố nào gắn Bài 9** (`MapExplorer` khóa bài "chưa có sự kiện"). Chạy lại 3 lần đều đỏ cùng lý do; cần công bố / gắn lại sự kiện cho Bài 9 hoặc đổi test sang bài có dữ liệu |
