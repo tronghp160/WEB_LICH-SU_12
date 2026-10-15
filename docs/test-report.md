@@ -719,3 +719,29 @@ Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quy�
 | E2E `exam-bank.spec.ts` (DB thật, TEST_PW) | **6/6** — form trắc nghiệm (lựa chọn trùng báo đúng ô), tư liệu + Đúng/Sai (ý chưa chọn báo lỗi), nhập JSON 28 câu + 1 tư liệu (lỗi từng dòng, nhập lại báo trùng), gửi duyệt / công bố hàng loạt (tư liệu công bố theo câu), ghép đề 24 + 4 (rải đều 6/6/6/6, gửi duyệt được, công bố bị chặn chờ GĐ3), xóa câu đang trong đề bị chặn. Lần chạy đầu có 1 ca chờ quá 15 s do mạng tới Supabase; chạy lại đạt |
 | E2E `payments.spec.ts` | 13/14 — làm đề miễn phí / trong gói chạy trên bảng mới; ca T1 còn đỏ vì mô tả `de-1`, `de-2` trong DB chưa sửa (câu UPDATE ở mục 21, chờ chạy) |
 | Lint, tsc, build | sạch |
+
+## 23. Luyện thi — GĐ2: lượt làm bài, chấm phía server (15/10/2026)
+
+Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quyết định khi làm GĐ2"). Migration
+`20261026000000_exam_attempts.sql` — **người dùng đã chạy 15/10/2026** trong SQL Editor.
+
+- Database: bảng `exam_attempts` (RLS: học sinh chỉ đọc lượt của mình, quản trị viên đọc hết, không ai ghi thẳng); hàm
+  `exam_access`, `get_exam_intro`, `start_exam_attempt`, `save_attempt_answers`, `submit_exam_attempt`, `get_attempt_result`
+  (chỉ service_role). Chấm điểm trong SQL bằng số nguyên phần nghìn; `lib/exams/scoring.ts` chấm giống hệt.
+- API: `GET /api/luyen-thi/[slug]` (quyền + số câu + lượt dở, không có câu hỏi), `POST …/bat-dau`, `GET` / `PATCH
+  /api/luyen-thi/luot/[id]`, `POST …/nop` — `no-store`, thân ≤ 32 KB, giới hạn `exam_start` 30 / 10 phút, `exam_save`
+  300 / 10 phút / lượt.
+- Trình làm đề (giao diện cũ) chuyển sang API mới: đáp án chỉ về trình duyệt sau khi nộp, tự lưu 2 giây sau mỗi lần chọn,
+  tải lại trang → "Bắt đầu làm bài" làm tiếp đúng lượt, đồng hồ theo giờ server. Bỏ `fetchExam` / chấm phía client.
+
+| Nhóm | Kết quả |
+|---|---|
+| Kiểm sau migration (DB thật) | `get_exam_intro('de-1')` → free, 10 câu; khách gọi `start_exam_attempt` / đọc `exam_attempts` → 42501 |
+| SQL `supabase/tests/exam_attempts.sql` (PGlite) | **21/21** — không lộ đáp án khi bắt đầu / xem lượt dở, làm tiếp, chủ lượt (máy / tài khoản), lọc câu trả lời lạ, bỏ chọn, chấm ca chung 6,00 + phân tích theo phần / bài / mức độ / dạng, nộp lại trả kết quả cũ, quá hạn + 30 s, lượt quá hạn tự chấm khi mở lại, đề trả phí (mã / máy / tài khoản), quyền hàm, RLS học sinh. `exam_bank.sql` vẫn 31/31 |
+| Unit test | **667/667**, 47 file — thêm `exam-scoring.test.ts` (bảng điểm Đúng/Sai, ca chung với SQL, đề 24 + 4 = 10, làm tròn bằng số nguyên, đọc kết quả API, hạn nộp theo giờ server, schema thân request) |
+| E2E `exam-attempts.spec.ts` (mới, không cần TEST_PW) | **5/5** — đáp án không có trong phản hồi trang đề / bắt đầu, có sau khi nộp; làm tiếp giữ câu trả lời; máy khác 404; thân sai dạng / quá 32 KB → 400; đề trong gói chưa kích hoạt → 403; giao diện: tải lại trang → làm tiếp, đáp án đã chọn còn, đồng hồ không đặt lại |
+| E2E `payments.spec.ts` | 13/14 — làm đề miễn phí, mua → kích hoạt → làm đề trong gói → điểm cao nhất lưu vào tiến độ: đạt. Ca T1 đỏ vì mô tả `de-1`, `de-2` trong DB còn "40 câu" (câu UPDATE mục 21 chưa chạy) |
+| E2E `account.spec.ts` — "Gói luyện thi theo tài khoản (B6)" | **3/3** |
+| Trợ năng `/luyen-thi`, `/luyen-thi/de-1` × sáng / tối | **4/4** |
+| Ma trận quyền `tests/rls/exam-bank.mjs` (DB thật, thêm đọc `exam_attempts` + gọi thẳng hàm lượt làm bài) | **75/75 ô** (15 thao tác × 5 vai trò), dữ liệu thử sót 0 |
+| Lint, tsc, build | sạch |

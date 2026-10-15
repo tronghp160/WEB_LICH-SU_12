@@ -152,6 +152,8 @@ npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-quiz.sql
 #    (chuyển câu đề cũ sang ngân hàng; code từ GĐ1 đọc bảng mới nên PHẢI chạy trước khi chạy bản code này)
 #    Kiểm thử (tự hoàn tác): supabase/tests/exam_bank.sql. Câu soạn bằng JSON: node scripts/build-exam-bank-sql.mjs
 #    → supabase/seed-ngan-hang.sql (hoặc trang /quan-tri/ngan-hang-cau-hoi/nhap). Hướng dẫn soạn: docs/huong-dan-soan-cau-hoi.md
+# 10. Luyện thi — lượt làm bài, chấm phía server (GĐ2): migrations/20261026000000_exam_attempts.sql
+#    (trình làm đề từ GĐ2 gọi các hàm này nên PHẢI chạy trước). Kiểm thử (tự hoàn tác): supabase/tests/exam_attempts.sql
 ```
 
 > `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands

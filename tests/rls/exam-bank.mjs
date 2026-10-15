@@ -81,7 +81,7 @@ try {
 
   const OPS = [
     // ----- Đọc -----
-    { name: "Đọc `exam_items`", expected: "❌✅✅✅❌", note: "Khách / học sinh không đọc được câu hỏi + đáp án; chỉ lấy câu qua get_exam_set (server)",
+    { name: "Đọc `exam_items`", expected: "❌✅✅✅❌", note: "Khách / học sinh không đọc được câu hỏi + đáp án; câu hỏi chỉ có trong lượt làm bài (server), đáp án chỉ có sau khi nộp",
       run: (c) => c.from("exam_items").select("id").like("stem", `${PREFIX}%`).limit(1).then(readsRows) },
     { name: "Đọc `exam_passages`", expected: "❌✅✅✅❌", run: (c) => c.from("exam_passages").select("id").like("title", `${PREFIX}%`).limit(1).then(readsRows) },
     { name: "Đọc `exam_set_items`", expected: "❌✅✅✅❌", run: (c) => c.from("exam_set_items").select("item_id").eq("set_id", draftSet).then(readsRows) },
@@ -102,6 +102,15 @@ try {
       run: async (c) => wrote(await c.from("exam_set_items").insert({ set_id: draftSet, item_id: await fixture("published"), section: 1, position: 10 + ++counter }).select("item_id")) },
     { name: "Thêm câu vào đề đã ẩn / đã công bố", expected: "❌❌✅✅❌", note: "Biên tập viên chỉ ghép câu khi đề đang nháp / cần chỉnh sửa",
       run: async (c) => wrote(await c.from("exam_set_items").insert({ set_id: hiddenSet, item_id: await fixture("published"), section: 1, position: 10 + ++counter }).select("item_id")) },
+    // ----- Lượt làm bài (GĐ2, migration 20261026000000_exam_attempts.sql) -----
+    { name: "Đọc `exam_attempts` (lượt của người khác)", expected: "❌❌❌✅❌", note: "Chỉ quản trị viên đọc mọi lượt; học sinh chỉ đọc lượt của mình (supabase/tests/exam_attempts.sql, R1)",
+      run: (c) => c.from("exam_attempts").select("id").limit(1).then(readsRows) },
+    { name: "Gọi thẳng `start_exam_attempt` / `submit_exam_attempt`", expected: "❌❌❌❌❌", note: "Chỉ server gọi bằng khóa bí mật sau khi tự xác định người gọi",
+      run: async (c) => {
+        const started = await c.rpc("start_exam_attempt", { p_slug: "de-1", p_code: "", p_device_hash: "0".repeat(64), p_user_id: null, p_mode: "exam" });
+        const submitted = await c.rpc("submit_exam_attempt", { p_attempt_id: "00000000-0000-0000-0000-000000000000", p_user_id: null, p_device_hash: "0".repeat(64), p_answers: {} });
+        return started.error && submitted.error ? "❌" : "✅";
+      } },
     { name: "Tạo tư liệu nháp", expected: "❌✅✅✅❌",
       run: (c) => c.from("exam_passages").insert({ title: `${PREFIX} tư liệu ${++counter}`, body: "Đoạn tư liệu thử đủ ba mươi ký tự cho ràng buộc độ dài.", source_citation: "Kiểm thử RLS" }).select("id").then(wrote) },
   ];

@@ -1,11 +1,10 @@
 // Đề luyện thi THPT (docs/ke-hoach-thanh-toan.md, mục 7.2) — kiểu dữ liệu và hàm thuần dùng chung cho route, trình
-// làm đề và unit test. Câu hỏi chỉ lấy được qua hàm SQL `get_exam_set` (kiểm mã kích hoạt + thiết bị).
+// làm đề và unit test. Câu hỏi chỉ có trong lượt làm bài (lib/exams/attempt.ts — GĐ2), đáp án chỉ có sau khi nộp.
 
 export const examPaths = {
   hub: "/luyen-thi",
   set: (slug: string) => `/luyen-thi/${slug}`,
   activate: "/kich-hoat",
-  api: (slug: string) => `/api/luyen-thi/${slug}`,
 };
 
 /** Khóa lưu kết quả trong tiến độ học tập (Hộ chiếu lịch sử). */
@@ -22,72 +21,6 @@ export type ExamSetInfo = {
   durationMin: number;
   free: boolean;
 };
-
-export type ExamQuestion = {
-  position: number;
-  question: string;
-  choices: string[];
-  correctIndex: number;
-  explanation: string;
-  lessonSlug: string | null;
-  eventSlug: string | null;
-  eventTitle: string | null;
-};
-
-export type ExamPayload = { set: ExamSetInfo; questions: ExamQuestion[] };
-
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
-const optionalText = (value: unknown) => (typeof value === "string" && value !== "" ? value : null);
-
-/** Đọc kết quả jsonb của `get_exam_set` (đã `ok: true`) thành kiểu an toàn; dữ liệu sai dạng → null. */
-export function parseExamPayload(value: unknown): ExamPayload | null {
-  if (!isRecord(value) || !isRecord(value.set) || !Array.isArray(value.questions)) return null;
-  const set = value.set;
-  if (typeof set.slug !== "string" || typeof set.title !== "string" || typeof set.duration_min !== "number") return null;
-
-  const questions: ExamQuestion[] = [];
-  for (const item of value.questions) {
-    if (!isRecord(item)) return null;
-    const { position, question, choices, correct_index: correctIndex, explanation } = item;
-    if (typeof position !== "number" || typeof question !== "string" || typeof explanation !== "string") return null;
-    if (!Array.isArray(choices) || choices.length !== 4 || !choices.every((choice) => typeof choice === "string")) return null;
-    if (typeof correctIndex !== "number" || !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex > 3) return null;
-    questions.push({
-      position,
-      question,
-      choices: choices as string[],
-      correctIndex,
-      explanation,
-      lessonSlug: optionalText(item.lesson_slug),
-      eventSlug: optionalText(item.event_slug),
-      eventTitle: optionalText(item.event_title),
-    });
-  }
-  questions.sort((a, b) => a.position - b.position);
-  return {
-    set: { slug: set.slug, title: set.title, description: optionalText(set.description), durationMin: set.duration_min, free: set.free === true },
-    questions,
-  };
-}
-
-export type ExamScore = { correct: number; total: number; unanswered: number; score10: number };
-
-/**
- * Chấm đề chỉ có trắc nghiệm (đề mẫu): quy về thang 10 theo tỉ lệ câu đúng, làm tròn 2 chữ số. Đề đầy đủ có Đúng/Sai chấm
- * theo lib/exams/format.ts (TRUE_FALSE_POINTS) — từ GĐ2 chấm phía server.
- */
-export function scoreExam(questions: readonly ExamQuestion[], answers: readonly (number | null)[]): ExamScore {
-  let correct = 0;
-  let unanswered = 0;
-  questions.forEach((question, index) => {
-    const answer = answers[index];
-    if (answer === null || answer === undefined) unanswered++;
-    else if (answer === question.correctIndex) correct++;
-  });
-  const total = questions.length;
-  const score10 = total === 0 ? 0 : Math.round((correct * 1000) / total) / 100;
-  return { correct, total, unanswered, score10 };
-}
 
 /** 7.25 → "7,25"; 8 → "8" (dấu phẩy thập phân kiểu Việt Nam). */
 export function formatScore10(score: number): string {
@@ -117,6 +50,12 @@ export function examAccessMessage(reason: string | undefined): { message: string
       return { message: "Mã kích hoạt đã hết hạn sử dụng.", needsActivation: true };
     case "not_found":
       return { message: "Không tìm thấy đề này hoặc đề chưa được công bố.", needsActivation: false };
+    case "empty":
+      return { message: "Đề này chưa có câu hỏi. Em thử đề khác nhé.", needsActivation: false };
+    case "rate_limited":
+      return { message: "Em đã bắt đầu làm bài quá nhiều lần trong ít phút. Đợi khoảng 10 phút rồi thử lại nhé.", needsActivation: false };
+    case "no_device":
+      return { message: "Trình duyệt đang chặn lưu dữ liệu nên không làm bài được. Em bật lại lưu trữ (cookie / dữ liệu trang) rồi tải lại trang nhé.", needsActivation: false };
     default:
       return { message: "Không tải được đề. Em kiểm tra mạng rồi thử lại nhé.", needsActivation: false };
   }

@@ -1158,6 +1158,34 @@ export type Database = {
           },
         ]
       }
+      exam_attempts: {
+        Row: {
+          answers: Json
+          breakdown: Json | null
+          choice_shifts: number[]
+          created_at: string
+          deadline_at: string | null
+          device_hash: string | null
+          id: string
+          item_ids: string[]
+          license_id: string | null
+          max_score: number | null
+          mode: Database["public"]["Enums"]["exam_attempt_mode"]
+          raw_score: number | null
+          score10: number | null
+          sections: number[]
+          set_id: string | null
+          started_at: string
+          status: Database["public"]["Enums"]["exam_attempt_status"]
+          submitted_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        // Chỉ ghi qua hàm SQL (service_role) — Insert / Update để trống có chủ ý.
+        Insert: { [_ in never]: never }
+        Update: { [_ in never]: never }
+        Relationships: []
+      }
       rate_limit_hits: {
         Row: {
           id: number
@@ -1270,6 +1298,27 @@ export type Database = {
         Args: { p_slug: string; p_code: string; p_device_hash: string; p_user_id?: string | null }
         Returns: Json
       }
+      // Lượt làm bài — migration 20261026000000_exam_attempts.sql (viết tay).
+      get_exam_intro: {
+        Args: { p_slug: string; p_code: string; p_device_hash: string; p_user_id?: string | null }
+        Returns: Json
+      }
+      start_exam_attempt: {
+        Args: { p_slug: string; p_code: string; p_device_hash: string; p_user_id?: string | null; p_mode?: string }
+        Returns: Json
+      }
+      save_attempt_answers: {
+        Args: { p_attempt_id: string; p_user_id?: string | null; p_device_hash: string; p_answers: Json }
+        Returns: Json
+      }
+      submit_exam_attempt: {
+        Args: { p_attempt_id: string; p_user_id?: string | null; p_device_hash: string; p_answers: Json }
+        Returns: Json
+      }
+      get_attempt_result: {
+        Args: { p_attempt_id: string; p_user_id?: string | null; p_device_hash: string }
+        Returns: Json
+      }
       claim_license: {
         Args: { p_code: string; p_user_id: string }
         Returns: Json
@@ -1317,6 +1366,8 @@ export type Database = {
     }
     Enums: {
       account_status: "active" | "locked"
+      exam_attempt_mode: "exam" | "practice" | "review" | "paper"
+      exam_attempt_status: "in_progress" | "submitted" | "abandoned"
       exam_competency: "tim_hieu_lich_su" | "nhan_thuc_tu_duy" | "van_dung_kien_thuc"
       exam_item_kind: "mcq" | "true_false"
       exam_item_level: "nhan_biet" | "thong_hieu" | "van_dung"

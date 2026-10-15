@@ -17,6 +17,10 @@ export const RATE_LIMITS = {
   license_claim: { windowSeconds: 15 * 60, max: 10 },
   /** Ghi tiến độ lên tài khoản (/api/tien-do): 30 lần / phút / tài khoản — client gom thay đổi 3 giây một lần. */
   progress_write: { windowSeconds: 60, max: 30 },
+  /** Bắt đầu lượt làm đề: 30 lần / 10 phút / tài khoản hoặc thiết bị — chống cào đề hàng loạt bằng một mã. */
+  exam_start: { windowSeconds: 10 * 60, max: 30 },
+  /** Lưu câu trả lời: 300 lần / 10 phút / lượt — client gom thay đổi 2 giây một lần. */
+  exam_save: { windowSeconds: 10 * 60, max: 300 },
 } as const;
 
 export type RateLimitBucket = keyof typeof RATE_LIMITS;

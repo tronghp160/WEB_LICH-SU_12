@@ -96,7 +96,7 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 |---|---|---|
 | 0 | Sửa cấu trúc 40 câu → 24 + 4 (`lib/exams/format.ts`), câu chữ trang, `lib/exams/config.ts` (ngày thi), tài liệu này | Xong 15/10/2026 |
 | 1 | Ngân hàng câu hỏi, dạng Đúng/Sai, tư liệu; quản trị ngân hàng, soạn đề từ ngân hàng, nhập JSON | Xong 15/10/2026 (test-report mục 22) — xem "Quyết định khi làm GĐ1" |
-| 2 | Lượt làm bài + chấm phía server, API mới, không lộ đáp án | |
+| 2 | Lượt làm bài + chấm phía server, API mới, không lộ đáp án | Xong 15/10/2026 (test-report mục 23) — xem "Quyết định khi làm GĐ2" |
 | 3 | Phòng thi mới + trang kết quả | |
 | 4 | Luyện tập, sổ câu sai, ôn ngắt quãng | |
 | 5 | Đề tự sinh, tổng quan, lộ trình | |
@@ -120,6 +120,23 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
   bố luôn các câu (và tư liệu) đang chờ duyệt trong đề. Câu / tư liệu đang nằm trong đề đã công bố thì không ẩn được.
 - **Bảng `exam_item_reports` (mục 3.8) để sang GĐ7**, cùng chức năng báo lỗi dùng nó — tránh tạo bảng chưa có chỗ dùng.
 - Kiểm duyệt viên công bố / gửi duyệt hàng loạt ở danh sách ngân hàng (tối đa 200 câu một lượt).
+
+### Quyết định khi làm GĐ2
+
+- **Chủ lượt:** lượt tạo khi đăng nhập thuộc tài khoản (đổi máy vẫn xem được, đăng xuất thì không); tạo khi chưa đăng
+  nhập thuộc mã thiết bị (UUID trong localStorage, gửi lên dạng băm có muối). Người khác nhận 404 như lượt không tồn tại.
+- `exam_attempts` thêm cột **`choice_shifts`** (độ xoay lựa chọn chép từ đề lúc bắt đầu) — đề sửa sau không làm đổi lượt
+  đang làm hay điểm đã chấm.
+- **Chấm bằng số nguyên phần nghìn** (trắc nghiệm 250, Đúng/Sai 0/100/250/500/1000), điểm thang 10 làm tròn 0,01 nửa
+  lên bằng công thức số nguyên — SQL và `lib/exams/scoring.ts` không lệch do số thực; một ca chấm dùng chung cho cả hai
+  bộ test.
+- **Câu trả lời gửi theo từng câu, thay cả object của câu đó** (bỏ chọn = `{"choice": null}`); server bỏ câu lạ, khóa lạ.
+- **Hết giờ:** lưu sau hạn + 30 giây bị từ chối (`time_up`); lượt quá hạn chưa nộp được chấm theo phần đã lưu khi người
+  học mở lại đề hoặc xem lượt.
+- `GET /api/luyen-thi/[slug]` giờ chỉ trả quyền + số câu + lượt đang làm dở (không có câu hỏi). `start_generated_attempt`
+  (đề tự sinh) làm ở GĐ5 cùng ma trận đề. `get_exam_set` (trả cả đáp án) không còn được gọi — bỏ ở migration dọn dẹp.
+- Trình làm đề cũ (giao diện giữ nguyên) chuyển sang API mới; hiển thị tối thiểu câu Đúng/Sai và tư liệu cho an toàn —
+  phòng thi đầy đủ ở GĐ3. Con dấu Hộ chiếu lưu điểm dạng score10 × 100 / 1000 (mục 3.11).
 
 ## 7. Phụ lục kỹ thuật
 
