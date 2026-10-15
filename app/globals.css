@@ -28,7 +28,7 @@
   --gold: light-dark(#b08d57, #c9a36d);
   --gold-foreground: light-dark(#2b2622, #1c1815);
   /* Vàng đồng đậm dùng cho CHỮ trên nền sáng (--gold gốc chỉ đạt ~2.8:1, dưới chuẩn AA 4.5:1). */
-  --gold-deep: light-dark(#85652b, #c9a36d);
+  --gold-deep: light-dark(#7a5c24, #c9a36d); /* sáng: 5,1:1 trên nền --muted (#85652b cũ chỉ 4,4:1 — lỗi axe ở khung "Bạn có biết?") */
   /* Xanh "trả lời đúng" (trắc nghiệm GĐ4): 5.8:1 trên nền giấy. Trả lời sai dùng --accent. */
   --success: light-dark(#2e6b37, #7ec48b);
   --success-bg: light-dark(#e6f1e7, #18261a);
@@ -277,6 +277,34 @@ path.map-center {
   background: var(--battle-invader);
 }
 
+/* Máy bay địch (Điện Biên Phủ trên không): tròn xanh, hình máy bay; bị bắn rơi → xám, dấu ✕ (lớp --sunk). */
+.battle-unit--invader-aircraft {
+  border-radius: 50%;
+  background: var(--battle-invader);
+}
+
+.battle-unit--invader-aircraft::after {
+  content: "✈";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.battle-unit--invader-aircraft.battle-unit--sunk {
+  background: #6b6660;
+}
+
+.battle-unit--invader-aircraft.battle-unit--sunk::after {
+  content: "✕";
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .battle-unit--defender-boat {
   border-radius: 50%;
   background: var(--battle-defender);
@@ -473,6 +501,16 @@ path.battle-stake--exposed {
   line-height: 1;
 }
 
+/* Điểm của ta bị đối phương tiến công (Hà Nội bị B-52 ném bom): nền màu của ta, viền nhấp nháy giữ nguyên. */
+.battle-sp--ours {
+  background: var(--battle-ours-deep);
+}
+
+.battle-sp--ours.battle-sp--attacked {
+  border-color: #ffd54a;
+  outline-color: #ffd54a;
+}
+
 .battle-sp__label {
   position: absolute;
   left: 20px;
@@ -500,6 +538,11 @@ path.battle-arrow--attack {
   stroke: var(--battle-ours);
 }
 
+path.battle-arrow--raid {
+  stroke: var(--battle-enemy);
+  stroke-dasharray: 2 9;
+}
+
 path.battle-arrow--supply {
   stroke: var(--battle-ours-deep);
   stroke-dasharray: 8 7;
@@ -514,6 +557,10 @@ path.battle-arrow--supply {
 
 .battle-arrowhead--attack {
   background: var(--battle-ours);
+}
+
+.battle-arrowhead--raid {
+  background: var(--battle-enemy);
 }
 
 .battle-arrowhead--supply {
@@ -565,6 +612,24 @@ span.battle-legend-arrow::after {
   right: -4px;
   top: -4px;
   border-left: 8px solid var(--battle-ours);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+}
+
+/* Đường bay tập kích của đối phương: xanh, nét chấm (khớp path.battle-arrow--raid). */
+span.battle-legend-raid {
+  position: relative;
+  width: 22px;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, var(--battle-enemy) 0 3px, transparent 3px 7px);
+}
+
+span.battle-legend-raid::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: -4px;
+  border-left: 8px solid var(--battle-enemy);
   border-top: 6px solid transparent;
   border-bottom: 6px solid transparent;
 }

@@ -4,8 +4,9 @@ export type LatLng = [number, number];
 /**
  * Loại đơn vị trên sơ đồ: quyết định hình dáng và màu biểu tượng (không chỉ dựa vào màu).
  * Bạch Đằng: invader-ship / defender-boat / defender-land. Điện Biên Phủ: vn-infantry / vn-artillery / vn-hq.
+ * Điện Biên Phủ trên không: invader-aircraft (máy bay địch; trạng thái "sunk" = bị bắn rơi).
  */
-export type UnitKind = "invader-ship" | "defender-boat" | "defender-land" | "vn-infantry" | "vn-artillery" | "vn-hq";
+export type UnitKind = "invader-ship" | "invader-aircraft" | "defender-boat" | "defender-land" | "vn-infantry" | "vn-artillery" | "vn-hq";
 
 export type UnitStatus = "active" | "sunk";
 
@@ -37,13 +38,21 @@ export type StrongpointDefinition = {
   position: LatLng;
   /** Nhãn phụ: ẩn khi xem toàn quốc (zoom < 6) để các điểm gần nhau không đè chữ lên nhau. */
   minorLabel?: boolean;
+  /**
+   * Điểm của TA bị đối phương tiến công (vd. Hà Nội bị B-52 ném bom): tô màu của ta thay vì màu đối phương. Mặc định là
+   * cứ điểm / mục tiêu của đối phương.
+   */
+  side?: "ours";
 };
 
-/** Mũi tên tiến công. Mũi tên xuất hiện ở bước nào thì được "vẽ dần" khi chuyển tới bước đó. */
+/**
+ * Mũi tên tiến công. Mũi tên xuất hiện ở bước nào thì được "vẽ dần" khi chuyển tới bước đó.
+ * attack / supply: của ta (đỏ); raid: đường bay tập kích đường không của đối phương (xanh, nét đứt).
+ */
 export type ArrowDefinition = {
   id: string;
   path: LatLng[];
-  kind: "attack" | "supply";
+  kind: "attack" | "supply" | "raid";
 };
 
 /** Vùng tô trên bản đồ (phân khu, vòng vây...). */
