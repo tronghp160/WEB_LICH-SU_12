@@ -1,6 +1,7 @@
 import { BookOpen, Flag } from "lucide-react";
 import Link from "next/link";
 import { PassageBlock } from "@/components/exams/ExamItemPreview";
+import { ReportItemButton } from "@/components/exams/ReportItemButton";
 import type { AttemptQuestion } from "@/lib/exams/attempt";
 import { CHOICE_LETTERS, STATEMENT_LETTERS } from "@/lib/exams/items";
 import type { ItemAnswer } from "@/lib/exams/scoring";
@@ -10,8 +11,18 @@ import { cn } from "@/lib/utils/cn";
 
 const fullMilli = (question: AttemptQuestion) => (question.kind === "mcq" ? 250 : 1000);
 
+type Props = {
+  question: AttemptQuestion;
+  position: number;
+  answer: ItemAnswer | undefined;
+  /** Có thì hiện nút "Báo lỗi" (câu em đã thấy đáp án). */
+  attemptId?: string;
+  /** Câu đã được chấm lại sau khi sửa đáp án (GĐ7). */
+  regraded?: boolean;
+};
+
 /** Một câu trong phần "Đáp án và giải thích" (sau khi nộp — server đã trả đáp án, lời giải từng ý, điểm từng câu). */
-export function SolutionItem({ question, position, answer }: { question: AttemptQuestion; position: number; answer: ItemAnswer | undefined }) {
+export function SolutionItem({ question, position, answer, attemptId, regraded }: Props) {
   const earned = question.earnedMilli ?? 0;
   const right = earned === fullMilli(question);
   const lesson = question.lessonSlug ? getSgkLesson(question.lessonSlug) : undefined;
@@ -27,6 +38,7 @@ export function SolutionItem({ question, position, answer }: { question: Attempt
         <span>
           {formatScore10(earned / 1000)} / {formatScore10(fullMilli(question) / 1000)} điểm
         </span>
+        {regraded && <span className="font-medium text-info">Đã chấm lại do sửa đáp án</span>}
         {answer?.flagged && (
           <span className="inline-flex items-center gap-1 text-gold-deep">
             <Flag className="h-3 w-3 fill-gold" aria-hidden="true" />
@@ -76,6 +88,7 @@ export function SolutionItem({ question, position, answer }: { question: Attempt
           )}
         </p>
       )}
+      {attemptId && <ReportItemButton attemptId={attemptId} itemId={question.itemId} position={position + 1} />}
     </li>
   );
 }

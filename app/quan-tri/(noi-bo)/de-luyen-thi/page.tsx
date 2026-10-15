@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { createExamSetAction } from "@/lib/actions/exams";
 import { requireRole } from "@/lib/auth";
-import { examAdminPaths } from "@/lib/exams/admin";
+import { examAdminPaths, examQualityPaths } from "@/lib/exams/admin";
 import { examFormatShortLabels, parseExamFormat, THPT_2025_LABEL } from "@/lib/exams/format";
 import { examBankPaths } from "@/lib/exams/items";
 import { listExamSetsForStaff } from "@/lib/queries/admin-exams";
@@ -33,6 +33,16 @@ export default async function ExamSetsAdminPage({ searchParams }: PageProps<"/qu
             </Link>
             . Biên tập viên soạn và gửi duyệt; kiểm duyệt viên công bố. Đề trong gói chỉ làm được khi đã kích hoạt mã.
             {pending > 0 && <strong className="text-foreground"> {pending} đề đang chờ duyệt.</strong>}
+          </p>
+          <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <Link href={examQualityPaths.reports} className="text-accent underline">
+              Báo lỗi câu hỏi
+            </Link>
+            {staff.role !== "editor" && (
+              <Link href={examQualityPaths.stats} className="text-accent underline">
+                Thống kê lượt làm bài
+              </Link>
+            )}
           </p>
         </div>
         {canCreate && (

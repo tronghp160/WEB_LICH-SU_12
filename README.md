@@ -160,6 +160,8 @@ npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-quiz.sql
 #    (sửa DELETE thiếu WHERE bị pg_safeupdate chặn khi gọi qua API)
 # 12. Luyện thi — đề tự sinh theo ma trận, mục tiêu điểm, lộ trình ôn (GĐ5): migrations/20261028000000_exam_generated.sql
 #    Kiểm thử (tự hoàn tác): supabase/tests/exam_generated.sql
+# 13. Luyện thi — báo lỗi câu hỏi, chấm lại, thống kê câu (GĐ7): migrations/20261029000000_exam_quality.sql
+#    Kiểm thử (tự hoàn tác): supabase/tests/exam_quality.sql
 ```
 
 > `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands

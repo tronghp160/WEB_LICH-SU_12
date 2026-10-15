@@ -12,6 +12,7 @@ import { Callout } from "@/components/ui/Callout";
 import { kindRows, lessonRows, levelRows, matchesFilter, points, solutionFilterLabels, weakestLesson, type SolutionFilter } from "@/lib/exams/analytics";
 import { attemptPaths, parseAttemptView, type AttemptView } from "@/lib/exams/attempt";
 import { getBlueprint } from "@/lib/exams/blueprint";
+import { regradedNumbers } from "@/lib/exams/quality";
 import { DEVICE_HEADER, examPaths, formatScore10, generatedKey } from "@/lib/exams/exam";
 import { formatDuration, parseHistory, previousAttempt, roomKeys, type HistoryEntry } from "@/lib/exams/room";
 import { getDeviceId, useHydrated } from "@/lib/hooks/useLicense";
@@ -110,6 +111,7 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
   const counts = Object.fromEntries(FILTERS.map((key) => [key, view.questions.filter((question) => matchesFilter(key, question, view.answers[question.itemId])).length])) as Record<SolutionFilter, number>;
   const practice = view.mode === "practice" || view.mode === "review";
   const blueprint = view.blueprint ? getBlueprint(view.blueprint) : null;
+  const regraded = regradedNumbers(view.questions, view.regradedItems);
   const againHref = view.set ? examPaths.set(view.set.slug) : blueprint ? examPaths.generated(blueprint.id) : null;
   // Câu chưa đạt tối đa (thi: kể cả bỏ trống; luyện tập: trong số câu đã kiểm tra) — như start_practice_attempt "retry".
   const retryable = view.questions.filter((question) => (practice ? question.checked : true) && (question.earnedMilli ?? 0) < (question.kind === "mcq" ? 250 : 1000)).length;
@@ -122,6 +124,11 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
           Kết quả: {view.set?.title ?? (blueprint ? `Đề tự sinh — ${blueprint.label}` : view.mode === "review" ? "Ôn câu đến hạn" : "Luyện tập")}
         </h2>
         {timedOut && <p className="text-sm font-medium text-accent">Hết giờ — bài đã được tự nộp.</p>}
+        {regraded.length > 0 && (
+          <p className="text-sm font-medium text-info" data-testid="regraded-note">
+            Điểm đã được cập nhật do sửa đáp án câu {regraded.join(", ")}.
+          </p>
+        )}
         <p className="font-serif text-5xl font-bold text-accent" data-testid="exam-score">
           {formatScore10(score10)} điểm
         </p>
@@ -225,7 +232,14 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
         ) : (
           <ol className="m-0 flex list-none flex-col gap-3 p-0" data-testid="solutions">
             {visible.map(({ question, position }) => (
-              <SolutionItem key={question.itemId} question={question} position={position} answer={view.answers[question.itemId]} />
+              <SolutionItem
+                key={question.itemId}
+                question={question}
+                position={position}
+                answer={view.answers[question.itemId]}
+                attemptId={!practice || question.checked ? view.id : undefined}
+                regraded={view.regradedItems.includes(question.itemId)}
+              />
             ))}
           </ol>
         )}

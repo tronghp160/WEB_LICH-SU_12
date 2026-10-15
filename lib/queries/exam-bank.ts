@@ -33,6 +33,8 @@ export type BankListItem = {
   status: WorkflowStatus;
   hasPassage: boolean;
   setCount: number;
+  /** Đáp án gốc (trắc nghiệm) — để xét cờ "phương án nhiễu không ai chọn". */
+  correctIndex: number | null;
   updatedAt: string;
 };
 
@@ -41,7 +43,7 @@ export async function listExamItems(filters: BankFilters): Promise<{ items: Bank
   const page = Math.max(1, filters.page ?? 1);
   let request = supabase
     .from("exam_items")
-    .select("id, kind, stem, lesson_slug, topic_tag, grade, level, workflow_status, passage_id, updated_at, exam_set_items(count)", { count: "exact" })
+    .select("id, kind, stem, lesson_slug, topic_tag, grade, level, workflow_status, passage_id, correct_index, updated_at, exam_set_items(count)", { count: "exact" })
     .order("updated_at", { ascending: false })
     .range((page - 1) * BANK_PAGE_SIZE, page * BANK_PAGE_SIZE - 1);
   if (filters.kind) request = request.eq("kind", filters.kind);
@@ -69,6 +71,7 @@ export async function listExamItems(filters: BankFilters): Promise<{ items: Bank
       status: item.workflow_status,
       hasPassage: item.passage_id !== null,
       setCount: item.exam_set_items[0]?.count ?? 0,
+      correctIndex: item.correct_index,
       updatedAt: item.updated_at,
     })),
   };

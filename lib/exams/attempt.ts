@@ -9,6 +9,8 @@ export const attemptPaths = {
   /** Bắt đầu lượt luyện tập / ôn / làm lại câu sai (GĐ4). */
   practice: "/api/luyen-thi/luyen-tap",
   check: (id: string) => `/api/luyen-thi/luot/${id}/kiem-tra`,
+  /** Báo lỗi một câu đã thấy đáp án (GĐ7). */
+  report: "/api/luyen-thi/bao-loi",
   intro: (slug: string) => `/api/luyen-thi/${slug}`,
   start: (slug: string) => `/api/luyen-thi/${slug}/bat-dau`,
   /** Đề tự sinh theo ma trận (GĐ5): GET = trang trước khi làm, POST = sinh đề và bắt đầu. */
@@ -95,6 +97,7 @@ const viewSchema = z.object({
     score10: nullish(z.number()),
     breakdown: nullish(breakdownSchema),
     blueprint: nullish(z.string()),
+    regraded_items: nullish(z.array(z.string())),
   }),
   set: nullish(z.object({ slug: z.string(), title: z.string(), duration_min: z.number(), format: z.string(), free: z.boolean() })),
   answers: z.record(z.string(), z.unknown()).default({}),
@@ -137,6 +140,8 @@ export type AttemptView = {
   set: { slug: string; title: string; durationMin: number; format: string; free: boolean } | null;
   /** Ma trận của lượt đề tự sinh (thpt_2025, quick_15, …) — null với đề có sẵn / luyện tập. */
   blueprint: string | null;
+  /** Câu đã được chấm lại sau khi sửa đáp án (GĐ7) — trang kết quả ghi chú. */
+  regradedItems: string[];
   startedAt: string;
   submittedAt: string | null;
   /** Phân tích sau khi chấm (null khi chưa nộp). */
@@ -178,6 +183,7 @@ export function parseAttemptView(value: unknown): AttemptView | null {
     pack: pack ?? null,
     set: set ? { slug: set.slug, title: set.title, durationMin: set.duration_min, format: set.format, free: set.free } : null,
     blueprint: attempt.blueprint,
+    regradedItems: attempt.regraded_items ?? [],
     startedAt: attempt.started_at,
     submittedAt: attempt.submitted_at,
     groups: breakdown
@@ -261,6 +267,7 @@ export const ATTEMPT_STATUS_BY_REASON: Record<string, number> = {
   pack_required: 403,
   not_practice: 409,
   invalid_items: 409,
+  invalid: 400,
   not_enough_items: 409,
 };
 

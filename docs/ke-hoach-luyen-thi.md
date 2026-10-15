@@ -101,7 +101,7 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 | 4 | Luyện tập, sổ câu sai, ôn ngắt quãng | Xong 15/10/2026 (test-report mục 25) — xem "Quyết định khi làm GĐ4" |
 | 5 | Đề tự sinh, tổng quan, lộ trình | Xong 15/10/2026 (test-report mục 26) — xem "Quyết định khi làm GĐ5"; đề tự sinh hiện ẩn tới khi ngân hàng đủ câu (GĐ6) |
 | 6 | Nội dung (song song từ GĐ1): ≥ 360 câu trắc nghiệm, ≥ 60 câu Đúng/Sai, ≥ 60 câu tư liệu, ≥ 5 đề đầy đủ | |
-| 7 | Thống kê câu hỏi, hàng đợi báo lỗi, chấm lại | |
+| 7 | Thống kê câu hỏi, hàng đợi báo lỗi, chấm lại | Xong 16/10/2026 (test-report mục 27) — xem "Quyết định khi làm GĐ7" |
 | 8 | Trang bán hàng, kỹ năng, sổ tay, bản in | |
 | 9 | (Tùy chọn) Thi thử định kỳ | |
 
@@ -195,6 +195,24 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
   thi. Mỗi tuần: buổi ôn sổ câu sai (khi ≥ 3 buổi), đề đầy đủ (mục tiêu 6: 2 tuần một đề; 7–8: mỗi tuần; 9+: 2 đề khi ≥ 4
   buổi), còn lại luyện bài theo thứ tự yếu → chưa đủ dữ liệu → khá → vững. Buổi tự tick từ lượt nộp sau khi lập (luyện bài:
   ≥ 5 câu của bài trong một lượt); không có tick tay. Trang luyện tập nhận `?bai=` để mở sẵn bài.
+
+### Quyết định khi làm GĐ7
+
+- **Báo lỗi** chỉ cho câu học sinh ĐÃ THẤY ĐÁP ÁN (lượt thi đã nộp, câu luyện tập đã kiểm tra) của chính lượt mình — để
+  không thành kênh dò đáp án. Một người một báo cáo đang mở cho mỗi câu; 10 lần / 10 phút. Thiết bị lưu dạng băm. Nút ở
+  từng câu trong lời giải (trang kết quả) và sau khi kiểm tra câu (luyện tập). Học sinh không đọc được báo cáo nào.
+- **Xử lý**: nhân sự xem hàng đợi ; kiểm duyệt viên / quản trị viên đánh dấu "đã sửa" /
+  "không phải lỗi" (RLS cho phép đổi đúng 4 cột trạng thái, không sửa được lời học sinh).
+- **Chấm lại**: quy trình hiện có chỉ cho quản trị viên sửa câu đã công bố, nên nút "Chấm lại các lượt đã nộp" (trang
+  câu) cũng chỉ cho quản trị viên.  tính lại **điểm của đúng câu đó** theo đáp án hiện tại rồi cộng phần
+  chênh vào điểm lượt và các nhóm phân tích — không chấm lại cả lượt, không đổi giờ nộp, không đụng sổ câu sai. Nhật ký
+   (điểm cũ / mới, người chấm). Trang kết quả ghi "Điểm đã được cập nhật do sửa đáp án câu N".
+- **Thống kê câu** chỉ từ lượt THI đã nộp: tỉ lệ đạt, độ phân hóa (27% cao − 27% thấp), lựa chọn theo thứ tự gốc (đã quy
+  đổi độ xoay), tỉ lệ đúng từng ý. Cờ cảnh báo và độ phân hóa chỉ hiện khi ≥ 30 lượt. Cột "Đạt x%" ở danh sách ngân hàng.
+- **Thống kê quản trị**  (kiểm duyệt viên, quản trị viên): lượt theo ngày, người dùng
+  hoạt động (tài khoản hoặc thiết bị), phân bố điểm — chỉ số đếm, không có thông tin cá nhân.
+- Người dùng cho phép làm tiếp không hỏi lại (15/10/2026): tôi tự chạy migration GĐ7 bằng  sau khi thử
+  PGlite, rồi chạy kiểm thử SQL (tự hoàn tác) ngay trên DB thật và gọi thử hàm qua API.
 
 ## 7. Phụ lục kỹ thuật
 

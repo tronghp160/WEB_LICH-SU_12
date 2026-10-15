@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { bulkBankAction } from "@/lib/actions/exam-bank";
 import { initialActionState } from "@/lib/actions/state";
 import { examBankPaths, examItemKindLabels, examItemLevelLabels } from "@/lib/exams/items";
+import { STATS_MIN_ATTEMPTS, statsFlagLabels, statsFlags, type ItemStats } from "@/lib/exams/quality";
 import type { BankListItem } from "@/lib/queries/exam-bank";
 
 type Props = {
@@ -16,12 +17,14 @@ type Props = {
   lessonNumbers: Record<string, number>;
   canSubmit: boolean;
   canPublish: boolean;
+  /** Thống kê lượt thi theo id câu (GĐ7) — câu chưa có lượt nào không có trong map. */
+  stats?: Record<string, ItemStats>;
   /** Hiện khi danh sách rỗng — vẫn giữ khung (và thông báo kết quả thao tác hàng loạt vừa làm). */
   empty: ReactNode;
 };
 
 /** Danh sách câu + chọn nhiều câu để gửi duyệt (biên tập viên) / công bố (kiểm duyệt viên) một lượt. */
-export function BankItemTable({ items, lessonNumbers, canSubmit, canPublish, empty }: Props) {
+export function BankItemTable({ items, lessonNumbers, canSubmit, canPublish, stats = {}, empty }: Props) {
   const [state, formAction, pending] = useActionState(bulkBankAction, initialActionState);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const bulk = (canSubmit || canPublish) && items.length > 0;
@@ -89,6 +92,16 @@ export function BankItemTable({ items, lessonNumbers, canSubmit, canPublish, emp
                 {item.hasPassage && <Badge variant="gold" className="shrink-0">Tư liệu</Badge>}
                 {item.setCount > 0 && <Badge className="shrink-0">Trong {item.setCount} đề</Badge>}
                 <StatusBadge status={item.status} />
+                {stats[item.id] && (
+                  <Badge variant="outline" className="shrink-0" title={`${stats[item.id].n} lượt thi đã nộp`}>
+                    Đạt {Math.round(stats[item.id].p * 100)}%{stats[item.id].n < STATS_MIN_ATTEMPTS ? ` (${stats[item.id].n} lượt)` : ""}
+                  </Badge>
+                )}
+                {statsFlags(stats[item.id], item.correctIndex).map((flag) => (
+                  <Badge key={flag} variant="outline" className="shrink-0 border-warning">
+                    ⚠ {statsFlagLabels[flag]}
+                  </Badge>
+                ))}
               </span>
             </div>
           </li>

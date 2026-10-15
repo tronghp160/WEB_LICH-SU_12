@@ -293,7 +293,7 @@ export function PracticeRoom({ initialMode, retryFrom, initialLessons = [] }: Pr
             Câu {index + 1}
           </h2>
           <ol className="m-0 list-none p-0">
-            <SolutionItem question={{ ...question, passage: null }} position={index} answer={view.answers[question.itemId]} />
+            <SolutionItem question={{ ...question, passage: null }} position={index} answer={view.answers[question.itemId]} attemptId={view.id} />
           </ol>
         </div>
       ) : (

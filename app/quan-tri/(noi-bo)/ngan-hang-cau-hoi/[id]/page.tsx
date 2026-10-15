@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Info } from "lucide-react";
 import { ExamItemForm } from "@/components/admin/exam-bank/ExamItemForm";
+import { ItemQualityPanel } from "@/components/admin/exam-bank/ItemQualityPanel";
 import { WorkflowPanel } from "@/components/admin/exams/WorkflowPanel";
 import { Notice } from "@/components/admin/Notice";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -17,6 +18,7 @@ import { canSubmitExam, examAdminPaths } from "@/lib/exams/admin";
 import { examBankPaths, examItemKindLabels, findNearDuplicates, itemWarnings } from "@/lib/exams/items";
 import { isUuid } from "@/lib/queries/admin-content";
 import { getExamItem, getItemFormOptions, getStemsNear } from "@/lib/queries/exam-bank";
+import { getItemStats, lastRegrade, listItemReports } from "@/lib/queries/exam-quality";
 
 export const metadata: Metadata = { title: "Câu hỏi" };
 
@@ -32,6 +34,7 @@ export default async function ExamItemPage({ params, searchParams }: PageProps<"
   const editable = canEditContent(staff.role, item.workflow_status);
   const nearby = findNearDuplicates(item.stem, await getStemsNear(item), item.id);
   const warnings = itemWarnings(item);
+  const [stats, reports, regrade] = await Promise.all([getItemStats([item.id]), listItemReports(item.id), staff.role === "system_admin" ? lastRegrade(item.id) : null]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -111,6 +114,17 @@ export default async function ExamItemPage({ params, searchParams }: PageProps<"
           passages={options.passages}
         />
       </section>
+
+      <ItemQualityPanel
+        itemId={item.id}
+        kind={item.kind}
+        correctIndex={item.correct_index}
+        stats={stats.get(item.id)}
+        reports={reports}
+        lastRegrade={regrade}
+        canHandle={staff.role === "reviewer" || staff.role === "system_admin"}
+        canRegrade={staff.role === "system_admin" && (item.workflow_status === "published" || item.workflow_status === "hidden")}
+      />
 
       <section aria-labelledby="trong-de" className="flex flex-col gap-2 rounded-card border border-border p-5">
         <h2 id="trong-de" className="font-serif text-lg font-semibold text-foreground">

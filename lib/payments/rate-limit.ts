@@ -21,6 +21,8 @@ export const RATE_LIMITS = {
   exam_start: { windowSeconds: 10 * 60, max: 30 },
   /** Lưu câu trả lời: 300 lần / 10 phút / lượt — client gom thay đổi 2 giây một lần. */
   exam_save: { windowSeconds: 10 * 60, max: 300 },
+  /** Báo lỗi câu hỏi: 10 lần / 10 phút / tài khoản hoặc thiết bị (GĐ7). */
+  exam_report: { windowSeconds: 10 * 60, max: 10 },
 } as const;
 
 export type RateLimitBucket = keyof typeof RATE_LIMITS;

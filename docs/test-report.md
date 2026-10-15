@@ -831,3 +831,26 @@ Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quy�
 | Lint, tsc, build | sạch |
 
 Ảnh: `docs/screenshots/luyen-thi-tong-quan-1280.png`, `docs/screenshots/luyen-thi-lo-trinh-360.png`.
+
+## 27. Luyện thi — GĐ7: báo lỗi câu hỏi, chấm lại, thống kê (16/10/2026)
+
+Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quyết định khi làm GĐ7"). Migration
+`20261029000000_exam_quality.sql` — **tôi chạy 16/10/2026** bằng `DATABASE_URL` (người dùng đã cho phép làm tiếp không hỏi
+lại), sau khi thử trên PGlite; kiểm bằng select (RLS bật 2 bảng, khách không đọc báo cáo, `authenticated` không gọi được
+`regrade_item`, `service_role` gọi được).
+
+- Database: bảng `exam_item_reports` (RLS: nhân sự đọc; kiểm duyệt viên / quản trị viên đổi trạng thái), `exam_regrade_log`
+  (quản trị viên đọc), hàm `report_exam_item`, `regrade_item`, `exam_item_stats`, `exam_admin_overview` (chỉ
+  `service_role`), `exam_attempt_view` trả thêm `regraded_items`, bucket giới hạn `exam_report`.
+- Web: `/api/luyen-thi/bao-loi`, nút "Báo lỗi câu N" (kết quả, luyện tập), ghi chú chấm lại trên trang kết quả; quản trị:
+  `/quan-tri/de-luyen-thi/bao-loi`, `/quan-tri/de-luyen-thi/thong-ke`, khối "Chất lượng câu" ở trang câu (thống kê, báo
+  lỗi, xử lý, chấm lại), cột "Đạt x%" + cờ cảnh báo ở danh sách ngân hàng.
+
+| Nhóm | Kết quả |
+|---|---|
+| SQL `supabase/tests/exam_quality.sql` | **9/9** trên PGlite và **9/9 trên DB thật** (tự hoàn tác) — báo lỗi: lượt chưa nộp / máy khác / câu ngoài lượt → not_found, lý do lạ → invalid, báo lại khi còn mở không thêm dòng; RLS báo cáo (học sinh 0 dòng, biên tập viên đọc nhưng không xử lý / không tự thêm, kiểm duyệt viên xử lý, không sửa lời học sinh); thống kê (lựa chọn quy về thứ tự gốc, tỉ lệ từng ý); chấm lại (8,33 → 10, nhóm bài / mức độ / phần, nhật ký, lượt luyện chưa kiểm tra bỏ qua, chấm lần hai không đổi, lượt xoay đúng); tổng quan; quyền. Các file cũ 31/21/18/10 vẫn đạt |
+| Gọi qua API (khóa bí mật) | `regrade_item` câu lạ → not_found; `exam_item_stats`, `exam_admin_overview` trả số liệu; khách gọi hàm / đọc bảng → 42501 |
+| Unit test | **723/723**, 52 file — thêm `exam-quality.test.ts` (đọc thống kê, cờ cảnh báo, tổng quan, thân báo lỗi, số câu đã chấm lại) |
+| E2E `exam-quality.spec.ts` (mới, DB thật, quản trị viên tạm với mật khẩu ngẫu nhiên lúc chạy) | **4/4** — API báo lỗi (chưa nộp 404, lý do lạ / ghi chú dài 400, máy khác 404, hợp lệ 200, thiết bị lưu dạng băm); học sinh báo lỗi trên trang kết quả; quản trị viên thấy hàng đợi, thống kê câu, chấm lại (1/1 lượt, nhật ký 5 → 10), đánh dấu đã sửa, trang thống kê, cột "Đạt 100% (1 lượt)"; học sinh thấy 10 điểm + "Điểm đã được cập nhật do sửa đáp án câu 1". Dữ liệu thử dọn hết (kiểm lại: 0 câu / đề / báo cáo / nhân sự / tài khoản zz) |
+| E2E `exam-room` · `exam-attempts` · `exam-practice` · `exam-generated` · `exam-bank` · a11y · `payments` | **79 qua**, 6 bỏ qua (cần TEST_PW / Google) |
+| Lint, tsc, build | sạch |

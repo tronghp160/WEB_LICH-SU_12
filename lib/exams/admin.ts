@@ -26,6 +26,12 @@ export const examAdminPaths = {
   edit: (slug: string) => `/quan-tri/de-luyen-thi/${slug}`,
 };
 
+/** Chất lượng câu hỏi (GĐ7): hàng đợi báo lỗi, thống kê lượt làm bài. */
+export const examQualityPaths = {
+  reports: "/quan-tri/de-luyen-thi/bao-loi",
+  stats: "/quan-tri/de-luyen-thi/thong-ke",
+};
+
 /** Đề ngắn / theo chủ đề: ít hơn số câu này thì chưa cho gửi duyệt. Cấu trúc đề đầy đủ: lib/exams/format.ts. */
 export const MIN_EXAM_QUESTIONS = 10;
 

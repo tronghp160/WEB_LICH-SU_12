@@ -1188,6 +1188,51 @@ export type Database = {
         Update: { [_ in never]: never }
         Relationships: []
       }
+      // Báo lỗi câu hỏi (GĐ7, migration 20261029000000_exam_quality.sql). Thêm chỉ qua report_exam_item; nhân sự đọc,
+      // kiểm duyệt viên / quản trị viên đổi trạng thái.
+      exam_item_reports: {
+        Row: {
+          id: string
+          item_id: string
+          attempt_id: string | null
+          user_id: string | null
+          device_hash: string | null
+          reason: Database["public"]["Enums"]["exam_report_reason"]
+          note: string | null
+          status: string
+          admin_note: string | null
+          handled_by: string | null
+          handled_at: string | null
+          created_at: string
+        }
+        Insert: { [_ in never]: never }
+        Update: { status?: string; admin_note?: string | null; handled_by?: string | null; handled_at?: string | null }
+        Relationships: [
+          {
+            foreignKeyName: "exam_item_reports_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "exam_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_regrade_log: {
+        Row: {
+          id: number
+          item_id: string
+          attempt_id: string
+          old_earned: number
+          new_earned: number
+          old_score10: number | null
+          new_score10: number | null
+          actor: string | null
+          created_at: string
+        }
+        Insert: { [_ in never]: never }
+        Update: { [_ in never]: never }
+        Relationships: []
+      }
       rate_limit_hits: {
         Row: {
           id: number
@@ -1341,6 +1386,23 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Json
       }
+      // Chất lượng câu hỏi — migration 20261029000000_exam_quality.sql (viết tay).
+      report_exam_item: {
+        Args: { p_user_id?: string | null; p_device_hash: string; p_attempt_id: string; p_item_id: string; p_reason: string; p_note: string }
+        Returns: Json
+      }
+      regrade_item: {
+        Args: { p_item_id: string; p_actor: string }
+        Returns: Json
+      }
+      exam_item_stats: {
+        Args: { p_item_ids: string[] }
+        Returns: Json
+      }
+      exam_admin_overview: {
+        Args: { p_days: number }
+        Returns: Json
+      }
       // Đề tự sinh theo ma trận — migration 20261028000000_exam_generated.sql (viết tay).
       get_generated_intro: {
         Args: { p_user_id?: string | null; p_code: string; p_device_hash: string; p_blueprint: string }
@@ -1411,6 +1473,7 @@ export type Database = {
       exam_competency: "tim_hieu_lich_su" | "nhan_thuc_tu_duy" | "van_dung_kien_thuc"
       exam_item_kind: "mcq" | "true_false"
       exam_item_level: "nhan_biet" | "thong_hieu" | "van_dung"
+      exam_report_reason: "sai_dap_an" | "loi_chinh_ta" | "khong_ro_nghia" | "sai_kien_thuc" | "khac"
       content_workflow_status:
         | "draft"
         | "pending_review"

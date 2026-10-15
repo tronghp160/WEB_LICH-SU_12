@@ -5,6 +5,7 @@ import { ATTEMPT_BODY_LIMIT, ATTEMPT_STATUS_BY_REASON, answersBodySchema, type A
 import type { Blueprint } from "@/lib/exams/blueprint";
 import { DEVICE_HEADER, LICENSE_HEADER } from "@/lib/exams/exam";
 import type { GeneratedExam, PoolItem } from "@/lib/exams/generate";
+import type { ReportBody } from "@/lib/exams/quality";
 import { normalizeLicenseCode } from "@/lib/payments/license";
 import { deviceHash } from "@/lib/payments/licenses";
 import { consumeRateLimit, type RateLimitBucket } from "@/lib/payments/rate-limit";
@@ -218,5 +219,18 @@ export async function startGeneratedAttempt(blueprint: Blueprint, caller: Caller
     p_sections: exam.items.map((item) => item.section),
     p_shifts: exam.items.map((item) => item.shift),
     p_duration_min: blueprint.durationMin,
+  });
+}
+
+// ----- Báo lỗi câu hỏi (GĐ7, migration 20261029000000_exam_quality.sql) -----
+
+export async function reportExamItem(caller: Caller, body: ReportBody) {
+  return rpc().rpc("report_exam_item", {
+    p_user_id: caller.userId,
+    p_device_hash: caller.deviceHash ?? "",
+    p_attempt_id: body.attempt_id,
+    p_item_id: body.item_id,
+    p_reason: body.reason,
+    p_note: body.note,
   });
 }

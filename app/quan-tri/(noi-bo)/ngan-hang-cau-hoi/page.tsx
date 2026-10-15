@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/Select";
 import { requireRole } from "@/lib/auth";
 import { EXAM_ITEM_KINDS, EXAM_ITEM_LEVELS, examBankPaths, examItemKindLabels, examItemLevelLabels } from "@/lib/exams/items";
 import { BANK_PAGE_SIZE, countItemsByStatus, listExamItems } from "@/lib/queries/exam-bank";
+import { getItemStats } from "@/lib/queries/exam-quality";
 import { sgkLessons } from "@/lib/sgk/curriculum";
 import { normalizeQuery } from "@/lib/utils/search";
 import { workflowStatusLabels, type WorkflowStatus } from "@/lib/utils/labels";
@@ -34,6 +35,7 @@ export default async function ExamBankPage({ searchParams }: PageProps<"/quan-tr
     page: Math.max(1, Number(first(query.trang)) || 1),
   };
   const [{ items, total }, counts] = await Promise.all([listExamItems(filters), countItemsByStatus()]);
+  const stats = Object.fromEntries(await getItemStats(items.map((item) => item.id)));
   const filtered = Object.entries(filters).some(([key, value]) => key !== "page" && value !== null && value !== "");
   const pages = Math.max(1, Math.ceil(total / BANK_PAGE_SIZE));
   const canEdit = staff.role === "editor" || staff.role === "system_admin";
@@ -106,6 +108,7 @@ export default async function ExamBankPage({ searchParams }: PageProps<"/quan-tr
         lessonNumbers={lessonNumbers}
         canSubmit={canEdit}
         canPublish={canReview}
+        stats={stats}
         empty={
           <EmptyState
             title={filtered ? "Không có câu nào khớp bộ lọc" : "Ngân hàng chưa có câu nào"}
