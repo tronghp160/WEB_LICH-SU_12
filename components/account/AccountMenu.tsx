@@ -4,39 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { LayoutDashboard, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { Avatar } from "@/components/account/Avatar";
 import { openSignOut } from "@/components/account/SignOutDialog";
 import { ADMIN_HOME } from "@/lib/admin/routes";
 import { ACCOUNT_HOME, ACCOUNT_SECURITY, LEARNER_SIGNUP, loginPath } from "@/lib/auth/routes";
 import { refreshSession, useSession, type SessionView } from "@/lib/hooks/useSession";
-import { cn } from "@/lib/utils/cn";
-
-type SignedIn = Extract<SessionView, { status: "signed-in" }>;
 
 /** Đang ở trang đăng nhập / đăng ký / tài khoản thì "Đăng nhập" không mang `next` về chính các trang đó. */
 const AUTH_PAGES = /^\/(dang-nhap|dang-ky|quen-mat-khau|dat-lai-mat-khau|auth)(\/|$)/;
 const signInHref = (pathname: string) => (AUTH_PAGES.test(pathname) ? loginPath() : loginPath(pathname));
-
-/** Ảnh đại diện (ảnh Google) hoặc chữ cái đầu của tên. Ảnh ngoài trang → không dùng next/image (quy ước dự án). */
-function Avatar({ session, size = "h-8 w-8" }: { session: SignedIn; size?: string }) {
-  const [broken, setBroken] = useState(false);
-  if (session.avatarUrl && !broken) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={session.avatarUrl}
-        alt=""
-        referrerPolicy="no-referrer"
-        onError={() => setBroken(true)}
-        className={cn(size, "shrink-0 rounded-full object-cover")}
-      />
-    );
-  }
-  return (
-    <span aria-hidden="true" className={cn(size, "inline-flex shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground")}>
-      {session.name.charAt(0).toUpperCase()}
-    </span>
-  );
-}
 
 const itemClass =
   "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold";
@@ -113,12 +89,12 @@ export function AccountMenu() {
         onClick={() => setOpen((value) => !value)}
         className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
       >
-        <Avatar session={session} />
+        <Avatar src={session.avatarUrl} name={session.name} className="h-8 w-8" />
       </button>
       {open && (
         <div id="account-menu" className="absolute right-0 top-full mt-2 w-64 rounded-card border border-border bg-surface p-2 shadow-xl">
           <div className="flex items-center gap-3 border-b border-border px-3 pb-3 pt-2">
-            <Avatar session={session} size="h-10 w-10" />
+            <Avatar src={session.avatarUrl} name={session.name} className="h-10 w-10" />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">{session.name}</p>
               <p className="truncate text-xs text-muted-foreground">{session.email}</p>
@@ -205,7 +181,7 @@ export function MobileAccountSection({ onNavigate }: { onNavigate: () => void })
         Tài khoản
       </h2>
       <div className="mb-2 flex items-center gap-3 px-3">
-        <Avatar session={session} size="h-10 w-10" />
+        <Avatar src={session.avatarUrl} name={session.name} className="h-10 w-10" />
         <div className="min-w-0">
           <p className="truncate font-semibold text-foreground">{session.name}</p>
           <p className="truncate text-xs text-muted-foreground">{session.email}</p>

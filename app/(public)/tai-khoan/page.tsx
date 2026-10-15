@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Avatar } from "@/components/account/Avatar";
 import { OpenSignOutButton } from "@/components/account/OpenSignOutButton";
 import { ProfileForm } from "@/components/account/ProfileForm";
 import { ADMIN_HOME } from "@/lib/admin/routes";
@@ -34,14 +35,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/tai-khoa
         </p>
       )}
       <div className="flex items-center gap-4">
-        {learner.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={learner.avatarUrl} alt="" referrerPolicy="no-referrer" className="h-16 w-16 rounded-full object-cover" />
-        ) : (
-          <span aria-hidden="true" className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-accent font-serif text-2xl font-bold text-accent-foreground">
-            {name.charAt(0).toUpperCase()}
-          </span>
-        )}
+        <Avatar src={learner.avatarUrl} name={name} className="h-16 w-16" letterClassName="font-serif text-2xl font-bold" />
         <div className="min-w-0">
           <h1 className="font-serif text-3xl font-bold text-foreground">Tài khoản của em</h1>
           <p className="truncate text-muted-foreground" data-testid="account-name">
