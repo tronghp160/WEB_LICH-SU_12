@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { answersBodySchema, localDeadline, parseAttemptView, parseExamIntro } from "@/lib/exams/attempt";
+import { answersBodySchema, checkBodySchema, localDeadline, parseAttemptView, parseExamIntro, practiceOptionsSchema } from "@/lib/exams/attempt";
 import { MCQ_MILLI, TRUE_FALSE_MILLI, itemEarnedMilli, scoreAttempt, score10FromMilli, type GradeItem } from "@/lib/exams/scoring";
 
 const tf = (truths: boolean[]): GradeItem => ({ kind: "true_false", truths });
@@ -70,7 +70,10 @@ describe("đọc kết quả API lượt làm bài", () => {
       ...view,
       attempt: { ...view.attempt, status: "submitted", score10: 6, breakdown: { items: [250, 0], correct: 1, unanswered: 0, total: 2, raw_milli: 250, max_milli: 1250 } },
     };
-    expect(parseAttemptView(submitted)).toMatchObject({ score10: 6, correct: 1, unanswered: 0 });
+    expect(parseAttemptView(submitted)).toMatchObject({ score10: 6, correct: 1, unanswered: 0, total: 2 });
+    // Lượt luyện tập: chỉ câu đã kiểm tra được chấm → tổng theo breakdown, không theo số câu của lượt.
+    const practice = { ...submitted, attempt: { ...submitted.attempt, mode: "practice", breakdown: { ...submitted.attempt.breakdown, total: 1 } } };
+    expect(parseAttemptView(practice)).toMatchObject({ mode: "practice", total: 1 });
     expect(parseAttemptView(null)).toBeNull();
     expect(parseAttemptView({ ...view, questions: [{ ...view.questions[1], choices: ["A"] }] })).toBeNull();
   });
@@ -88,6 +91,17 @@ describe("đọc kết quả API lượt làm bài", () => {
     // Server nói còn 15 phút; máy nhận lúc 1000 → hạn = 1000 + 15 phút, bất kể đồng hồ máy chạy sai bao nhiêu.
     expect(localDeadline("2026-10-15T10:15:00Z", "2026-10-15T10:00:00Z", 1000)).toBe(1000 + 15 * 60_000);
     expect(localDeadline(null, "2026-10-15T10:00:00Z", 1000)).toBeNull();
+  });
+
+  it("tùy chọn luyện tập: mặc định 10 câu; chỉ 10 / 20 / 30; ôn / làm lại câu sai; chế độ lạ bị từ chối", () => {
+    expect(practiceOptionsSchema.parse({ mode: "practice" })).toEqual({ mode: "practice", lessons: [], kinds: [], levels: [], passage: null, count: 10, only_new: false, prefer_wrong: false });
+    expect(practiceOptionsSchema.safeParse({ mode: "practice", count: 15 }).success).toBe(false);
+    expect(practiceOptionsSchema.safeParse({ mode: "practice", lessons: ["Bai 7"] }).success).toBe(false);
+    expect(practiceOptionsSchema.parse({ mode: "review" })).toEqual({ mode: "review" });
+    expect(practiceOptionsSchema.safeParse({ mode: "retry", from_attempt: "khong-phai-uuid" }).success).toBe(false);
+    expect(practiceOptionsSchema.safeParse({ mode: "exam" }).success).toBe(false);
+    expect(checkBodySchema.safeParse({ item_id: "6f0c07c2-1111-4222-8333-444455556666", answer: { tf: [true, false, null, true] } }).success).toBe(true);
+    expect(checkBodySchema.safeParse({ item_id: "6f0c07c2-1111-4222-8333-444455556666", answer: { checked: true } }).success).toBe(false);
   });
 
   it("thân lưu / nộp: chỉ nhận câu trả lời đúng dạng", () => {

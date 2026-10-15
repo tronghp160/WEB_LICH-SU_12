@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { Json } from "@/lib/database.types";
-import { ATTEMPT_BODY_LIMIT, ATTEMPT_STATUS_BY_REASON, answersBodySchema, type AnswersBody } from "@/lib/exams/attempt";
+import { ATTEMPT_BODY_LIMIT, ATTEMPT_STATUS_BY_REASON, answersBodySchema, type AnswersBody, type PracticeOptions } from "@/lib/exams/attempt";
 import { DEVICE_HEADER, LICENSE_HEADER } from "@/lib/exams/exam";
 import { normalizeLicenseCode } from "@/lib/payments/license";
 import { deviceHash } from "@/lib/payments/licenses";
@@ -103,4 +103,61 @@ export async function attemptPercentile(id: string): Promise<number | null> {
 
 export async function getAttemptResult(id: string, caller: Caller) {
   return rpc().rpc("get_attempt_result", { p_attempt_id: id, p_user_id: caller.userId, p_device_hash: caller.deviceHash ?? "" });
+}
+
+// ----- Luyện tập, sổ câu sai (GĐ4, migration 20261027000000_exam_practice.sql) -----
+
+export async function startPracticeAttempt(caller: Caller, options: PracticeOptions) {
+  return rpc().rpc("start_practice_attempt", { p_user_id: caller.userId, p_code: caller.code ?? "", p_device_hash: caller.deviceHash ?? "", p_options: options as Json });
+}
+
+export async function checkAttemptItem(id: string, caller: Caller, itemId: string, answer: Json) {
+  return rpc().rpc("check_attempt_item", { p_attempt_id: id, p_user_id: caller.userId, p_device_hash: caller.deviceHash ?? "", p_item_id: itemId, p_answer: answer });
+}
+
+/** Đọc thân JSON ≤ 32 KB theo schema; sai → null. */
+export async function readJsonBody<T>(request: Request, schema: { safeParse: (value: unknown) => { success: true; data: T } | { success: false } }): Promise<T | null> {
+  const declared = Number(request.headers.get("content-length") ?? 0);
+  if (declared > ATTEMPT_BODY_LIMIT) return null;
+  const text = await request.text();
+  if (text.length > ATTEMPT_BODY_LIMIT) return null;
+  try {
+    const parsed = schema.safeParse(JSON.parse(text || "{}"));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+export type NotebookItem = { itemId: string; kind: "mcq" | "true_false"; stem: string; lessonSlug: string | null; box: number; dueAt: string; wrongCount: number };
+
+/** Sổ câu sai của tài khoản `userId` (id từ phiên đã xác minh). Lỗi → null. Không có đáp án. */
+export async function getNotebook(userId: string): Promise<{ total: number; due: number; items: NotebookItem[] } | null> {
+  const { data, error } = await rpc().rpc("get_notebook", { p_user_id: userId });
+  if (error || !data || typeof data !== "object" || Array.isArray(data)) return null;
+  const body = data as { total?: number; due?: number; items?: Record<string, unknown>[] };
+  return {
+    total: Number(body.total) || 0,
+    due: Number(body.due) || 0,
+    items: (body.items ?? []).map((item) => ({
+      itemId: String(item.item_id),
+      kind: item.kind === "true_false" ? "true_false" : "mcq",
+      stem: String(item.stem),
+      lessonSlug: typeof item.lesson_slug === "string" ? item.lesson_slug : null,
+      box: Number(item.box) || 1,
+      dueAt: String(item.due_at),
+      wrongCount: Number(item.wrong_count) || 0,
+    })),
+  };
+}
+
+/** Tài khoản có gói luyện thi còn hiệu lực không (để trang sổ câu sai mời mua / cho ôn). */
+export async function hasAccountPack(userId: string): Promise<boolean> {
+  const { data } = await rpc()
+    .from("licenses")
+    .select("id, valid_until, products!inner(kind)")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .eq("products.kind", "exam_pack");
+  return (data ?? []).some((license) => !license.valid_until || Date.parse(license.valid_until) >= Date.now());
 }

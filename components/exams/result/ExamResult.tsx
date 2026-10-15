@@ -106,13 +106,16 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
   const weakest = weakestLesson(groups.lessons);
   const times = view.questions.map((question) => view.answers[question.itemId]?.ms ?? 0);
   const counts = Object.fromEntries(FILTERS.map((key) => [key, view.questions.filter((question) => matchesFilter(key, question, view.answers[question.itemId])).length])) as Record<SolutionFilter, number>;
+  const practice = view.mode === "practice" || view.mode === "review";
+  // Câu chưa đạt tối đa (thi: kể cả bỏ trống; luyện tập: trong số câu đã kiểm tra) — như start_practice_attempt "retry".
+  const retryable = view.questions.filter((question) => (practice ? question.checked : true) && (question.earnedMilli ?? 0) < (question.kind === "mcq" ? 250 : 1000)).length;
   const visible = view.questions.map((question, position) => ({ question, position })).filter(({ question }) => matchesFilter(filter, question, view.answers[question.itemId]));
 
   return (
     <div className="flex flex-col gap-8">
       <section aria-labelledby="ket-qua" className="flex flex-col items-center gap-3 rounded-card border border-border bg-surface p-6 text-center shadow-card">
         <h2 id="ket-qua" className="font-serif text-xl font-bold text-foreground">
-          Kết quả: {view.set?.title ?? "Đề luyện thi"}
+          Kết quả: {view.set?.title ?? (view.mode === "review" ? "Ôn câu đến hạn" : "Luyện tập")}
         </h2>
         {timedOut && <p className="text-sm font-medium text-accent">Hết giờ — bài đã được tự nộp.</p>}
         <p className="font-serif text-5xl font-bold text-accent" data-testid="exam-score">
@@ -121,13 +124,27 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
         <p className="text-muted-foreground">
           Đạt điểm tối đa {view.correct}/{view.total} câu{view.unanswered ? ` · bỏ trống ${view.unanswered} câu` : ""}
         </p>
-        <StampNotice score={Math.round(score10 * 100)} total={1000} scale10 />
+        {practice ? (
+          <p className="text-sm text-muted-foreground">Điểm tính trên {view.total} câu em đã kiểm tra.</p>
+        ) : (
+          <StampNotice score={Math.round(score10 * 100)} total={1000} scale10 />
+        )}
         {view.percentile !== null && <p className="text-sm text-foreground">Em cao hơn {view.percentile}% số lượt đã làm đề này.</p>}
         <div className="mt-1 flex flex-wrap justify-center gap-2">
           {view.set && (
             <LinkButton href={examPaths.set(view.set.slug)}>
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
               Làm lại đề này
+            </LinkButton>
+          )}
+          {retryable > 0 && (
+            <LinkButton href={examPaths.retry(view.id)} variant={view.set ? "secondary" : "primary"}>
+              Làm lại các câu sai ({retryable})
+            </LinkButton>
+          )}
+          {practice && (
+            <LinkButton href={examPaths.practice} variant="secondary">
+              Luyện tiếp
             </LinkButton>
           )}
           {weakest?.href && (

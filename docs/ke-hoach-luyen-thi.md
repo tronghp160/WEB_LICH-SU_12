@@ -98,7 +98,7 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 | 1 | Ngân hàng câu hỏi, dạng Đúng/Sai, tư liệu; quản trị ngân hàng, soạn đề từ ngân hàng, nhập JSON | Xong 15/10/2026 (test-report mục 22) — xem "Quyết định khi làm GĐ1" |
 | 2 | Lượt làm bài + chấm phía server, API mới, không lộ đáp án | Xong 15/10/2026 (test-report mục 23) — xem "Quyết định khi làm GĐ2" |
 | 3 | Phòng thi mới + trang kết quả | Xong 15/10/2026 (test-report mục 24) — xem "Quyết định khi làm GĐ3" |
-| 4 | Luyện tập, sổ câu sai, ôn ngắt quãng | |
+| 4 | Luyện tập, sổ câu sai, ôn ngắt quãng | Xong 15/10/2026 (test-report mục 25) — xem "Quyết định khi làm GĐ4" |
 | 5 | Đề tự sinh, tổng quan, lộ trình | |
 | 6 | Nội dung (song song từ GĐ1): ≥ 360 câu trắc nghiệm, ≥ 60 câu Đúng/Sai, ≥ 60 câu tư liệu, ≥ 5 đề đầy đủ | |
 | 7 | Thống kê câu hỏi, hàng đợi báo lỗi, chấm lại | |
@@ -152,6 +152,22 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 - "Làm lại các câu sai" để GĐ4 (cần chế độ luyện tập); "Ôn bài yếu nhất" tạm dẫn tới trang đọc bài SGK. Ảnh chia sẻ kết
   quả (tùy chọn) chưa làm.
 - `RICH_ITEMS_PLAYABLE = true`: đề có câu Đúng/Sai / tư liệu công bố được.
+
+### Quyết định khi làm GĐ4
+
+- **Luyện tập dùng chung bảng `exam_attempts`** (chế độ `practice` / `review`, không bấm giờ, `set_id` trống). Câu do
+  server chọn ngẫu nhiên theo bộ lọc; lựa chọn xoay ngẫu nhiên. "Làm lại câu sai" là một lượt practice từ câu chưa đạt của
+  lượt cũ (của chính mình). Bắt đầu lượt luyện mới thì lượt luyện cũ còn dở được chấm theo câu đã kiểm tra.
+- **"Kiểm tra" khóa câu**: câu đã kiểm tra không đổi được câu trả lời (lưu / nộp bỏ qua câu đó). Lượt luyện tập chỉ lộ đáp
+  án của câu đã kiểm tra — kể cả sau khi nộp — và chỉ chấm các câu đó; nên không lách được hạn mức miễn phí bằng cách mở
+  30 câu rồi nộp.
+- **Hạn mức miễn phí 10 câu / ngày** đếm trong SQL (`consume_rate_limit`, cửa sổ = số giây từ 0 giờ hôm nay theo giờ Việt
+  Nam). Có gói (mã + máy, hoặc gói của tài khoản) thì không giới hạn.
+- **Sổ câu sai chỉ cho tài khoản.** Ghi sổ khi: kiểm tra câu luyện tập / ôn; nộp bài thi (câu đã làm mà chưa đạt tối đa —
+  Đúng/Sai sai một ý cũng vào sổ; câu bỏ trống không tính). Xem sổ: mọi tài khoản; **ôn đến hạn**: cần gói.
+- Hạn ôn là 0 giờ của ngày đến hạn theo giờ Việt Nam; E2E giả lập "sang ngày mai" bằng cách lùi `due_at` trong DB
+  (`page.clock` không đổi được giờ của database).
+- Bỏ nút "Ôn bài yếu nhất → luyện theo bài" kiểu GĐ3 (vẫn dẫn tới trang đọc bài SGK); trang luyện tập chọn bài ngay ở đầu.
 
 ## 7. Phụ lục kỹ thuật
 

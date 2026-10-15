@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { unstable_rethrow } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { ExamSetList, type ExamSetCard } from "@/components/exams/ExamSetList";
@@ -7,6 +8,7 @@ import { BuyPackForm } from "@/components/payments/BuyPackForm";
 import { TestModeNotice } from "@/components/payments/TestModeNotice";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Callout } from "@/components/ui/Callout";
+import { examPaths } from "@/lib/exams/exam";
 import { THPT_2025_LABEL } from "@/lib/exams/format";
 import { summarizeExamPack } from "@/lib/exams/pack";
 import { readPaymentConfig } from "@/lib/payments/config";
@@ -21,7 +23,9 @@ export const metadata: Metadata = {
 
 // Dòng đầu (số đề / số câu / thời gian) dựng từ các đề ĐÃ CÔNG BỐ — lib/exams/pack.ts.
 const BENEFITS = [
-  "Giải thích từng câu, kèm liên kết về bài SGK để đọc lại",
+  "Giải thích từng câu, kèm liên kết về bài SGK để đọc lại; phân tích điểm theo bài, mức độ, dạng câu",
+  "Luyện tập theo bài không giới hạn (chưa có gói: 10 câu / ngày)",
+  "Sổ câu sai + ôn ngắt quãng: câu sai tự vào sổ, ôn đúng lịch (cần đăng nhập)",
   "Con dấu “Luyện thi” trong Hộ chiếu khi đạt từ 7 điểm",
 ];
 
@@ -115,6 +119,20 @@ export default async function ExamPrepPage() {
           )}
         </section>
       </div>
+
+      <section aria-labelledby="luyen-them" className="mt-10 grid gap-3 sm:grid-cols-2">
+        <h2 id="luyen-them" className="sr-only">
+          Luyện thêm
+        </h2>
+        <Link href={examPaths.practice} className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 hover:border-accent">
+          <span className="font-serif text-lg font-semibold text-foreground">Luyện tập theo bài</span>
+          <span className="text-sm text-muted-foreground">Chọn bài, dạng câu, mức độ; chấm và giải thích ngay từng câu. Miễn phí 10 câu / ngày.</span>
+        </Link>
+        <Link href={examPaths.notebook} className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 hover:border-accent">
+          <span className="font-serif text-lg font-semibold text-foreground">Sổ câu sai</span>
+          <span className="text-sm text-muted-foreground">Câu em làm sai tự vào sổ; ôn lại theo lịch giãn dần để nhớ lâu.</span>
+        </Link>
+      </section>
 
       <section aria-labelledby="cac-de" className="mt-10 flex flex-col gap-4">
         <h2 id="cac-de" className="font-serif text-2xl font-semibold text-foreground">

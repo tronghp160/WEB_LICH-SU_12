@@ -770,3 +770,33 @@ Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quy�
 | E2E `exam-bank.spec.ts` (cần TEST_PW; ca ghép đề sửa kỳ vọng: đề đầy đủ giờ "đủ điều kiện gửi duyệt và công bố") | **6/6** (lần 3; hai lần trước đỏ một ca do mạng tới Supabase chậm — request lưu / công bố quá 15 s, trang báo "lỗi hệ thống") |
 | Sửa trong lúc kiểm thử | Nút "Phiếu trả lời" trên điện thoại bị thanh điều hướng dưới che → đặt ngay trên thanh đó |
 | Lint, tsc, build | sạch |
+
+## 25. Luyện thi — GĐ4: luyện tập, sổ câu sai, ôn ngắt quãng (15/10/2026)
+
+Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quyết định khi làm GĐ4"). Migration
+`20261027000000_exam_practice.sql` + sửa lỗi `20261027000001_fix_grade_safeupdate.sql` — **người dùng đã chạy cả hai
+15/10/2026**.
+
+- Database: bảng `learner_item_state` (sổ câu sai, hộp Leitner; RLS: học sinh chỉ đọc sổ của mình), hàm
+  `start_practice_attempt` (luyện theo bài / dạng / mức độ, ôn đến hạn, làm lại câu sai), `check_attempt_item` (chấm một
+  câu, khóa câu, ghi sổ, chỉ lộ đáp án câu đó), `get_notebook`; hạn mức `practice_free` 10 câu / ngày (giờ Việt Nam) khi
+  chưa có gói; nộp bài thi khi đăng nhập → câu sai vào sổ.
+- Web: `/luyen-thi/luyen-tap` (bộ lọc, "Kiểm tra" từng câu, báo hết hạn mức), `/luyen-thi/so-cau-sai` (đến hạn hôm nay /
+  tất cả, lọc theo bài, "Ôn ngay"; chưa đăng nhập → mời đăng nhập), trang kết quả thêm "Làm lại các câu sai", "Luyện
+  tiếp"; trang `/luyen-thi` thêm lối vào và mô tả gói đúng tính năng đã có.
+- **Sự cố khi chạy thật:** hàm chấm mới làm rỗng bảng tạm bằng `DELETE` không có `WHERE` — Supabase bật `pg_safeupdate`
+  cho kết nối qua API nên bị chặn (21000) → nộp bài thi và kết thúc luyện tập lỗi tới khi chạy migration sửa (thêm
+  `where true`). PGlite không có tiện ích này nên không bắt được; E2E trên DB thật bắt được. Từ nay sau mỗi migration gọi
+  thử hàm qua API bằng khóa bí mật.
+- Sửa thêm: trang kết quả lượt luyện tập ghi "Điểm tính trên 10 câu" khi mới kiểm tra 1 câu (`total` lấy theo số câu của
+  lượt) → lấy theo số câu được chấm.
+
+| Nhóm | Kết quả |
+|---|---|
+| Kiểm sau migration (DB thật) | `get_notebook` chạy; khách gọi `check_attempt_item` / đọc `learner_item_state` → 42501; sau migration sửa: nộp bài thi `de-1` và kết thúc luyện tập qua API đều chạy |
+| SQL `supabase/tests/exam_practice.sql` (PGlite, cả chuỗi migration + bản sửa) | **18/18** (chạy 3 lần) — chỉ câu đã công bố, không lộ đáp án; kiểm tra khóa câu, chỉ lộ câu đó; máy khác / câu lạ → not_found; hạn mức 10 câu / ngày, có gói không giới hạn; nộp luyện tập chỉ chấm câu đã kiểm tra; Leitner (vào sổ, lên hộp 2 hạn +3 ngày, ra khỏi sổ ở hộp 5); bài thi tài khoản ghi sổ (bỏ trống không tính); ôn đến hạn cần đăng nhập + gói, chỉ câu đến hạn; làm lại câu sai; sổ không có đáp án; quyền hàm, RLS. `exam_attempts.sql` 21/21, `exam_bank.sql` 31/31 |
+| Unit test | **683/683**, 49 file — thêm `exam-leitner.test.ts` (ca L1–L3 chung với SQL, qua tháng / năm, giờ Việt Nam), schema tùy chọn luyện tập / thân "Kiểm tra", tổng số câu chấm của lượt luyện tập |
+| E2E `exam-practice.spec.ts` (mới, DB thật, không cần TEST_PW) | **5/5** — API: chỉ câu kiểm tra lộ đáp án, câu bị khóa, câu thứ 11 trong ngày → 429 `quota`, máy khác 404; ôn khi chưa đăng nhập → 401, làm lại câu sai của người khác → 404. Giao diện: khách luyện 1 câu → tổng kết "Điểm tính trên 1 câu"; sổ câu sai mời đăng nhập; tài khoản có gói làm sai 3 câu → sổ 3 câu "Ôn ngày mai" → lùi hạn → "Ôn ngay (3 câu)" → ôn đúng → hộp 2, hạn sau 3 ngày, 10 điểm; "Làm lại các câu sai (10)" từ kết quả bài thi |
+| Ma trận quyền `tests/rls/exam-bank.mjs` | **85/85 ô** (thêm sổ câu sai, gọi thẳng hàm luyện tập) |
+| E2E `exam-room` 4/4 · `exam-attempts` 5/5 · `account` B6 3/3 · a11y `/luyen-thi*` 4/4 · `payments` 13/14 (ca T1 chờ câu UPDATE mô tả đề mẫu, mục 21) | đạt |
+| Lint, tsc, build | sạch |

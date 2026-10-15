@@ -7,6 +7,11 @@ export const examPaths = {
   activate: "/kich-hoat",
   /** Trang kết quả một lượt (chỉ chủ lượt xem được — dữ liệu tải qua API kèm mã thiết bị). */
   result: (attemptId: string) => `/luyen-thi/ket-qua/${attemptId}`,
+  /** Luyện tập theo bài (GĐ4); ôn câu đến hạn; làm lại câu chưa đạt của một lượt; sổ câu sai. */
+  practice: "/luyen-thi/luyen-tap",
+  review: "/luyen-thi/luyen-tap?on-tap=1",
+  retry: (attemptId: string) => `/luyen-thi/luyen-tap?tu-luot=${attemptId}`,
+  notebook: "/luyen-thi/so-cau-sai",
 };
 
 /** Khóa lưu kết quả trong tiến độ học tập (Hộ chiếu lịch sử). */

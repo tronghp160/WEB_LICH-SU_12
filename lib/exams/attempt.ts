@@ -6,6 +6,9 @@ import { z } from "zod";
 import type { ItemAnswer } from "@/lib/exams/scoring";
 
 export const attemptPaths = {
+  /** Bắt đầu lượt luyện tập / ôn / làm lại câu sai (GĐ4). */
+  practice: "/api/luyen-thi/luyen-tap",
+  check: (id: string) => `/api/luyen-thi/luot/${id}/kiem-tra`,
   intro: (slug: string) => `/api/luyen-thi/${slug}`,
   start: (slug: string) => `/api/luyen-thi/${slug}/bat-dau`,
   attempt: (id: string) => `/api/luyen-thi/luot/${id}`,
@@ -58,6 +61,7 @@ const questionSchema = z.object({
   event_slug: nullish(z.string()),
   event_title: nullish(z.string()),
   earned_milli: nullish(z.number().int()),
+  checked: nullish(z.boolean()),
 });
 
 const groupSchema = z.record(z.string(), z.object({ earned: z.number(), max: z.number(), n: z.number().int() }));
@@ -77,9 +81,11 @@ const breakdownSchema = z.looseObject({
 
 const viewSchema = z.object({
   access: z.enum(["free", "account", "code"]).optional(),
+  pack: z.boolean().optional(),
   attempt: z.object({
     id: z.string(),
     status: z.enum(["in_progress", "submitted", "abandoned"]),
+    mode: z.enum(["exam", "practice", "review", "paper"]).default("exam"),
     started_at: z.string(),
     deadline_at: nullish(z.string()),
     submitted_at: nullish(z.string()),
@@ -111,6 +117,8 @@ export type AttemptQuestion = {
   eventSlug: string | null;
   eventTitle: string | null;
   earnedMilli: number | null;
+  /** Câu đã "Kiểm tra" trong lượt luyện tập (đã khóa, đã có đáp án). */
+  checked: boolean;
 };
 
 /** Điểm đạt / tối đa (phần nghìn) và số câu của một nhóm (phần, bài, mức độ, dạng). */
@@ -120,6 +128,9 @@ export type AttemptView = {
   access: "free" | "account" | "code" | null;
   id: string;
   status: "in_progress" | "submitted" | "abandoned";
+  mode: "exam" | "practice" | "review" | "paper";
+  /** Lượt luyện tập: người học có gói (không giới hạn câu kiểm tra mỗi ngày). */
+  pack: boolean | null;
   set: { slug: string; title: string; durationMin: number; format: string; free: boolean } | null;
   startedAt: string;
   submittedAt: string | null;
@@ -152,12 +163,14 @@ function readAnswers(raw: Record<string, unknown>): Record<string, ItemAnswer> {
 export function parseAttemptView(value: unknown): AttemptView | null {
   const parsed = viewSchema.safeParse(value);
   if (!parsed.success) return null;
-  const { attempt, questions, answers, access, set, percentile } = parsed.data;
+  const { attempt, questions, answers, access, set, percentile, pack } = parsed.data;
   const breakdown = attempt.breakdown;
   return {
     access: access ?? null,
     id: attempt.id,
     status: attempt.status,
+    mode: attempt.mode,
+    pack: pack ?? null,
     set: set ? { slug: set.slug, title: set.title, durationMin: set.duration_min, format: set.format, free: set.free } : null,
     startedAt: attempt.started_at,
     submittedAt: attempt.submitted_at,
@@ -170,7 +183,8 @@ export function parseAttemptView(value: unknown): AttemptView | null {
     score10: attempt.score10,
     correct: attempt.breakdown?.correct ?? null,
     unanswered: attempt.breakdown?.unanswered ?? null,
-    total: questions.length,
+    // Số câu được chấm: lượt thi = mọi câu; lượt luyện tập = câu đã kiểm tra (chưa nộp: số câu của lượt).
+    total: breakdown?.total ?? questions.length,
     answers: readAnswers(answers),
     questions: questions
       .map((question) => ({
@@ -190,6 +204,7 @@ export function parseAttemptView(value: unknown): AttemptView | null {
         eventSlug: question.event_slug,
         eventTitle: question.event_title,
         earnedMilli: question.earned_milli,
+        checked: question.checked === true,
       }))
       .sort((a, b) => a.n - b.n),
   };
@@ -235,7 +250,31 @@ export const ATTEMPT_STATUS_BY_REASON: Record<string, number> = {
   time_up: 409,
   abandoned: 409,
   rate_limited: 429,
+  quota: 429,
+  login_required: 401,
+  pack_required: 403,
+  not_practice: 409,
 };
+
+/** Tùy chọn bắt đầu lượt luyện tập (thân POST /api/luyen-thi/luyen-tap) — hàm SQL start_practice_attempt. */
+export const practiceOptionsSchema = z.discriminatedUnion("mode", [
+  z.object({
+    mode: z.literal("practice"),
+    lessons: z.array(z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)).max(30).default([]),
+    kinds: z.array(z.enum(["mcq", "true_false"])).max(2).default([]),
+    levels: z.array(z.enum(["nhan_biet", "thong_hieu", "van_dung"])).max(3).default([]),
+    passage: z.boolean().nullable().default(null),
+    count: z.union([z.literal(10), z.literal(20), z.literal(30)]).default(10),
+    only_new: z.boolean().default(false),
+    prefer_wrong: z.boolean().default(false),
+  }),
+  z.object({ mode: z.literal("review") }),
+  z.object({ mode: z.literal("retry"), from_attempt: z.string().regex(UUID) }),
+]);
+export type PracticeOptions = z.infer<typeof practiceOptionsSchema>;
+
+/** Thân POST …/kiem-tra: một câu và câu trả lời của câu đó. */
+export const checkBodySchema = z.object({ item_id: z.string().regex(UUID), answer: itemAnswerSchema });
 
 /** Hạn nộp theo đồng hồ MÁY NÀY: dịch hạn của server theo độ lệch giữa giờ server và giờ máy lúc nhận trả lời. */
 export function localDeadline(deadlineAt: string | null, serverNow: string, receivedAt: number): number | null {

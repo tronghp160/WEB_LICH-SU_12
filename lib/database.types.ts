@@ -1319,6 +1319,19 @@ export type Database = {
         Args: { p_attempt_id: string; p_user_id?: string | null; p_device_hash: string }
         Returns: Json
       }
+      // Luyện tập, sổ câu sai — migration 20261027000000_exam_practice.sql (viết tay).
+      start_practice_attempt: {
+        Args: { p_user_id?: string | null; p_code: string; p_device_hash: string; p_options: Json }
+        Returns: Json
+      }
+      check_attempt_item: {
+        Args: { p_attempt_id: string; p_user_id?: string | null; p_device_hash: string; p_item_id: string; p_answer: Json }
+        Returns: Json
+      }
+      get_notebook: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       claim_license: {
         Args: { p_code: string; p_user_id: string }
         Returns: Json

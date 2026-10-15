@@ -111,6 +111,19 @@ try {
         const submitted = await c.rpc("submit_exam_attempt", { p_attempt_id: "00000000-0000-0000-0000-000000000000", p_user_id: null, p_device_hash: "0".repeat(64), p_answers: {} });
         return started.error && submitted.error ? "❌" : "✅";
       } },
+    // ----- Luyện tập, sổ câu sai (GĐ4, migration 20261027000000_exam_practice.sql) -----
+    { name: "Đọc / ghi `learner_item_state` (sổ câu sai)", expected: "❌❌❌❌❌", note: "Chỉ học sinh đọc sổ của mình (supabase/tests/exam_practice.sql, R4); nhân sự không có quyền; ghi chỉ qua hàm",
+      run: async (c) => {
+        const read = await c.from("learner_item_state").select("item_id").limit(1);
+        const write = await c.from("learner_item_state").insert({ user_id: "00000000-0000-0000-0000-000000000000", item_id: "00000000-0000-0000-0000-000000000000" }).select("item_id");
+        return readsRows(read) === "✅" || wrote(write) === "✅" ? "✅" : "❌";
+      } },
+    { name: "Gọi thẳng `start_practice_attempt` / `check_attempt_item`", expected: "❌❌❌❌❌",
+      run: async (c) => {
+        const started = await c.rpc("start_practice_attempt", { p_user_id: null, p_code: "", p_device_hash: "0".repeat(64), p_options: { mode: "practice" } });
+        const checked = await c.rpc("check_attempt_item", { p_attempt_id: "00000000-0000-0000-0000-000000000000", p_user_id: null, p_device_hash: "0".repeat(64), p_item_id: "00000000-0000-0000-0000-000000000000", p_answer: {} });
+        return started.error && checked.error ? "❌" : "✅";
+      } },
     { name: "Tạo tư liệu nháp", expected: "❌✅✅✅❌",
       run: (c) => c.from("exam_passages").insert({ title: `${PREFIX} tư liệu ${++counter}`, body: "Đoạn tư liệu thử đủ ba mươi ký tự cho ràng buộc độ dài.", source_citation: "Kiểm thử RLS" }).select("id").then(wrote) },
   ];
