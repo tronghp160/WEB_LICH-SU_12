@@ -97,7 +97,7 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 | 0 | Sửa cấu trúc 40 câu → 24 + 4 (`lib/exams/format.ts`), câu chữ trang, `lib/exams/config.ts` (ngày thi), tài liệu này | Xong 15/10/2026 |
 | 1 | Ngân hàng câu hỏi, dạng Đúng/Sai, tư liệu; quản trị ngân hàng, soạn đề từ ngân hàng, nhập JSON | Xong 15/10/2026 (test-report mục 22) — xem "Quyết định khi làm GĐ1" |
 | 2 | Lượt làm bài + chấm phía server, API mới, không lộ đáp án | Xong 15/10/2026 (test-report mục 23) — xem "Quyết định khi làm GĐ2" |
-| 3 | Phòng thi mới + trang kết quả | |
+| 3 | Phòng thi mới + trang kết quả | Xong 15/10/2026 (test-report mục 24) — xem "Quyết định khi làm GĐ3" |
 | 4 | Luyện tập, sổ câu sai, ôn ngắt quãng | |
 | 5 | Đề tự sinh, tổng quan, lộ trình | |
 | 6 | Nội dung (song song từ GĐ1): ≥ 360 câu trắc nghiệm, ≥ 60 câu Đúng/Sai, ≥ 60 câu tư liệu, ≥ 5 đề đầy đủ | |
@@ -137,6 +137,21 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
   (đề tự sinh) làm ở GĐ5 cùng ma trận đề. `get_exam_set` (trả cả đáp án) không còn được gọi — bỏ ở migration dọn dẹp.
 - Trình làm đề cũ (giao diện giữ nguyên) chuyển sang API mới; hiển thị tối thiểu câu Đúng/Sai và tư liệu cho an toàn —
   phòng thi đầy đủ ở GĐ3. Con dấu Hộ chiếu lưu điểm dạng score10 × 100 / 1000 (mục 3.11).
+
+### Quyết định khi làm GĐ3
+
+- **Không cần migration.** "Bắt đầu lại" = nộp lượt đang dở (chấm phần đã làm) rồi mở lượt mới — dùng lại hàm GĐ2.
+- **Trang kết quả tải phía trình duyệt** (`/luyen-thi/ket-qua/[id]`, không lập chỉ mục): chủ lượt chưa đăng nhập được nhận
+  ra bằng mã thiết bị trong localStorage, server không đọc được lúc dựng trang. **So với lần trước** dùng lịch sử lượt trên
+  máy (`ls12:lich-su-thi`); **thứ hạng** route tính bằng khóa bí mật khi đề đủ 30 lượt nộp, chỉ trả con số.
+- Lưu trên máy: `ls12:luot-thi:<id>` (câu trả lời + câu chưa gửi + câu đang xem), `ls12:luot-dang-lam` (nhãn "Đang làm
+  dở" ở danh sách đề). Làm tiếp: câu máy này đổi mà chưa gửi được thì lấy bản máy, còn lại theo server.
+- Thời gian từng câu chỉ ghi khi xem ≥ 1 giây (đỡ gửi lưu liên tục khi lướt câu); ẩn tab thì ngừng đếm.
+- Phím tắt Đúng/Sai: Q/W, E/R, T/Y, U/I (phím trái = Đúng). Bỏ chế độ chọn ý bằng ↑/↓ rồi Đ/S của bản đầy đủ — hai
+  phím một ý đủ nhanh và ít nhầm.
+- "Làm lại các câu sai" để GĐ4 (cần chế độ luyện tập); "Ôn bài yếu nhất" tạm dẫn tới trang đọc bài SGK. Ảnh chia sẻ kết
+  quả (tùy chọn) chưa làm.
+- `RICH_ITEMS_PLAYABLE = true`: đề có câu Đúng/Sai / tư liệu công bố được.
 
 ## 7. Phụ lục kỹ thuật
 

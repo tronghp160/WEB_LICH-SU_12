@@ -1,6 +1,7 @@
 import { unstable_rethrow } from "next/navigation";
 import { isAttemptId } from "@/lib/exams/attempt";
 import {
+  attemptPercentile,
   attemptResponse,
   failure,
   getAttemptResult,
@@ -16,13 +17,22 @@ import {
 
 const unavailable = () => Response.json({ ok: false, reason: "unavailable" }, { status: 503, headers: NO_STORE });
 
-/** Trạng thái lượt: đang làm → câu hỏi không đáp án (làm tiếp); đã nộp → kết quả kèm đáp án, lời giải. */
+/**
+ * Trạng thái lượt: đang làm → câu hỏi không đáp án (làm tiếp); đã nộp → kết quả kèm đáp án, lời giải, và thứ hạng so với
+ * các lượt nộp khác của đề khi đủ 30 lượt (mục 4.2 — không bao giờ có tên người khác).
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!isAttemptId(id)) return failure("not_found");
   try {
     const { data, error } = await getAttemptResult(id, await readCaller(request));
-    return error ? unavailable() : attemptResponse(data);
+    if (error) return unavailable();
+    const body = data as { ok?: boolean; attempt?: { status?: string } } | null;
+    if (body?.ok && body.attempt?.status === "submitted") {
+      const percentile = await attemptPercentile(id);
+      if (percentile !== null) return attemptResponse({ ...body, percentile });
+    }
+    return attemptResponse(data);
   } catch (error) {
     unstable_rethrow(error);
     return unavailable();

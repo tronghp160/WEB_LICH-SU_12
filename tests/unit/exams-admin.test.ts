@@ -44,12 +44,8 @@ describe("thông tin đề", () => {
 });
 
 describe("điều kiện gửi duyệt / công bố đề", () => {
-  it("đề đầy đủ đúng 24 + 4, 50 phút, mức độ cân đối → không chặn gì; chỉ chặn CÔNG BỐ vì phòng thi Đúng/Sai chưa có", () => {
-    const readiness = examReadiness(full, fullExam());
-    expect(readiness.blockers).toEqual([]);
-    expect(readiness.warnings).toEqual([]);
-    expect(readiness.publishBlockers).toHaveLength(1);
-    expect(readiness.publishBlockers[0]).toContain("chưa công bố được");
+  it("đề đầy đủ đúng 24 + 4, 50 phút, mức độ cân đối → gửi duyệt và công bố được (phòng thi GĐ3 làm được Đúng/Sai, tư liệu)", () => {
+    expect(examReadiness(full, fullExam())).toEqual({ blockers: [], warnings: [], publishBlockers: [] });
   });
 
   it("đề đầy đủ thiếu / thừa câu → chặn, nêu số câu hiện có", () => {
@@ -99,11 +95,9 @@ describe("điều kiện gửi duyệt / công bố đề", () => {
     expect(examReadiness(mini, rotated).warnings).toHaveLength(1);
   });
 
-  it("đề theo chủ đề có câu tư liệu → chưa công bố được; không nhắc 'đề mẫu'", () => {
+  it("đề theo chủ đề có câu tư liệu → công bố được; không nhắc 'đề mẫu'", () => {
     const items = Array.from({ length: 10 }, (_, index) => mcq(index % 4, { hasPassage: index === 0 }));
-    const readiness = examReadiness({ duration_min: 13, format: "chuyen_de" }, items);
-    expect(readiness.warnings).toEqual([]);
-    expect(readiness.publishBlockers).toHaveLength(1);
+    expect(examReadiness({ duration_min: 13, format: "chuyen_de" }, items)).toEqual({ blockers: [], warnings: [], publishBlockers: [] });
   });
 
   it("thiếu giải thích hoặc nguồn → chặn", () => {

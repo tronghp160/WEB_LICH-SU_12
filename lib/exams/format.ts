@@ -27,10 +27,10 @@ export const examDifficultyLabels: Record<1 | 2 | 3, string> = { 1: "Cơ bản",
 export const LEVEL_MIX_SUGGESTED = { nhan_biet: 0.4, thong_hieu: 0.3, van_dung: 0.3 } as const;
 
 /**
- * Trình làm đề hiện tại chỉ hiển thị câu trắc nghiệm không kèm tư liệu. Đề có câu Đúng/Sai hoặc câu tư liệu soạn và gửi
- * duyệt được nhưng chưa công bố được cho tới khi có phòng thi mới (GĐ3) — khi đó đổi thành true.
+ * Học sinh làm được câu Đúng/Sai và câu có tư liệu trên web (phòng thi GĐ3 — components/exams/runner). Đặt false nếu cần
+ * tạm chặn công bố các đề có dạng câu đó.
  */
-export const RICH_ITEMS_PLAYABLE = false;
+export const RICH_ITEMS_PLAYABLE = true;
 
 export type ExamSectionSpec = {
   section: 1 | 2;

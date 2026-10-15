@@ -5,6 +5,8 @@ export const examPaths = {
   hub: "/luyen-thi",
   set: (slug: string) => `/luyen-thi/${slug}`,
   activate: "/kich-hoat",
+  /** Trang kết quả một lượt (chỉ chủ lượt xem được — dữ liệu tải qua API kèm mã thiết bị). */
+  result: (attemptId: string) => `/luyen-thi/ket-qua/${attemptId}`,
 };
 
 /** Khóa lưu kết quả trong tiến độ học tập (Hộ chiếu lịch sử). */

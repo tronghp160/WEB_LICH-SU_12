@@ -60,8 +60,14 @@ const questionSchema = z.object({
   earned_milli: nullish(z.number().int()),
 });
 
+const groupSchema = z.record(z.string(), z.object({ earned: z.number(), max: z.number(), n: z.number().int() }));
+
 const breakdownSchema = z.looseObject({
   items: z.array(z.number().int()),
+  sections: groupSchema.optional(),
+  lessons: groupSchema.optional(),
+  levels: groupSchema.optional(),
+  kinds: groupSchema.optional(),
   correct: z.number().int(),
   unanswered: z.number().int(),
   total: z.number().int(),
@@ -84,6 +90,7 @@ const viewSchema = z.object({
   set: nullish(z.object({ slug: z.string(), title: z.string(), duration_min: z.number(), format: z.string(), free: z.boolean() })),
   answers: z.record(z.string(), z.unknown()).default({}),
   questions: z.array(questionSchema),
+  percentile: z.number().min(0).max(100).optional(),
 });
 
 export type AttemptQuestion = {
@@ -106,10 +113,20 @@ export type AttemptQuestion = {
   earnedMilli: number | null;
 };
 
+/** Điểm đạt / tối đa (phần nghìn) và số câu của một nhóm (phần, bài, mức độ, dạng). */
+export type ScoreGroup = { earned: number; max: number; n: number };
+
 export type AttemptView = {
   access: "free" | "account" | "code" | null;
   id: string;
   status: "in_progress" | "submitted" | "abandoned";
+  set: { slug: string; title: string; durationMin: number; format: string; free: boolean } | null;
+  startedAt: string;
+  submittedAt: string | null;
+  /** Phân tích sau khi chấm (null khi chưa nộp). */
+  groups: { sections: Record<string, ScoreGroup>; lessons: Record<string, ScoreGroup>; levels: Record<string, ScoreGroup>; kinds: Record<string, ScoreGroup> } | null;
+  /** Thứ hạng so với các lượt nộp khác của đề (chỉ khi đủ 30 lượt) — route tính thêm. */
+  percentile: number | null;
   deadlineAt: string | null;
   /** Giờ server lúc trả lời — để đồng hồ máy học sinh lệch giờ vẫn đếm đúng. */
   serverNow: string;
@@ -135,11 +152,19 @@ function readAnswers(raw: Record<string, unknown>): Record<string, ItemAnswer> {
 export function parseAttemptView(value: unknown): AttemptView | null {
   const parsed = viewSchema.safeParse(value);
   if (!parsed.success) return null;
-  const { attempt, questions, answers, access } = parsed.data;
+  const { attempt, questions, answers, access, set, percentile } = parsed.data;
+  const breakdown = attempt.breakdown;
   return {
     access: access ?? null,
     id: attempt.id,
     status: attempt.status,
+    set: set ? { slug: set.slug, title: set.title, durationMin: set.duration_min, format: set.format, free: set.free } : null,
+    startedAt: attempt.started_at,
+    submittedAt: attempt.submitted_at,
+    groups: breakdown
+      ? { sections: breakdown.sections ?? {}, lessons: breakdown.lessons ?? {}, levels: breakdown.levels ?? {}, kinds: breakdown.kinds ?? {} }
+      : null,
+    percentile: percentile ?? null,
     deadlineAt: attempt.deadline_at,
     serverNow: attempt.server_now,
     score10: attempt.score10,

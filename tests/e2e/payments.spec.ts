@@ -101,6 +101,9 @@ test.describe("Kích hoạt mã và làm đề luyện thi", () => {
       if (index + 1 < total) await page.getByRole("button", { name: "Câu sau" }).click();
     }
     await page.getByRole("button", { name: "Nộp bài" }).click();
+    // GĐ3: hộp thoại xác nhận, nộp xong chuyển sang trang kết quả.
+    await page.getByRole("dialog", { name: "Nộp bài?" }).getByRole("button", { name: "Nộp bài" }).click();
+    await expect(page).toHaveURL(/\/luyen-thi\/ket-qua\/[0-9a-f-]{36}$/);
     await expect(page.getByTestId("exam-score")).toContainText("điểm");
     await expect(page.getByRole("heading", { name: "Đáp án và giải thích" })).toBeVisible();
   }

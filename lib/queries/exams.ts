@@ -11,20 +11,19 @@ export async function getPublishedExamSets(): Promise<ExamSetCard[]> {
   const supabase = await createPublicClient();
   const { data, error } = await supabase
     .from("exam_sets")
-    .select("id, slug, title, description, duration_min, product_id, sort_order")
+    .select("id, slug, title, description, duration_min, product_id, sort_order, format, difficulty, published_at")
     .eq("workflow_status", "published")
     .order("sort_order")
     .order("slug");
   if (error) throw error;
   if (data.length === 0) return [];
 
-  // Đếm như get_exam_set: chỉ câu trắc nghiệm đã công bố (docs/ke-hoach-luyen-thi.md, GĐ1).
+  // Đếm như get_exam_intro / start_exam_attempt: mọi câu đã công bố trong đề (docs/ke-hoach-luyen-thi.md, GĐ2).
   const counts = new Map<string, number>();
   const { data: rows } = await createAdminClient()
     .from("exam_set_items")
     .select("set_id, exam_items!inner(id)")
     .eq("exam_items.workflow_status", "published")
-    .eq("exam_items.kind", "mcq")
     .in(
       "set_id",
       data.map((set) => set.id),
@@ -38,6 +37,9 @@ export async function getPublishedExamSets(): Promise<ExamSetCard[]> {
     durationMin: set.duration_min,
     questionCount: counts.get(set.id) ?? null,
     free: set.product_id === null,
+    format: set.format,
+    difficulty: set.difficulty,
+    publishedAt: set.published_at,
   }));
 }
 
@@ -45,7 +47,7 @@ export async function getPublishedExamSet(slug: string) {
   const supabase = await createPublicClient();
   const { data, error } = await supabase
     .from("exam_sets")
-    .select("slug, title, description, duration_min, product_id")
+    .select("slug, title, description, duration_min, product_id, format")
     .eq("slug", slug)
     .eq("workflow_status", "published")
     .maybeSingle();

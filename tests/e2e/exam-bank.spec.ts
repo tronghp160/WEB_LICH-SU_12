@@ -168,7 +168,7 @@ test.describe.serial("Ngân hàng câu hỏi và soạn đề (GĐ1)", () => {
     expect(passage?.workflow_status).toBe("published");
   });
 
-  test("ghép đề đầy đủ 24 + 4 từ ngân hàng: rải đều đáp án, đủ điều kiện gửi duyệt, chưa công bố được (chờ phòng thi GĐ3)", async ({ browser }) => {
+  test("ghép đề đầy đủ 24 + 4 từ ngân hàng: rải đều đáp án, đủ điều kiện gửi duyệt và công bố", async ({ browser }) => {
     const { context, page } = await staff(browser, "editor@test.local");
     await page.goto("/quan-tri/de-luyen-thi");
     await page.getByRole("button", { name: "Tạo đề mới" }).click();
@@ -207,16 +207,17 @@ test.describe.serial("Ngân hàng câu hỏi và soạn đề (GĐ1)", () => {
     await expect(page.getByText(/Đáp án đúng dồn vào/)).toHaveCount(0);
     for (const letter of ["A", "B", "C", "D"]) await expect(page.getByText(`· đáp án ${letter}`)).toHaveCount(6);
 
-    await expect(page.getByText(/chưa công bố được/)).toBeVisible();
+    await expect(page.getByText("Đề đủ điều kiện gửi duyệt và công bố.")).toBeVisible();
+    await expect(page.getByText(/chưa công bố được/)).toHaveCount(0);
     await page.getByRole("button", { name: "Gửi duyệt" }).click();
     await expect(page.getByText("Đã gửi đề cho kiểm duyệt viên.")).toBeVisible();
     await context.close();
 
+    // Không công bố đề thử (sẽ hiện ở trang công khai) — trả về để ca sau xóa được. Công bố + làm đề: exam-room.spec.ts.
     const reviewer = await staff(browser, "reviewer@test.local");
     await reviewer.page.goto(`/quan-tri/de-luyen-thi/${setSlug}`);
-    await reviewer.page.getByRole("button", { name: "Công bố", exact: true }).click();
-    await expect(reviewer.page.getByText(/Chưa công bố được: Học sinh chưa làm được câu Đúng\/Sai/)).toBeVisible();
-    await reviewer.page.getByLabel("Lý do yêu cầu chỉnh sửa (bắt buộc khi trả về)").fill("Chờ phòng thi mới (GĐ3) rồi công bố.");
+    await expect(reviewer.page.getByRole("button", { name: "Công bố", exact: true })).toBeEnabled();
+    await reviewer.page.getByLabel("Lý do yêu cầu chỉnh sửa (bắt buộc khi trả về)").fill("Đề thử E2E — trả về để dọn.");
     await reviewer.page.getByRole("button", { name: "Yêu cầu chỉnh sửa" }).click();
     await expect(reviewer.page.getByText("Đã cập nhật trạng thái đề.")).toBeVisible();
     await reviewer.context.close();

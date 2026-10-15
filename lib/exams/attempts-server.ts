@@ -84,6 +84,23 @@ export async function submitExamAttempt(id: string, caller: Caller, body: Answer
   return rpc().rpc("submit_exam_attempt", { p_attempt_id: id, p_user_id: caller.userId, p_device_hash: caller.deviceHash ?? "", p_answers: body.answers as Json });
 }
 
+/** Đủ ngần này lượt nộp của một đề mới tính thứ hạng (mục 4.2). */
+export const PERCENTILE_MIN_ATTEMPTS = 30;
+
+/**
+ * "Em cao hơn N% lượt làm đề này": so điểm lượt (đã nộp, chế độ thi) với mọi lượt đã nộp của cùng đề. Gọi SAU khi
+ * get_attempt_result đã xác nhận người gọi là chủ lượt. Chưa đủ 30 lượt hoặc lỗi → null.
+ */
+export async function attemptPercentile(id: string): Promise<number | null> {
+  const db = rpc();
+  const { data: mine } = await db.from("exam_attempts").select("set_id, score10, mode").eq("id", id).maybeSingle();
+  if (!mine?.set_id || mine.score10 === null || mine.mode !== "exam") return null;
+  const base = () => db.from("exam_attempts").select("id", { count: "exact", head: true }).eq("set_id", mine.set_id!).eq("status", "submitted").eq("mode", "exam");
+  const [{ count: total, error }, { count: lower }] = await Promise.all([base(), base().lt("score10", mine.score10)]);
+  if (error || total === null || total < PERCENTILE_MIN_ATTEMPTS) return null;
+  return Math.round(((lower ?? 0) / total) * 100);
+}
+
 export async function getAttemptResult(id: string, caller: Caller) {
   return rpc().rpc("get_attempt_result", { p_attempt_id: id, p_user_id: caller.userId, p_device_hash: caller.deviceHash ?? "" });
 }

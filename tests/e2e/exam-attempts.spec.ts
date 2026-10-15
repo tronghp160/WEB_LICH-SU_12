@@ -87,7 +87,7 @@ test.describe("Lượt làm bài — API (GĐ2)", () => {
 });
 
 test.describe("Lượt làm bài — giao diện (GĐ2)", () => {
-  test("tải lại trang giữa chừng → bấm Bắt đầu để làm tiếp, đáp án đã chọn còn nguyên, đồng hồ không đặt lại", async ({ page }) => {
+  test("tải lại trang giữa chừng → bấm Làm tiếp, đáp án đã chọn còn nguyên, đồng hồ không đặt lại", async ({ page }) => {
     const responses: string[] = [];
     page.on("response", async (response) => {
       if (/\/api\/luyen-thi\/de-1(\/bat-dau)?$/.test(new URL(response.url()).pathname)) responses.push(await response.text());
@@ -101,7 +101,7 @@ test.describe("Lượt làm bài — giao diện (GĐ2)", () => {
 
     await page.reload();
     await expect(page.getByTestId("exam-in-progress")).toContainText("Em đang làm dở bài này");
-    await page.getByRole("button", { name: "Bắt đầu làm bài" }).click();
+    await page.getByRole("button", { name: "Làm tiếp" }).click();
     await expect(page.getByRole("list", { name: "Các đáp án" }).getByRole("button").nth(2)).toHaveAttribute("aria-pressed", "true");
     const remaining = await page.getByRole("timer").textContent();
     expect(remaining).not.toContain("15:00");

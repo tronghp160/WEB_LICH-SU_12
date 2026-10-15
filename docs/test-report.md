@@ -745,3 +745,28 @@ Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quy�
 | Trợ năng `/luyen-thi`, `/luyen-thi/de-1` × sáng / tối | **4/4** |
 | Ma trận quyền `tests/rls/exam-bank.mjs` (DB thật, thêm đọc `exam_attempts` + gọi thẳng hàm lượt làm bài) | **75/75 ô** (15 thao tác × 5 vai trò), dữ liệu thử sót 0 |
 | Lint, tsc, build | sạch |
+
+## 24. Luyện thi — GĐ3: phòng thi mới + trang kết quả (15/10/2026)
+
+Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quyết định khi làm GĐ3"). Không có migration.
+
+- Phòng thi `components/exams/runner/*` (thay `ExamRunner`): câu trắc nghiệm, câu Đúng/Sai (nút bật Đúng / Sai từng ý),
+  tư liệu chia đôi màn hình từ 1280 px (điện thoại: thu gọn được), phiếu trả lời Phần I / Phần II (đã làm / làm dở / chưa
+  làm / đánh dấu; điện thoại mở từ thanh dưới), đánh dấu câu, phím tắt (bảng `?`), toàn màn hình, 3 cỡ chữ (nhớ trên máy),
+  đồng hồ theo giờ server + báo trình đọc màn hình ở mốc 10 / 5 / 1 phút, hộp thoại nộp bài (câu chưa làm, làm dở, đánh
+  dấu, "Xem lại câu chưa làm"). Tự lưu: localStorage ngay + server gom 2 giây; mất mạng → "Mất mạng — đã lưu trên máy, sẽ
+  gửi lại"; "Làm tiếp / Bắt đầu lại"; hết giờ mất mạng → nộp khi có mạng.
+- Trang kết quả `/luyen-thi/ket-qua/[id]`: điểm, điểm Phần I / Phần II, thời gian làm, so với lần trước, thứ hạng (≥ 30
+  lượt), phân tích theo bài / mức độ / dạng (thanh một màu, giá trị bằng chữ) + thời gian từng câu, lời giải lọc Tất cả /
+  Sai / Bỏ trống / Đã đánh dấu, "Làm lại đề này", "Ôn bài yếu nhất", "Thi đề khác".
+- Danh sách đề: nhãn "24 + 4 câu · đúng cấu trúc đề thi", độ khó, "Đề mới" (14 ngày), "Đang làm dở". Đếm số câu mọi dạng.
+- Đề có câu Đúng/Sai / tư liệu công bố được (`RICH_ITEMS_PLAYABLE`).
+
+| Nhóm | Kết quả |
+|---|---|
+| Unit test | **677/677**, 48 file — thêm `exam-room.test.ts` (10 ca: bản lưu trên máy, gộp khi làm tiếp, trạng thái phiếu trả lời, thời gian từng câu, phím tắt, lịch sử lượt, phân tích, bộ lọc lời giải); sửa ca chặn công bố trong `exams-admin.test.ts` |
+| E2E `exam-room.spec.ts` (mới, DB thật, đề 24 + 4 tạo tạm bằng khóa bí mật rồi xóa) | **4/4** — làm hết bằng chuột → 2,5 điểm, Phần I 1,5 / 6, Phần II 1 / 4 (khớp tính tay), lọc "Sai (22)" / "Đã đánh dấu (1)"; phím tắt + tải lại trang → làm tiếp đúng câu 25, đúng câu trả lời, đồng hồ không đặt lại; "Bắt đầu lại" nộp lượt cũ; hết giờ tự nộp → `?het-gio=1`; 360 / 768 / 1280 px không tràn ngang; axe phòng thi + trang kết quả không lỗi serious / critical. Ảnh: `docs/screenshots/luyen-thi-phong-thi-{360,768,1280}.png`, `luyen-thi-ket-qua-1280.png` |
+| E2E `exam-attempts.spec.ts`, `payments.spec.ts`, `account.spec.ts` (B6), a11y `/luyen-thi*` | 5/5 · 13/14 (ca T1 chờ câu UPDATE mô tả đề mẫu, mục 21) · 3/3 · 4/4 |
+| E2E `exam-bank.spec.ts` (cần TEST_PW; ca ghép đề sửa kỳ vọng: đề đầy đủ giờ "đủ điều kiện gửi duyệt và công bố") | chờ chạy |
+| Sửa trong lúc kiểm thử | Nút "Phiếu trả lời" trên điện thoại bị thanh điều hướng dưới che → đặt ngay trên thanh đó |
+| Lint, tsc, build | sạch |
