@@ -201,17 +201,17 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 - **Báo lỗi** chỉ cho câu học sinh ĐÃ THẤY ĐÁP ÁN (lượt thi đã nộp, câu luyện tập đã kiểm tra) của chính lượt mình — để
   không thành kênh dò đáp án. Một người một báo cáo đang mở cho mỗi câu; 10 lần / 10 phút. Thiết bị lưu dạng băm. Nút ở
   từng câu trong lời giải (trang kết quả) và sau khi kiểm tra câu (luyện tập). Học sinh không đọc được báo cáo nào.
-- **Xử lý**: nhân sự xem hàng đợi ; kiểm duyệt viên / quản trị viên đánh dấu "đã sửa" /
+- **Xử lý**: nhân sự xem hàng đợi `/quan-tri/de-luyen-thi/bao-loi`; kiểm duyệt viên / quản trị viên đánh dấu "đã sửa" /
   "không phải lỗi" (RLS cho phép đổi đúng 4 cột trạng thái, không sửa được lời học sinh).
 - **Chấm lại**: quy trình hiện có chỉ cho quản trị viên sửa câu đã công bố, nên nút "Chấm lại các lượt đã nộp" (trang
-  câu) cũng chỉ cho quản trị viên.  tính lại **điểm của đúng câu đó** theo đáp án hiện tại rồi cộng phần
+  câu) cũng chỉ cho quản trị viên. `regrade_item` tính lại **điểm của đúng câu đó** theo đáp án hiện tại rồi cộng phần
   chênh vào điểm lượt và các nhóm phân tích — không chấm lại cả lượt, không đổi giờ nộp, không đụng sổ câu sai. Nhật ký
-   (điểm cũ / mới, người chấm). Trang kết quả ghi "Điểm đã được cập nhật do sửa đáp án câu N".
+  `exam_regrade_log` (điểm cũ / mới, người chấm). Trang kết quả ghi "Điểm đã được cập nhật do sửa đáp án câu N".
 - **Thống kê câu** chỉ từ lượt THI đã nộp: tỉ lệ đạt, độ phân hóa (27% cao − 27% thấp), lựa chọn theo thứ tự gốc (đã quy
   đổi độ xoay), tỉ lệ đúng từng ý. Cờ cảnh báo và độ phân hóa chỉ hiện khi ≥ 30 lượt. Cột "Đạt x%" ở danh sách ngân hàng.
-- **Thống kê quản trị**  (kiểm duyệt viên, quản trị viên): lượt theo ngày, người dùng
+- **Thống kê quản trị** `/quan-tri/de-luyen-thi/thong-ke` (kiểm duyệt viên, quản trị viên): lượt theo ngày, người dùng
   hoạt động (tài khoản hoặc thiết bị), phân bố điểm — chỉ số đếm, không có thông tin cá nhân.
-- Người dùng cho phép làm tiếp không hỏi lại (15/10/2026): tôi tự chạy migration GĐ7 bằng  sau khi thử
+- Người dùng cho phép làm tiếp không hỏi lại (15/10/2026): tôi tự chạy migration GĐ7 bằng `DATABASE_URL` sau khi thử
   PGlite, rồi chạy kiểm thử SQL (tự hoàn tác) ngay trên DB thật và gọi thử hàm qua API.
 
 ## 7. Phụ lục kỹ thuật
