@@ -767,6 +767,6 @@ Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quy�
 | Unit test | **677/677**, 48 file — thêm `exam-room.test.ts` (10 ca: bản lưu trên máy, gộp khi làm tiếp, trạng thái phiếu trả lời, thời gian từng câu, phím tắt, lịch sử lượt, phân tích, bộ lọc lời giải); sửa ca chặn công bố trong `exams-admin.test.ts` |
 | E2E `exam-room.spec.ts` (mới, DB thật, đề 24 + 4 tạo tạm bằng khóa bí mật rồi xóa) | **4/4** — làm hết bằng chuột → 2,5 điểm, Phần I 1,5 / 6, Phần II 1 / 4 (khớp tính tay), lọc "Sai (22)" / "Đã đánh dấu (1)"; phím tắt + tải lại trang → làm tiếp đúng câu 25, đúng câu trả lời, đồng hồ không đặt lại; "Bắt đầu lại" nộp lượt cũ; hết giờ tự nộp → `?het-gio=1`; 360 / 768 / 1280 px không tràn ngang; axe phòng thi + trang kết quả không lỗi serious / critical. Ảnh: `docs/screenshots/luyen-thi-phong-thi-{360,768,1280}.png`, `luyen-thi-ket-qua-1280.png` |
 | E2E `exam-attempts.spec.ts`, `payments.spec.ts`, `account.spec.ts` (B6), a11y `/luyen-thi*` | 5/5 · 13/14 (ca T1 chờ câu UPDATE mô tả đề mẫu, mục 21) · 3/3 · 4/4 |
-| E2E `exam-bank.spec.ts` (cần TEST_PW; ca ghép đề sửa kỳ vọng: đề đầy đủ giờ "đủ điều kiện gửi duyệt và công bố") | chờ chạy |
+| E2E `exam-bank.spec.ts` (cần TEST_PW; ca ghép đề sửa kỳ vọng: đề đầy đủ giờ "đủ điều kiện gửi duyệt và công bố") | **6/6** (lần 3; hai lần trước đỏ một ca do mạng tới Supabase chậm — request lưu / công bố quá 15 s, trang báo "lỗi hệ thống") |
 | Sửa trong lúc kiểm thử | Nút "Phiếu trả lời" trên điện thoại bị thanh điều hướng dưới che → đặt ngay trên thanh đó |
 | Lint, tsc, build | sạch |
