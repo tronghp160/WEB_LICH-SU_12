@@ -11,6 +11,9 @@ const notices: Record<string, { tone: "success" | "warning"; text: string }> = {
   "da-cong-bo": { tone: "success", text: "Đã công bố. Nội dung đã hiển thị ở trang công khai." },
   "da-an": { tone: "success", text: "Đã ẩn. Nội dung không còn hiển thị ở trang công khai." },
   "da-cong-bo-lai": { tone: "success", text: "Đã công bố lại. Nội dung đã hiển thị ở trang công khai." },
+  // Ngân hàng câu hỏi / soạn đề (docs/ke-hoach-luyen-thi.md, GĐ1)
+  "da-them-cau": { tone: "success", text: "Đã tạo câu hỏi và thêm vào đề." },
+  "chua-them-vao-de": { tone: "warning", text: "Đã tạo câu hỏi nhưng chưa thêm được vào đề (đề đã đổi trạng thái?). Mở đề và thêm lại từ ngân hàng." },
 };
 
 /** Thông báo sau khi chuyển trang (mã nằm ở `?thong-bao=`); mã lạ bị bỏ qua nên không thể chèn chữ tùy ý. */

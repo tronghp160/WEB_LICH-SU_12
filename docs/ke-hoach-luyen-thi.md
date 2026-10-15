@@ -95,7 +95,7 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 | GĐ | Nội dung | Trạng thái |
 |---|---|---|
 | 0 | Sửa cấu trúc 40 câu → 24 + 4 (`lib/exams/format.ts`), câu chữ trang, `lib/exams/config.ts` (ngày thi), tài liệu này | Xong 15/10/2026 |
-| 1 | Ngân hàng câu hỏi, dạng Đúng/Sai, tư liệu; quản trị ngân hàng, soạn đề từ ngân hàng, nhập JSON | |
+| 1 | Ngân hàng câu hỏi, dạng Đúng/Sai, tư liệu; quản trị ngân hàng, soạn đề từ ngân hàng, nhập JSON | Xong 15/10/2026 (test-report mục 22) — xem "Quyết định khi làm GĐ1" |
 | 2 | Lượt làm bài + chấm phía server, API mới, không lộ đáp án | |
 | 3 | Phòng thi mới + trang kết quả | |
 | 4 | Luyện tập, sổ câu sai, ôn ngắt quãng | |
@@ -104,6 +104,22 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 | 7 | Thống kê câu hỏi, hàng đợi báo lỗi, chấm lại | |
 | 8 | Trang bán hàng, kỹ năng, sổ tay, bản in | |
 | 9 | (Tùy chọn) Thi thử định kỳ | |
+
+### Quyết định khi làm GĐ1 (khác / chi tiết hơn bản đầy đủ)
+
+- **Rải đáp án:** chọn cách lưu độ xoay trong `exam_set_items.choice_shift` (0–3). Học sinh thấy lựa chọn gốc i ở vị
+  trí (i + shift) mod 4; `get_exam_set` và `lib/exams/compose.ts` dùng cùng công thức. Thêm câu vào đề → tự chọn độ xoay
+  để đáp án rơi vào chữ đang ít nhất; nút "Rải đều đáp án A/B/C/D" xếp lại cả đề.
+- **Dấu vân tay chống trùng** gồm câu hỏi + các lựa chọn / ý (đã sắp xếp), không chỉ câu hỏi — nhiều câu trắc nghiệm có
+  chung câu dẫn ("Nội dung nào sau đây…"), nhiều câu Đúng/Sai có chung "Đọc đoạn tư liệu sau đây". Trigger tính trong
+  database (`exam_item_fingerprint`), bản TypeScript chỉ để báo sớm.
+- **Phần của câu** suy ra từ dạng: trắc nghiệm → Phần I, Đúng/Sai → Phần II (cả với đề ngắn / theo chủ đề).
+- **Đề có câu Đúng/Sai hoặc câu tư liệu soạn và gửi duyệt được, nhưng CHƯA công bố được** cho tới khi có phòng thi mới
+  (GĐ3) — trình làm đề hiện tại chỉ hiển thị trắc nghiệm. Cờ `RICH_ITEMS_PLAYABLE` trong `lib/exams/format.ts`.
+- **Câu chờ duyệt dùng được trong đề:** đề gửi duyệt được khi mọi câu đã công bố hoặc đang chờ duyệt; công bố đề thì công
+  bố luôn các câu (và tư liệu) đang chờ duyệt trong đề. Câu / tư liệu đang nằm trong đề đã công bố thì không ẩn được.
+- **Bảng `exam_item_reports` (mục 3.8) để sang GĐ7**, cùng chức năng báo lỗi dùng nó — tránh tạo bảng chưa có chỗ dùng.
+- Kiểm duyệt viên công bố / gửi duyệt hàng loạt ở danh sách ngân hàng (tối đa 200 câu một lượt).
 
 ## 7. Phụ lục kỹ thuật
 

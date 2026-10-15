@@ -2,7 +2,35 @@
 // (Quyết định 764/QĐ-BGDĐT, chương trình 2018): Phần I — 24 câu trắc nghiệm 4 lựa chọn, 0,25 điểm/câu; Phần II — 4 câu
 // Đúng/Sai, mỗi câu 4 ý, điểm theo số ý đúng; 50 phút, tối đa 10 điểm. Hàm thuần, unit test được.
 
-export type ExamFormat = "thpt_2025" | "mini" | "chuyen_de";
+export const EXAM_FORMATS = ["thpt_2025", "mini", "chuyen_de"] as const;
+export type ExamFormat = (typeof EXAM_FORMATS)[number];
+
+export const examFormatLabels: Record<ExamFormat, string> = {
+  thpt_2025: "Đề đầy đủ theo cấu trúc thi tốt nghiệp",
+  mini: "Đề ngắn (đề mẫu)",
+  chuyen_de: "Đề theo chủ đề",
+};
+
+export const examFormatShortLabels: Record<ExamFormat, string> = { thpt_2025: "Đề đầy đủ", mini: "Đề ngắn", chuyen_de: "Theo chủ đề" };
+
+export function parseExamFormat(value: unknown): ExamFormat {
+  return EXAM_FORMATS.find((format) => format === value) ?? "thpt_2025";
+}
+
+/** Nhãn độ khó do quản trị viên tự đặt (exam_sets.difficulty). */
+export const examDifficultyLabels: Record<1 | 2 | 3, string> = { 1: "Cơ bản", 2: "Trung bình", 3: "Nâng cao" };
+
+/**
+ * Tỉ lệ mức độ GỢI Ý cho đề đầy đủ — do web tự đặt để soạn đề cân đối, KHÔNG phải ma trận chính thức của Bộ; cần giáo
+ * viên Lịch sử xem lại (docs/ke-hoach-luyen-thi.md, mục 9 — quyết định 7).
+ */
+export const LEVEL_MIX_SUGGESTED = { nhan_biet: 0.4, thong_hieu: 0.3, van_dung: 0.3 } as const;
+
+/**
+ * Trình làm đề hiện tại chỉ hiển thị câu trắc nghiệm không kèm tư liệu. Đề có câu Đúng/Sai hoặc câu tư liệu soạn và gửi
+ * duyệt được nhưng chưa công bố được cho tới khi có phòng thi mới (GĐ3) — khi đó đổi thành true.
+ */
+export const RICH_ITEMS_PLAYABLE = false;
 
 export type ExamSectionSpec = {
   section: 1 | 2;

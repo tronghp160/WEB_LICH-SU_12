@@ -1,89 +1,116 @@
 import { describe, expect, it } from "vitest";
-import { canEditExam, canSubmitExam, examQuestionColumns, examQuestionSchema, examReadiness, examSetSchema } from "@/lib/exams/admin";
+import { canEditExam, canSubmitExam, examReadiness, examSetSchema, type ReadinessItem } from "@/lib/exams/admin";
 
-const validQuestion = {
-  question: "Chiến dịch Điện Biên Phủ kết thúc ngày nào?",
-  choice_0: "7/5/1954",
-  choice_1: "13/3/1954",
-  choice_2: "21/7/1954",
-  choice_3: "19/12/1946",
-  correct_index: "0",
-  explanation: "Ngày 7/5/1954 tập đoàn cứ điểm bị tiêu diệt.",
-  source_note: "SGK Lịch sử 12, Bài 7",
-  lesson_slug: "7-khang-chien-chong-phap",
-  event_id: "",
-};
+const mcq = (correct: number, overrides: Partial<ReadinessItem> = {}): ReadinessItem => ({
+  kind: "mcq",
+  section: 1,
+  correct_index: correct,
+  shift: 0,
+  explanation: "Giải thích đủ dài",
+  source_note: "SGK",
+  status: "published",
+  level: "nhan_biet",
+  event_id: null,
+  hasPassage: false,
+  ...overrides,
+});
+const tf = (overrides: Partial<ReadinessItem> = {}): ReadinessItem => ({ ...mcq(0), kind: "true_false", section: 2, correct_index: null, ...overrides });
+const mini = { duration_min: 15, format: "mini" as const };
+const full = { duration_min: 50, format: "thpt_2025" as const };
 
-const q = (position: number, correct: number) => ({ position, correct_index: correct, explanation: "Giải thích đủ dài", source_note: "SGK" });
+/** Đề đầy đủ hợp lệ: 24 trắc nghiệm rải đều, mức độ 40/30/30, 4 Đúng/Sai. */
+function fullExam(): ReadinessItem[] {
+  const levels = ["nhan_biet", "thong_hieu", "van_dung"] as const;
+  const items = Array.from({ length: 24 }, (_, index) => mcq(index % 4, { level: index < 11 ? levels[0] : index < 19 ? levels[1] : levels[2] }));
+  return [...items, tf({ level: "nhan_biet" }), tf({ level: "thong_hieu" }), tf({ level: "van_dung" }), tf({ level: "van_dung" })];
+}
 
-describe("form câu hỏi đề luyện thi", () => {
-  it("hợp lệ → cột DB đúng thứ tự đáp án; ô trống thành null", () => {
-    const parsed = examQuestionSchema.parse(validQuestion);
-    expect(examQuestionColumns(parsed)).toEqual({
-      question: validQuestion.question,
-      choices: ["7/5/1954", "13/3/1954", "21/7/1954", "19/12/1946"],
-      correct_index: 0,
-      explanation: validQuestion.explanation,
-      source_note: "SGK Lịch sử 12, Bài 7",
-      lesson_slug: "7-khang-chien-chong-phap",
-      event_id: null,
-    });
-  });
-
-  it("đáp án trùng (không phân biệt hoa thường), thiếu nguồn, bài SGK lạ, chưa chọn đáp án → lỗi theo từng ô", () => {
-    const result = examQuestionSchema.safeParse({ ...validQuestion, choice_3: "7/5/1954", source_note: "", lesson_slug: "bai-khong-co", correct_index: undefined });
-    expect(result.success).toBe(false);
-    const paths = result.error!.issues.map((issue) => issue.path[0]);
-    expect(paths).toEqual(expect.arrayContaining(["source_note", "correct_index"]));
-    const refined = examQuestionSchema.safeParse({ ...validQuestion, choice_3: "7/5/1954 ", lesson_slug: "bai-khong-co" });
-    expect(refined.error!.issues.map((issue) => issue.path[0])).toEqual(expect.arrayContaining(["choice_3", "lesson_slug"]));
-  });
-
-  it("thông tin đề: thời gian 5–180 phút, số nguyên", () => {
-    expect(examSetSchema.parse({ title: "Đề số 3", description: "", duration_min: "50", sort_order: "" })).toEqual({
+describe("thông tin đề", () => {
+  it("loại đề, thời gian 5–180 phút, độ khó 1–3 hoặc trống", () => {
+    expect(examSetSchema.parse({ title: "Đề số 3", description: "", format: "thpt_2025", duration_min: "50", difficulty: "", sort_order: "" })).toEqual({
       title: "Đề số 3",
       description: null,
+      format: "thpt_2025",
       duration_min: 50,
+      difficulty: null,
       sort_order: 0,
     });
-    expect(examSetSchema.safeParse({ title: "Đề", duration_min: "50" }).success).toBe(false);
-    expect(examSetSchema.safeParse({ title: "Đề số 3", duration_min: "2" }).success).toBe(false);
-    expect(examSetSchema.safeParse({ title: "Đề số 3", duration_min: "45.5" }).success).toBe(false);
+    expect(examSetSchema.parse({ title: "Đề số 3", format: "mini", duration_min: "15", difficulty: "2" }).difficulty).toBe(2);
+    expect(examSetSchema.safeParse({ title: "Đề", format: "mini", duration_min: "50" }).success).toBe(false);
+    expect(examSetSchema.safeParse({ title: "Đề số 3", format: "khac", duration_min: "50" }).success).toBe(false);
+    expect(examSetSchema.safeParse({ title: "Đề số 3", format: "mini", duration_min: "45.5" }).success).toBe(false);
+    expect(examSetSchema.safeParse({ title: "Đề số 3", format: "mini", duration_min: "50", difficulty: "4" }).success).toBe(false);
   });
 });
 
-describe("điều kiện gửi duyệt đề", () => {
-  it("dưới 10 câu → chặn", () => {
-    expect(examReadiness({ duration_min: 15 }, [q(1, 0), q(2, 1)]).blockers).toEqual(["Đề cần ít nhất 10 câu (hiện có 2)."]);
+describe("điều kiện gửi duyệt / công bố đề", () => {
+  it("đề đầy đủ đúng 24 + 4, 50 phút, mức độ cân đối → không chặn gì; chỉ chặn CÔNG BỐ vì phòng thi Đúng/Sai chưa có", () => {
+    const readiness = examReadiness(full, fullExam());
+    expect(readiness.blockers).toEqual([]);
+    expect(readiness.warnings).toEqual([]);
+    expect(readiness.publishBlockers).toHaveLength(1);
+    expect(readiness.publishBlockers[0]).toContain("chưa công bố được");
   });
 
-  it("24 câu trắc nghiệm, 30 phút, đáp án rải đều → chỉ nhắc đề thật còn 4 câu Đúng/Sai (không còn chuẩn 40 câu)", () => {
-    const questions = Array.from({ length: 24 }, (_, index) => q(index + 1, index % 4));
-    expect(examReadiness({ duration_min: 30 }, questions)).toEqual({
+  it("đề đầy đủ thiếu / thừa câu → chặn, nêu số câu hiện có", () => {
+    const items = fullExam().slice(1, 26);
+    expect(examReadiness(full, items).blockers).toEqual(["Đề đầy đủ cần đúng 24 câu trắc nghiệm + 4 câu Đúng/Sai (hiện có 23 câu trắc nghiệm, 2 câu Đúng/Sai)."]);
+  });
+
+  it("đề đầy đủ: thời gian khác 50 phút, mức độ lệch, quá 2 câu một sự kiện → cảnh báo", () => {
+    const items = fullExam().map((item, index) => ({ ...item, level: "nhan_biet" as const, event_id: index < 3 ? "e1" : null }));
+    const warnings = examReadiness({ ...full, duration_min: 45 }, items).warnings;
+    expect(warnings[0]).toBe("Đề thi thật làm trong 50 phút; đề này đặt 45 phút.");
+    expect(warnings[1]).toContain("Tỉ lệ mức độ lệch xa gợi ý");
+    expect(warnings[2]).toBe("Có 3 câu cùng hỏi về một sự kiện — nên đa dạng hơn (tối đa 2 câu / sự kiện).");
+  });
+
+  it("câu sai phần, câu còn nháp / cần sửa / ẩn → chặn; câu chờ duyệt được (công bố cùng đề)", () => {
+    const items = fullExam();
+    items[0] = { ...items[0], section: 2 };
+    items[1] = { ...items[1], status: "draft" };
+    items[2] = { ...items[2], status: "hidden" };
+    items[3] = { ...items[3], status: "pending_review" };
+    const { blockers } = examReadiness(full, items);
+    expect(blockers).toContain("Có câu nằm sai phần (trắc nghiệm ở Phần I, Đúng/Sai ở Phần II).");
+    expect(blockers).toContain("Có 2 câu đang nháp, cần chỉnh sửa hoặc đã ẩn — gửi duyệt các câu này trước (câu đang chờ duyệt được công bố cùng đề).");
+  });
+
+  it("đề ngắn: dưới 10 câu → chặn", () => {
+    expect(examReadiness(mini, [mcq(0), mcq(1)]).blockers).toEqual(["Đề cần ít nhất 10 câu (hiện có 2)."]);
+  });
+
+  it("đề ngắn 10 câu trắc nghiệm đúng thời gian, rải đều → chỉ nhắc ghi rõ đề mẫu; công bố được", () => {
+    const readiness = examReadiness(mini, Array.from({ length: 10 }, (_, index) => mcq(index % 4)));
+    expect(readiness).toEqual({
       blockers: [],
-      warnings: ['Đề thi thật gồm 24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút; đề này có 24 câu trắc nghiệm — nên ghi rõ "đề mẫu" trong tên hoặc mô tả.'],
+      warnings: ['Đề thi thật gồm 24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút; đề này có 10 câu — nên ghi rõ "đề mẫu" trong tên hoặc mô tả.'],
+      publishBlockers: [],
     });
   });
 
-  it("thời gian gợi ý theo điểm của đề thật: 1,25 phút / câu trắc nghiệm", () => {
-    const questions = Array.from({ length: 10 }, (_, index) => q(index + 1, index % 4));
-    expect(examReadiness({ duration_min: 15 }, questions).warnings).toHaveLength(1);
-    expect(examReadiness({ duration_min: 30 }, questions).warnings[1]).toBe("Thời gian 30 phút chưa tương xứng với 10 câu (gợi ý khoảng 13 phút).");
+  it("thời gian gợi ý theo điểm; đáp án dồn một chữ SAU KHI XOAY → cảnh báo", () => {
+    const items = Array.from({ length: 10 }, () => mcq(0));
+    const readiness = examReadiness({ ...mini, duration_min: 50 }, items);
+    expect(readiness.warnings[1]).toBe("Thời gian 50 phút chưa tương xứng với 10 câu (gợi ý khoảng 13 phút).");
+    expect(readiness.warnings[2]).toContain("dồn vào A (10/10");
+    // Cùng đáp án gốc A nhưng đã xoay rải đều → hết cảnh báo.
+    const rotated = items.map((item, index) => ({ ...item, shift: index % 4 }));
+    expect(examReadiness(mini, rotated).warnings).toHaveLength(1);
   });
 
-  it("đề mẫu 10 câu: được gửi duyệt nhưng nhắc ghi rõ đề mẫu; thời gian lệch và đáp án dồn một chữ → cảnh báo", () => {
-    const questions = Array.from({ length: 10 }, (_, index) => q(index + 1, 0));
-    const readiness = examReadiness({ duration_min: 50 }, questions);
-    expect(readiness.blockers).toEqual([]);
-    expect(readiness.warnings).toHaveLength(3);
-    expect(readiness.warnings[2]).toContain("dồn vào A (10/10");
+  it("đề theo chủ đề có câu tư liệu → chưa công bố được; không nhắc 'đề mẫu'", () => {
+    const items = Array.from({ length: 10 }, (_, index) => mcq(index % 4, { hasPassage: index === 0 }));
+    const readiness = examReadiness({ duration_min: 13, format: "chuyen_de" }, items);
+    expect(readiness.warnings).toEqual([]);
+    expect(readiness.publishBlockers).toHaveLength(1);
   });
 
   it("thiếu giải thích hoặc nguồn → chặn", () => {
-    const questions = Array.from({ length: 10 }, (_, index) => q(index + 1, index % 4));
-    questions[3] = { ...questions[3], explanation: " " };
-    questions[5] = { ...questions[5], source_note: "" };
-    expect(examReadiness({ duration_min: 13 }, questions).blockers).toEqual(["Có câu thiếu lời giải thích.", "Có câu thiếu nguồn."]);
+    const items = Array.from({ length: 10 }, (_, index) => mcq(index % 4));
+    items[3] = { ...items[3], explanation: " " };
+    items[5] = { ...items[5], source_note: "" };
+    expect(examReadiness(mini, items).blockers).toEqual(["Có câu thiếu lời giải thích.", "Có câu thiếu nguồn."]);
   });
 });
 

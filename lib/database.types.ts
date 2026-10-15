@@ -870,9 +870,12 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          difficulty: number | null
           duration_min: number
+          format: string
           id: string
           product_id: string | null
+          published_at: string | null
           review_note: string | null
           slug: string
           sort_order: number
@@ -883,9 +886,12 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          difficulty?: number | null
           duration_min?: number
+          format?: string
           id?: string
           product_id?: string | null
+          published_at?: string | null
           review_note?: string | null
           slug: string
           sort_order?: number
@@ -896,9 +902,12 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          difficulty?: number | null
           duration_min?: number
+          format?: string
           id?: string
           product_id?: string | null
+          published_at?: string | null
           review_note?: string | null
           slug?: string
           sort_order?: number
@@ -912,6 +921,179 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      // Ngân hàng câu hỏi — migration 20261025000000_exam_bank.sql (viết tay theo đúng định dạng file này).
+      exam_passages: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          lesson_slug: string | null
+          review_note: string | null
+          source_citation: string
+          title: string
+          updated_at: string
+          workflow_status: Database["public"]["Enums"]["content_workflow_status"]
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lesson_slug?: string | null
+          review_note?: string | null
+          source_citation: string
+          title: string
+          updated_at?: string
+          workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lesson_slug?: string | null
+          review_note?: string | null
+          source_citation?: string
+          title?: string
+          updated_at?: string
+          workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+        }
+        Relationships: []
+      }
+      exam_items: {
+        Row: {
+          choices: (string)[] | null
+          competency: Database["public"]["Enums"]["exam_competency"]
+          correct_index: number | null
+          created_at: string
+          created_by: string | null
+          event_id: string | null
+          explanation: string
+          fingerprint: string
+          grade: number
+          id: string
+          kind: Database["public"]["Enums"]["exam_item_kind"]
+          legacy_question_id: string | null
+          lesson_slug: string | null
+          level: Database["public"]["Enums"]["exam_item_level"]
+          passage_id: string | null
+          review_note: string | null
+          source_note: string
+          statements: Json | null
+          stem: string
+          topic_tag: string | null
+          updated_at: string
+          workflow_status: Database["public"]["Enums"]["content_workflow_status"]
+        }
+        Insert: {
+          choices?: (string)[] | null
+          competency: Database["public"]["Enums"]["exam_competency"]
+          correct_index?: number | null
+          created_at?: string
+          created_by?: string | null
+          event_id?: string | null
+          explanation: string
+          /** Trigger exam_item_integrity tự tính (ghi đè giá trị truyền vào) trước khi kiểm NOT NULL. */
+          fingerprint?: string
+          grade?: number
+          id?: string
+          kind: Database["public"]["Enums"]["exam_item_kind"]
+          legacy_question_id?: string | null
+          lesson_slug?: string | null
+          level: Database["public"]["Enums"]["exam_item_level"]
+          passage_id?: string | null
+          review_note?: string | null
+          source_note: string
+          statements?: Json | null
+          stem: string
+          topic_tag?: string | null
+          updated_at?: string
+          workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+        }
+        Update: {
+          choices?: (string)[] | null
+          competency?: Database["public"]["Enums"]["exam_competency"]
+          correct_index?: number | null
+          created_at?: string
+          created_by?: string | null
+          event_id?: string | null
+          explanation?: string
+          fingerprint?: string
+          grade?: number
+          id?: string
+          kind?: Database["public"]["Enums"]["exam_item_kind"]
+          legacy_question_id?: string | null
+          lesson_slug?: string | null
+          level?: Database["public"]["Enums"]["exam_item_level"]
+          passage_id?: string | null
+          review_note?: string | null
+          source_note?: string
+          statements?: Json | null
+          stem?: string
+          topic_tag?: string | null
+          updated_at?: string
+          workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_items_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "historical_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_items_passage_id_fkey"
+            columns: ["passage_id"]
+            isOneToOne: false
+            referencedRelation: "exam_passages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_set_items: {
+        Row: {
+          choice_shift: number
+          created_at: string
+          item_id: string
+          position: number
+          section: number
+          set_id: string
+        }
+        Insert: {
+          choice_shift?: number
+          created_at?: string
+          item_id: string
+          position: number
+          section: number
+          set_id: string
+        }
+        Update: {
+          choice_shift?: number
+          created_at?: string
+          item_id?: string
+          position?: number
+          section?: number
+          set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_set_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "exam_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_set_items_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "exam_sets"
             referencedColumns: ["id"]
           },
         ]
@@ -1135,6 +1317,9 @@ export type Database = {
     }
     Enums: {
       account_status: "active" | "locked"
+      exam_competency: "tim_hieu_lich_su" | "nhan_thuc_tu_duy" | "van_dung_kien_thuc"
+      exam_item_kind: "mcq" | "true_false"
+      exam_item_level: "nhan_biet" | "thong_hieu" | "van_dung"
       content_workflow_status:
         | "draft"
         | "pending_review"

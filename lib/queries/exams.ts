@@ -18,10 +18,13 @@ export async function getPublishedExamSets(): Promise<ExamSetCard[]> {
   if (error) throw error;
   if (data.length === 0) return [];
 
+  // Đếm như get_exam_set: chỉ câu trắc nghiệm đã công bố (docs/ke-hoach-luyen-thi.md, GĐ1).
   const counts = new Map<string, number>();
   const { data: rows } = await createAdminClient()
-    .from("exam_questions")
-    .select("set_id")
+    .from("exam_set_items")
+    .select("set_id, exam_items!inner(id)")
+    .eq("exam_items.workflow_status", "published")
+    .eq("exam_items.kind", "mcq")
     .in(
       "set_id",
       data.map((set) => set.id),

@@ -148,6 +148,10 @@ npx supabase db query --db-url "$DATABASE_URL" --file supabase/seed-quiz.sql
 #    Kiểm thử (tự hoàn tác): supabase/tests/payments.sql, supabase/tests/late_payment.sql
 # 8. Tài khoản học sinh (docs/ke-hoach-tai-khoan.md): migrations/20261020000000_learner_accounts.sql
 #    Kiểm thử (tự hoàn tác): supabase/tests/learner_accounts.sql
+# 9. Luyện thi — ngân hàng câu hỏi (docs/ke-hoach-luyen-thi.md, GĐ1): migrations/20261025000000_exam_bank.sql
+#    (chuyển câu đề cũ sang ngân hàng; code từ GĐ1 đọc bảng mới nên PHẢI chạy trước khi chạy bản code này)
+#    Kiểm thử (tự hoàn tác): supabase/tests/exam_bank.sql. Câu soạn bằng JSON: node scripts/build-exam-bank-sql.mjs
+#    → supabase/seed-ngan-hang.sql (hoặc trang /quan-tri/ngan-hang-cau-hoi/nhap). Hướng dẫn soạn: docs/huong-dan-soan-cau-hoi.md
 ```
 
 > `supabase db query --file` không nhận file có nhiều câu lệnh. Nếu gặp lỗi *"cannot insert multiple commands

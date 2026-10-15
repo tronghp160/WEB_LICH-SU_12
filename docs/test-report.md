@@ -692,3 +692,30 @@ Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md`. Không có m
 | Unit test | **645/645**, 45 file — thêm `exam-format.test.ts` (5 ca: cấu trúc 24 + 4 = 10 điểm, bảng điểm Đúng/Sai, thời gian gợi ý, đọc ngày thi, đếm ngày theo giờ Việt Nam); sửa ca kỳ vọng 40 câu trong `exams.test.ts`, `exams-admin.test.ts` |
 | Lint, tsc, build | sạch |
 | E2E `payments.spec.ts` (thêm kiểm: ghi chú cấu trúc 24 + 4, **không còn chữ "40 câu"** trên `/luyen-thi`) | 13/14 — ca T1 đỏ vì mô tả `de-1`, `de-2` trong database vẫn ghi "Bản đầy đủ 40 câu…" → chờ chạy câu UPDATE mô tả (chỉ dữ liệu) rồi chạy lại |
+
+## 22. Luyện thi — GĐ1: ngân hàng câu hỏi, câu Đúng/Sai, tư liệu (15/10/2026)
+
+Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` (mục "Quyết định khi làm GĐ1"). Migration
+`20261025000000_exam_bank.sql` — **người dùng đã chạy 15/10/2026** trong SQL Editor.
+
+- Database: `exam_passages`, `exam_items` (trắc nghiệm / Đúng/Sai 4 ý, dấu vân tay chống trùng), `exam_set_items` (phần,
+  thứ tự, `choice_shift` xoay lựa chọn để rải đều A/B/C/D); `exam_sets` thêm `format`, `published_at`, `difficulty`.
+  20 câu của `exam_questions` chuyển sang ngân hàng; `get_exam_set` đọc bảng mới (chỉ câu trắc nghiệm đã công bố).
+- Quản trị: `/quan-tri/ngan-hang-cau-hoi` (lọc, tìm không dấu, gửi duyệt / công bố hàng loạt), form trắc nghiệm và
+  Đúng/Sai, xem trước như học sinh thấy, cảnh báo câu gần trùng, tư liệu, nhập JSON (kiểm tra → ghi). Soạn đề chọn câu
+  từ ngân hàng, đổi thứ tự, gỡ câu, "Rải đều đáp án A/B/C/D"; đề đầy đủ phải đúng 24 + 4. Đề có câu Đúng/Sai / tư liệu
+  chưa công bố được cho tới GĐ3 (phòng thi mới).
+- Sửa trong lúc kiểm thử: (1) sau một lần lưu lỗi, các ô chọn và nút tròn của form bị trống (React đặt lại form; `<select
+  defaultValue>` không theo giá trị mới) → hook `useVersionedAction` dựng lại ô nhập theo giá trị vừa gửi (form câu hỏi,
+  tư liệu, thông tin đề); (2) công bố hàng loạt khi đang lọc "Chờ duyệt" làm danh sách rỗng và mất thông báo kết quả →
+  khung danh sách luôn hiển thị.
+
+| Nhóm | Kết quả |
+|---|---|
+| Kiểm sau migration (DB thật) | 20 câu cũ → 20 `exam_items` + 20 `exam_set_items`; `de-1`, `de-2` format `mini`, có `published_at`; `get_exam_set('de-1')` 10 câu; khách đọc 3 bảng mới / gọi `get_exam_set` → 42501 |
+| SQL `supabase/tests/exam_bank.sql` (PGlite: migration thanh toán → tài khoản → exam_bank) | **31/31** — ràng buộc trắc nghiệm / Đúng/Sai, trùng câu (đảo lựa chọn, hoa thường, Unicode tổ hợp), DEFERRABLE đổi chỗ, khóa ngoại, `published_at`, `get_exam_set` xoay lựa chọn, RLS học sinh / editor bị khóa / editor / reviewer. `get_exam_set('de-1')` trước và sau migration giống hệt |
+| Ma trận quyền `tests/rls/exam-bank.mjs` (DB thật) | **65/65 ô** (13 thao tác × 5 vai trò), dữ liệu thử sót 0 |
+| Unit test | **662/662**, 46 file — thêm `exam-items.test.ts` (16 ca: schema 2 dạng, FormData, dấu vân tay khớp chuỗi Postgres, câu gần trùng, cảnh báo soạn câu, nhập JSON, xoay / rải đáp án); viết lại `exams-admin.test.ts` (điều kiện đề đầy đủ 24 + 4, đề ngắn, chặn công bố) |
+| E2E `exam-bank.spec.ts` (DB thật, TEST_PW) | **6/6** — form trắc nghiệm (lựa chọn trùng báo đúng ô), tư liệu + Đúng/Sai (ý chưa chọn báo lỗi), nhập JSON 28 câu + 1 tư liệu (lỗi từng dòng, nhập lại báo trùng), gửi duyệt / công bố hàng loạt (tư liệu công bố theo câu), ghép đề 24 + 4 (rải đều 6/6/6/6, gửi duyệt được, công bố bị chặn chờ GĐ3), xóa câu đang trong đề bị chặn. Lần chạy đầu có 1 ca chờ quá 15 s do mạng tới Supabase; chạy lại đạt |
+| E2E `payments.spec.ts` | 13/14 — làm đề miễn phí / trong gói chạy trên bảng mới; ca T1 còn đỏ vì mô tả `de-1`, `de-2` trong DB chưa sửa (câu UPDATE ở mục 21, chờ chạy) |
+| Lint, tsc, build | sạch |

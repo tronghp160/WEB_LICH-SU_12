@@ -1,4 +1,4 @@
-import { BookOpen, ClipboardCheck, FileText, GraduationCap, LayoutDashboard, Receipt, Users, Activity, type LucideIcon } from "lucide-react";
+import { BookOpen, ClipboardCheck, FileText, GraduationCap, LayoutDashboard, Library, Receipt, Users, Activity, type LucideIcon } from "lucide-react";
 import { STAFF_ROLES, type StaffRole } from "@/lib/utils/labels";
 
 export type AdminMenuItem = {
@@ -38,6 +38,13 @@ export const ADMIN_MENU: readonly AdminMenuItem[] = [
     icon: GraduationCap,
     roles: ["editor", "reviewer", "system_admin"],
     description: "Soạn đề cho Gói luyện thi THPT, gửi duyệt và công bố.",
+  },
+  {
+    label: "Ngân hàng câu hỏi",
+    href: "/quan-tri/ngan-hang-cau-hoi",
+    icon: Library,
+    roles: ["editor", "reviewer", "system_admin"],
+    description: "Câu trắc nghiệm, câu Đúng/Sai, đoạn tư liệu; nhập hàng loạt từ tệp JSON; duyệt và công bố câu.",
   },
   {
     label: "Kiểm duyệt",
