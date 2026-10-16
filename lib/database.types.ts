@@ -623,7 +623,9 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          duration_days: number | null
           id: string
+          grants_product_id: string | null
           is_active: boolean
           kind: Database["public"]["Enums"]["product_kind"]
           max_devices: number
@@ -638,7 +640,9 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          duration_days?: number | null
           id?: string
+          grants_product_id?: string | null
           is_active?: boolean
           kind: Database["public"]["Enums"]["product_kind"]
           max_devices?: number
@@ -653,7 +657,9 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          duration_days?: number | null
           id?: string
+          grants_product_id?: string | null
           is_active?: boolean
           kind?: Database["public"]["Enums"]["product_kind"]
           max_devices?: number

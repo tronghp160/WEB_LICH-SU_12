@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect, unstable_rethrow } from "next/navigation";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Lock } from "lucide-react";
 import { ExamSetList, type ExamSetCard } from "@/components/exams/ExamSetList";
 import { LicenseGate } from "@/components/exams/LicenseGate";
-import { BuyPackForm } from "@/components/payments/BuyPackForm";
+import { BuyPackForm, type PlanOption } from "@/components/payments/BuyPackForm";
 import { TestModeNotice } from "@/components/payments/TestModeNotice";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { LinkButton } from "@/components/ui/Button";
@@ -20,7 +20,7 @@ import { contactEmail } from "@/lib/legal";
 import { readPaymentConfig } from "@/lib/payments/config";
 import { formatVnd } from "@/lib/payments/pricing";
 import { getBankCounts, getPublishedExamSets } from "@/lib/queries/exams";
-import { EXAM_PACK_SLUG, getActiveProduct } from "@/lib/queries/payments";
+import { EXAM_PACK_SLUG, getActiveProduct, getExamPlans, type ExamPlan } from "@/lib/queries/payments";
 import { getCurriculum } from "@/lib/queries/sgk";
 import { createClient } from "@/lib/supabase/server";
 
@@ -44,9 +44,20 @@ async function generatedReady(): Promise<boolean> {
   return Boolean(pool && BLUEPRINTS.some((blueprint) => canGenerate(pool, blueprint)));
 }
 
-function formatDate(iso: string): string {
-  const [year, month, day] = new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).split("-");
-  return `${day}/${month}/${year}`;
+/** Gói tháng / năm → lựa chọn trong form mua (gói năm ghi rõ rẻ hơn bao nhiêu so với mua 12 tháng lẻ). */
+function planOptions(plans: ExamPlan[]): PlanOption[] {
+  const monthly = plans.find((plan) => plan.durationDays <= 31);
+  return plans.map((plan) => {
+    const yearly = plan.durationDays >= 365;
+    const saving = yearly && monthly ? monthly.priceVnd * 12 - plan.priceVnd : 0;
+    return {
+      slug: plan.slug,
+      label: yearly ? "Gói năm" : "Gói tháng",
+      priceLabel: `${formatVnd(plan.priceVnd)} / ${yearly ? "năm" : "tháng"}`,
+      note: `Dùng ${plan.durationDays} ngày kể từ lúc thanh toán${saving > 0 ? ` · rẻ hơn ${formatVnd(saving)} so với mua 12 tháng lẻ` : ""}. Không tự gia hạn.`,
+      badge: yearly ? "Tiết kiệm nhất" : undefined,
+    };
+  });
 }
 
 /**
@@ -61,8 +72,9 @@ export default async function ExamPrepPage({ searchParams }: PageProps<"/luyen-t
     if (userId && (await safe(() => hasAccountPack(userId), false))) redirect(examPaths.overview);
   }
 
-  const [product, sets, generated, bank, curriculum] = await Promise.all([
+  const [product, plans, sets, generated, bank, curriculum] = await Promise.all([
     safe(() => getActiveProduct(EXAM_PACK_SLUG), null),
+    safe(getExamPlans, []),
     safe<ExamSetCard[] | null>(() => getPublishedExamSets(), null),
     safe(generatedReady, false),
     safe(getBankCounts, { mcq: 0, trueFalse: 0 }),
@@ -71,7 +83,8 @@ export default async function ExamPrepPage({ searchParams }: PageProps<"/luyen-t
   const config = readPaymentConfig();
   // Chỉ bán khi đếm được và có ít nhất một đề trả phí đã công bố — không bán gói rỗng.
   const pack = sets ? summarizeExamPack(sets) : null;
-  const canBuy = Boolean(product && product.price_vnd && config.ok && pack?.sellable);
+  const canBuy = Boolean(product && plans.length > 0 && config.ok && pack?.sellable);
+  const options = planOptions(plans);
   const fullSets = (sets ?? []).filter((set) => set.format === "thpt_2025" && (set.questionCount ?? 0) > 0).length;
   const benefits = packBenefits({
     fullSets,
@@ -81,7 +94,7 @@ export default async function ExamPrepPage({ searchParams }: PageProps<"/luyen-t
     handbookLessons: curriculum.lessons.filter((lesson) => lesson.sections.some((section) => (section.eventSlugs ?? []).length > 0)).length,
   });
   const freeSet = (sets ?? []).find((set) => set.free && (set.questionCount ?? 0) > 0);
-  const maxDevices = product?.max_devices ?? 3;
+  const maxDevices = plans[0]?.maxDevices ?? product?.max_devices ?? 3;
   const contact = contactEmail();
 
   const faq: { q: string; a: React.ReactNode }[] = [
@@ -104,7 +117,11 @@ export default async function ExamPrepPage({ searchParams }: PageProps<"/luyen-t
           ? `Có ${fullSets} đề đầy đủ đúng cấu trúc ${THPT_2025_LABEL}. Ngoài ra có đề ngắn và đề theo chủ đề để luyện nhanh.`
           : `Đề thi thật gồm ${THPT_2025_LABEL}. Các đề hiện có là đề mẫu ngắn; đề đầy đủ đang được biên soạn và sẽ tự mở cho người đã mua.`,
     },
-    { q: "Mua rồi, đề mới có tự mở không?", a: `Có. Đề mới được công bố trong thời hạn của gói${product?.valid_until ? ` (đến ${formatDate(product.valid_until)})` : ""} tự mở cho người đã mua, không phải mua lại.` },
+    { q: "Mua rồi, đề mới có tự mở không?", a: "Có. Đề mới được công bố trong thời hạn của gói tự mở cho người đã mua, không phải mua lại." },
+    {
+      q: "Gói tháng và gói năm khác nhau thế nào?",
+      a: "Hai gói mở cùng một nội dung, chỉ khác thời hạn: gói tháng dùng 30 ngày, gói năm dùng 365 ngày, tính từ lúc thanh toán. Hết hạn không tự gia hạn, không tự trừ tiền — muốn dùng tiếp em mua gói mới.",
+    },
     {
       q: "Đã chuyển tiền mà chưa nhận được mã, hoặc cần hỗ trợ về đơn hàng?",
       a: (
@@ -152,10 +169,60 @@ export default async function ExamPrepPage({ searchParams }: PageProps<"/luyen-t
         )}
       </header>
 
+      <section aria-labelledby="mien-phi-tra-phi" className="mb-8 flex flex-col gap-3" data-testid="free-vs-paid">
+        <h2 id="mien-phi-tra-phi" className="font-serif text-2xl font-semibold text-foreground">
+          Phần nào miễn phí, phần nào trả phí?
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-card border-2 border-success bg-success/5 p-5">
+            <p className="flex flex-wrap items-center gap-2 font-serif text-lg font-semibold text-foreground">
+              <span className="rounded-full bg-success px-2.5 py-0.5 text-sm font-bold text-white">MIỄN PHÍ</span>
+              0đ, không cần mã
+            </p>
+            <ul className="mt-3 flex flex-col gap-2 text-foreground">
+              {[
+                "Toàn bộ 17 bài SGK, bản đồ, tư liệu, trắc nghiệm theo bài",
+                "Đề có nhãn “Miễn phí” trong danh sách đề",
+                "Kỹ năng làm câu Đúng/Sai và đọc tư liệu",
+                "Luyện tập theo bài: 10 câu mỗi ngày",
+                "Sổ câu sai (xem lại câu đã làm sai)",
+                "Sổ tay ôn thi: xem thử Bài 6",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-card border-2 border-gold-deep bg-gold/5 p-5">
+            <p className="flex flex-wrap items-center gap-2 font-serif text-lg font-semibold text-foreground">
+              <span className="rounded-full bg-gold-deep px-2.5 py-0.5 text-sm font-bold text-white">TRẢ PHÍ</span>
+              {options.length > 0 ? options.map((option) => option.priceLabel).join(" hoặc ") : "Gói luyện thi"}
+            </p>
+            <ul className="mt-3 flex flex-col gap-2 text-foreground">
+              {[
+                "Tất cả đề có nhãn “Trả phí”, kể cả đề đầy đủ đúng cấu trúc đề thi",
+                "Đề tự sinh theo ma trận (mỗi lần một đề mới)",
+                "Luyện tập theo bài không giới hạn số câu",
+                "Ôn câu sai theo lịch giãn dần",
+                "Sổ tay ôn thi đủ 17 bài, in được",
+                "Tổng quan điểm dự kiến và lộ trình ôn",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <Lock className="mt-0.5 h-5 w-5 shrink-0 text-gold-deep" aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <div className="grid gap-6 md:grid-cols-[1fr_minmax(0,22rem)]">
         <section aria-labelledby="loi-ich" className="rounded-card border border-border bg-surface p-5 sm:p-6">
           <h2 id="loi-ich" className="font-serif text-xl font-semibold text-foreground">
-            Gói gồm những gì?
+            Gói trả phí gồm những gì?
           </h2>
           <ul className="mt-4 flex flex-col gap-3" data-testid="pack-benefits">
             {[pack?.headline ?? "Đề luyện bấm giờ, có giải thích từng câu", ...benefits].map((benefit, index) => (
@@ -176,22 +243,29 @@ export default async function ExamPrepPage({ searchParams }: PageProps<"/luyen-t
           <h2 id="mua-goi" className="font-serif text-xl font-semibold text-foreground">
             Mua gói
           </h2>
-          {product?.price_vnd ? (
-            <p>
-              <span className="text-3xl font-bold text-foreground">{formatVnd(product.price_vnd)}</span>
-              {product.valid_until && <span className="text-sm text-muted-foreground"> · dùng đến {formatDate(product.valid_until)}</span>}
-            </p>
-          ) : null}
-          {canBuy && product?.price_vnd ? (
+          {canBuy && product ? (
             <LicenseGate productSlug={product.slug}>
-              <BuyPackForm productSlug={product.slug} priceLabel={formatVnd(product.price_vnd)} />
+              <BuyPackForm plans={options} />
             </LicenseGate>
           ) : (
-            <Callout variant="warning" title="Tạm ngưng bán">
-              {pack && !pack.sellable
-                ? "Các đề trong gói đang được biên soạn, gói sẽ mở bán khi có đề. Em làm thử đề miễn phí bên dưới nhé."
-                : "Gói luyện thi hiện chưa mở bán. Em quay lại sau nhé."}
-            </Callout>
+            <>
+              {options.length > 0 && (
+                <ul className="flex flex-col gap-2" data-testid="plan-prices">
+                  {options.map((option) => (
+                    <li key={option.slug} className="rounded-card border border-border bg-surface p-3">
+                      <span className="font-semibold text-foreground">{option.label}: </span>
+                      <span className="font-bold text-foreground">{option.priceLabel}</span>
+                      <span className="block text-sm text-muted-foreground">{option.note}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Callout variant="warning" title="Tạm ngưng bán">
+                {pack && !pack.sellable
+                  ? "Các đề trong gói đang được biên soạn, gói sẽ mở bán khi có đề. Em làm thử đề miễn phí bên dưới nhé."
+                  : "Gói luyện thi hiện chưa mở bán. Em quay lại sau nhé."}
+              </Callout>
+            </>
           )}
         </section>
       </div>

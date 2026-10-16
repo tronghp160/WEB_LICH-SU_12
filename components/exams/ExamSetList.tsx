@@ -74,7 +74,7 @@ export function ExamSetList({ sets }: { sets: ExamSetCard[] }) {
                     className={cn("inline-flex shrink-0 items-center gap-1 text-xs font-medium", unlocked ? "text-success" : "text-muted-foreground")}
                   >
                     {unlocked ? <LockOpen className="h-3.5 w-3.5" aria-hidden="true" /> : <Lock className="h-3.5 w-3.5" aria-hidden="true" />}
-                    {unlocked ? "Đã mở" : "Trong gói"}
+                    {unlocked ? "Đã mở" : "Trả phí"}
                   </span>
                 ) : null}
               </span>

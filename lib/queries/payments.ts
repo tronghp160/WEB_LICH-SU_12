@@ -6,6 +6,27 @@ import { createPublicClient } from "@/lib/supabase/public";
 
 export const EXAM_PACK_SLUG = "goi-luyen-thi-2027";
 export const DONATION_SLUG = "ung-ho";
+/** Các gói bán ra (supabase/migrations/20261031000000_exam_plans.sql): mã cấp ra mở đề của gói gốc EXAM_PACK_SLUG. */
+export const EXAM_PLAN_SLUGS = ["goi-luyen-thi-thang", "goi-luyen-thi-nam"] as const;
+
+export type ExamPlan = { slug: string; name: string; priceVnd: number; durationDays: number; maxDevices: number };
+
+/** Gói tháng / năm đang bán, theo thứ tự EXAM_PLAN_SLUGS. */
+export async function getExamPlans(): Promise<ExamPlan[]> {
+  const supabase = await createPublicClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("slug, name, price_vnd, duration_days, max_devices")
+    .in("slug", [...EXAM_PLAN_SLUGS])
+    .eq("is_active", true);
+  if (error) throw error;
+  return EXAM_PLAN_SLUGS.flatMap((slug) => {
+    const row = data.find((product) => product.slug === slug);
+    return row?.price_vnd && row.duration_days
+      ? [{ slug, name: row.name, priceVnd: row.price_vnd, durationDays: row.duration_days, maxDevices: row.max_devices }]
+      : [];
+  });
+}
 
 export async function getActiveProduct(slug: string) {
   const supabase = await createPublicClient();

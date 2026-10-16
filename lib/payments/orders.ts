@@ -55,11 +55,13 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
 
   const { data: product, error: productError } = await db
     .from("products")
-    .select("id, slug, kind, name, price_vnd, min_vnd, max_vnd, is_active")
+    .select("id, slug, kind, name, price_vnd, min_vnd, max_vnd, is_active, duration_days")
     .eq("slug", input.productSlug)
     .maybeSingle();
   if (productError) return { ok: false, error: "Không tải được thông tin sản phẩm. Em thử lại sau ít phút nhé." };
   if (!product) return { ok: false, error: "Không tìm thấy sản phẩm." };
+  // Chỉ bán gói tháng / năm; gói gốc (hạn cố định) chỉ còn để gắn đề (migration 20261031000000_exam_plans.sql).
+  if (product.kind === "exam_pack" && product.duration_days === null) return { ok: false, error: "Sản phẩm này hiện không bán." };
 
   const amount = resolveOrderAmount(product, input.requestedVnd);
   if (!amount.ok) return { ok: false, error: amount.error };
