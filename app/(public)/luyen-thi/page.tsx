@@ -44,6 +44,28 @@ async function generatedReady(): Promise<boolean> {
   return Boolean(pool && BLUEPRINTS.some((blueprint) => canGenerate(pool, blueprint)));
 }
 
+type Access = "free" | "paid" | "partial";
+
+/** Nhãn giá của từng mục "Luyện thêm" — để người xem biết ngay mục nào mất tiền. */
+function PriceBadge({ access }: { access: Access }) {
+  const style = {
+    free: "bg-success text-white",
+    paid: "bg-gold-deep text-white",
+    partial: "border border-gold-deep text-gold-deep",
+  }[access];
+  const label = { free: "Miễn phí", paid: "Trả phí", partial: "Miễn phí một phần" }[access];
+  return <span className={`inline-block shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${style}`}>{label}</span>;
+}
+
+const PRACTICE_LINKS: { href: string; title: string; text: string; access: Access; price: string }[] = [
+  { href: examPaths.skills, title: "Kỹ năng làm bài", text: "Cách làm câu Đúng/Sai, cách đọc tư liệu, ví dụ có lời giải.", access: "free", price: "Miễn phí toàn bộ, không cần đăng nhập." },
+  { href: examPaths.practice, title: "Luyện tập theo bài", text: "Chọn bài, dạng câu, mức độ; chấm và giải thích ngay từng câu.", access: "partial", price: "Miễn phí 10 câu / ngày · không giới hạn khi có gói." },
+  { href: examPaths.handbook, title: "Sổ tay ôn thi", text: "Mốc thời gian, sự kiện, nhân vật từng bài; in được.", access: "partial", price: "Miễn phí Bài 6 · 16 bài còn lại cần gói." },
+  { href: examPaths.notebook, title: "Sổ câu sai", text: "Câu em làm sai tự vào sổ; ôn lại theo lịch giãn dần để nhớ lâu.", access: "partial", price: "Xem sổ miễn phí · ôn theo lịch giãn dần cần gói." },
+  { href: examPaths.overview, title: "Tổng quan", text: "Điểm dự kiến, bài nào vững / cần ôn, chuỗi ngày học và việc nên làm tiếp.", access: "paid", price: "Cần gói tháng / năm." },
+  { href: examPaths.plan, title: "Lộ trình ôn", text: "Chọn mục tiêu điểm và số buổi mỗi tuần — web xếp lịch, tự đánh dấu buổi đã làm.", access: "paid", price: "Cần gói tháng / năm." },
+];
+
 /** Gói tháng / năm → lựa chọn trong form mua (gói năm ghi rõ rẻ hơn bao nhiêu so với mua 12 tháng lẻ). */
 function planOptions(plans: ExamPlan[]): PlanOption[] {
   const monthly = plans.find((plan) => plan.durationDays <= 31);
@@ -290,26 +312,31 @@ export default async function ExamPrepPage({ searchParams }: PageProps<"/luyen-t
         <h2 id="luyen-them" className="font-serif text-2xl font-semibold text-foreground">
           Luyện thêm
         </h2>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <p className="text-sm text-muted-foreground">
+          Mỗi mục ghi rõ: <PriceBadge access="free" /> dùng không mất tiền, <PriceBadge access="paid" /> cần gói tháng / năm,{" "}
+          <PriceBadge access="partial" /> dùng thử được một phần, phần còn lại cần gói.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2" data-testid="practice-links">
           {[
-            { href: examPaths.skills, title: "Kỹ năng làm bài (miễn phí)", text: "Cách làm câu Đúng/Sai, cách đọc tư liệu, ví dụ có lời giải." },
-            { href: examPaths.practice, title: "Luyện tập theo bài", text: "Chọn bài, dạng câu, mức độ; chấm và giải thích ngay từng câu. Miễn phí 10 câu / ngày." },
-            { href: examPaths.handbook, title: "Sổ tay ôn thi", text: "Mốc thời gian, sự kiện, nhân vật từng bài; in được. Bài 6 xem thử miễn phí." },
-            { href: examPaths.notebook, title: "Sổ câu sai", text: "Câu em làm sai tự vào sổ; ôn lại theo lịch giãn dần để nhớ lâu." },
-            { href: examPaths.overview, title: "Tổng quan", text: "Điểm dự kiến, bài nào vững / cần ôn, chuỗi ngày học và việc nên làm tiếp." },
-            { href: examPaths.plan, title: "Lộ trình ôn", text: "Chọn mục tiêu điểm và số buổi mỗi tuần — web xếp lịch, tự đánh dấu buổi đã làm." },
+            ...PRACTICE_LINKS,
+            ...(generated
+              ? [{ href: examPaths.generatedHub, title: "Đề tự sinh", text: "Mỗi lần một đề mới theo ma trận, ưu tiên câu em chưa làm.", access: "paid" as const, price: "Cần gói tháng / năm." }]
+              : []),
           ].map((link) => (
-            <Link key={link.href} href={link.href} className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 hover:border-accent">
-              <span className="font-serif text-lg font-semibold text-foreground">{link.title}</span>
+            <Link
+              key={link.href}
+              href={link.href}
+              className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 hover:border-accent"
+              data-testid={link.href === examPaths.generatedHub ? "generated-link" : undefined}
+            >
+              <span className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-serif text-lg font-semibold text-foreground">{link.title}</span>
+                <PriceBadge access={link.access} />
+              </span>
               <span className="text-sm text-muted-foreground">{link.text}</span>
+              <span className={`text-sm font-medium ${link.access === "free" ? "text-success" : "text-gold-deep"}`}>{link.price}</span>
             </Link>
           ))}
-          {generated && (
-            <Link href={examPaths.generatedHub} className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 hover:border-accent" data-testid="generated-link">
-              <span className="font-serif text-lg font-semibold text-foreground">Đề tự sinh</span>
-              <span className="text-sm text-muted-foreground">Mỗi lần một đề mới theo ma trận, ưu tiên câu em chưa làm.</span>
-            </Link>
-          )}
         </div>
       </section>
 
