@@ -1,13 +1,6 @@
 {
   "passages": [
     {
-      "key": "tuyen-ngon-doc-lap-doan-cuoi",
-      "title": "Tuyên ngôn độc lập (2-9-1945) — đoạn kết",
-      "body": "“Nước Việt Nam có quyền hưởng tự do và độc lập, và sự thật đã thành một nước tự do, độc lập. Toàn thể dân tộc Việt Nam quyết đem tất cả tinh thần và lực lượng, tính mạng và của cải để giữ vững quyền tự do, độc lập ấy.”",
-      "source_citation": "Hồ Chí Minh, Tuyên ngôn độc lập, đọc tại Quảng trường Ba Đình, Hà Nội, ngày 2-9-1945",
-      "lesson_slug": "6-cach-mang-thang-tam-nam-1945"
-    },
-    {
       "key": "loi-keu-goi-toan-quoc-khang-chien",
       "title": "Lời kêu gọi toàn quốc kháng chiến (12-1946)",
       "body": "“Chúng ta muốn hòa bình, chúng ta phải nhân nhượng. Nhưng chúng ta càng nhân nhượng, thực dân Pháp càng lấn tới, vì chúng quyết tâm cướp nước ta lần nữa! Không! Chúng ta thà hy sinh tất cả, chứ nhất định không chịu mất nước, nhất định không chịu làm nô lệ.”",
@@ -16,117 +9,6 @@
     }
   ],
   "items": [
-    {
-      "kind": "mcq",
-      "stem": "Hội nghị toàn quốc của Đảng (8-1945) quyết định phát động Tổng khởi nghĩa giành chính quyền họp ở đâu?",
-      "choices": [
-        "Đình Bảng (Bắc Ninh)",
-        "Hương Cảng (Trung Quốc)",
-        "Tân Trào (Tuyên Quang)",
-        "Pác Bó (Cao Bằng)"
-      ],
-      "correct": 2,
-      "explanation": "Hội nghị toàn quốc của Đảng họp ở Tân Trào ngày 14 và 15-8-1945, quyết định phát động Tổng khởi nghĩa; tiếp đó Quốc dân Đại hội cũng họp ở Tân Trào (16-8-1945).",
-      "lesson_slug": "6-cach-mang-thang-tam-nam-1945",
-      "level": "nhan_biet",
-      "competency": "tim_hieu_lich_su",
-      "source_note": "SGK Lịch sử 12 (KNTT), Bài 6"
-    },
-    {
-      "kind": "mcq",
-      "stem": "Thời cơ “ngàn năm có một” để nhân dân Việt Nam tiến hành Tổng khởi nghĩa tháng Tám năm 1945 xuất hiện khi",
-      "choices": [
-        "Pháp đưa quân trở lại Đông Dương",
-        "Nhật Bản đầu hàng Đồng minh không điều kiện",
-        "Nhật đảo chính Pháp ở Đông Dương",
-        "quân Đồng minh vào giải giáp quân Nhật"
-      ],
-      "correct": 1,
-      "explanation": "Ngày 15-8-1945 Nhật đầu hàng Đồng minh, quân Nhật ở Đông Dương rệu rã, chính quyền tay sai hoang mang — trước khi quân Đồng minh vào. Đó là thời cơ để Tổng khởi nghĩa.",
-      "lesson_slug": "6-cach-mang-thang-tam-nam-1945",
-      "level": "thong_hieu",
-      "competency": "nhan_thuc_tu_duy",
-      "source_note": "SGK Lịch sử 12 (KNTT), Bài 6"
-    },
-    {
-      "kind": "mcq",
-      "stem": "Ngày 30-8-1945 diễn ra sự kiện nào?",
-      "choices": [
-        "Vua Bảo Đại thoái vị",
-        "Khởi nghĩa giành chính quyền ở Hà Nội thắng lợi",
-        "Quốc dân Đại hội họp ở Tân Trào",
-        "Chủ tịch Hồ Chí Minh đọc Tuyên ngôn độc lập"
-      ],
-      "correct": 0,
-      "explanation": "Ngày 30-8-1945 vua Bảo Đại thoái vị, chế độ quân chủ chấm dứt. Hà Nội giành chính quyền ngày 19-8; Quốc dân Đại hội họp ngày 16-8; Tuyên ngôn độc lập được đọc ngày 2-9.",
-      "lesson_slug": "6-cach-mang-thang-tam-nam-1945",
-      "level": "nhan_biet",
-      "competency": "tim_hieu_lich_su",
-      "source_note": "SGK Lịch sử 12 (KNTT), Bài 6"
-    },
-    {
-      "kind": "true_false",
-      "stem": "Cho thông tin: “Từ ngày 14 đến ngày 28-8-1945, cuộc Tổng khởi nghĩa giành chính quyền diễn ra trong cả nước.”",
-      "statements": [
-        {
-          "text": "Khởi nghĩa giành chính quyền ở Hà Nội thắng lợi trước Huế và Sài Gòn.",
-          "is_true": true,
-          "explanation": "Hà Nội ngày 19-8, Huế ngày 23-8, Sài Gòn ngày 25-8-1945."
-        },
-        {
-          "text": "Bắc Giang, Hải Dương, Hà Tĩnh và Quảng Nam là những địa phương giành chính quyền ở tỉnh lị sớm nhất (18-8-1945).",
-          "is_true": true,
-          "explanation": "Đây là bốn tỉnh giành chính quyền ở tỉnh lị sớm nhất trong cả nước."
-        },
-        {
-          "text": "Cách mạng tháng Tám thắng lợi chủ yếu nhờ quân Đồng minh đánh đuổi phát xít Nhật ở Việt Nam.",
-          "is_true": false,
-          "explanation": "Nhân dân Việt Nam tự lực giành chính quyền trước khi quân Đồng minh vào; Đồng minh chỉ tạo thời cơ khách quan khi đánh bại Nhật."
-        },
-        {
-          "text": "Tổng khởi nghĩa nổ ra khi quân Nhật đang ở thế mạnh, chưa đầu hàng Đồng minh.",
-          "is_true": false,
-          "explanation": "Tổng khởi nghĩa nổ ra sau khi Nhật đầu hàng Đồng minh (15-8-1945)."
-        }
-      ],
-      "explanation": "Câu kiểm tra diễn biến và nguyên nhân thắng lợi của Cách mạng tháng Tám.",
-      "lesson_slug": "6-cach-mang-thang-tam-nam-1945",
-      "level": "thong_hieu",
-      "competency": "nhan_thuc_tu_duy",
-      "source_note": "SGK Lịch sử 12 (KNTT), Bài 6"
-    },
-    {
-      "kind": "true_false",
-      "stem": "Đọc đoạn tư liệu và cho biết mỗi ý sau đúng hay sai.",
-      "passage": "tuyen-ngon-doc-lap-doan-cuoi",
-      "statements": [
-        {
-          "text": "Đoạn tư liệu khẳng định quyền hưởng tự do, độc lập của nước Việt Nam.",
-          "is_true": true,
-          "explanation": "Câu đầu đoạn tư liệu nêu rõ điều này."
-        },
-        {
-          "text": "Đoạn tư liệu thể hiện quyết tâm của toàn dân tộc giữ vững quyền tự do, độc lập.",
-          "is_true": true,
-          "explanation": "“Toàn thể dân tộc Việt Nam quyết đem tất cả tinh thần và lực lượng…”."
-        },
-        {
-          "text": "Theo đoạn tư liệu, Việt Nam sẽ giữ vững độc lập bằng cách dựa hoàn toàn vào nước ngoài.",
-          "is_true": false,
-          "explanation": "Trái với tư liệu: dân tộc Việt Nam đem tất cả lực lượng của chính mình để giữ độc lập."
-        },
-        {
-          "text": "Đoạn tư liệu ra đời sau khi cuộc kháng chiến chống thực dân Pháp thắng lợi.",
-          "is_true": false,
-          "explanation": "Tuyên ngôn độc lập được đọc ngày 2-9-1945, trước cuộc kháng chiến chống Pháp."
-        }
-      ],
-      "explanation": "Câu đọc hiểu tư liệu: phân biệt nội dung có trong tư liệu với suy diễn sai và bối cảnh thời gian.",
-      "lesson_slug": "6-cach-mang-thang-tam-nam-1945",
-      "level": "van_dung",
-      "competency": "van_dung_kien_thuc",
-      "source_note": "Tuyên ngôn độc lập (2-9-1945); SGK Lịch sử 12 (KNTT), Bài 6"
-    },
     {
       "kind": "mcq",
       "stem": "Đường lối kháng chiến chống thực dân Pháp (1945 – 1954) của Đảng là",
