@@ -1003,7 +1003,18 @@ in'`; cập nhật mô tả de-1, de-2. **Chưa chạy lên DB thật** — ch�
   mở đúng mục); đề 3 (24 + 4, đồng hồ 50 phút, quét HTML + phản hồi API trước khi nộp không có `choice_notes` /
   `section_id` / `remember` / `correct_index` / `truths`, nộp → hai phần, “Kiến thức cần ôn lại”, 28 lời giải, axe, 360 / 768 /
   1280 px không tràn ngang, ảnh `demo-*.png`); bản in đề 3 đủ hai phần, không lời giải; trang `/luyen-thi` báo có đề đầy đủ.
-  **Chưa chạy được**: đề 3 chưa công bố trên DB thật → cả tệp tự bỏ qua (đã thử: 4 bỏ qua). Chạy sau khi nạp
-  seed-ngan-hang → seed-de-3 → seed-demo-luyen-thi.
-- Hồi quy sau GĐ-D2 – D4: `exam-shop` · `exam-explain` **7/7**; unit **760/760**; lint, tsc, build sạch.
+  Ngày 23/10/2026, sau khi chủ dự án chạy seed-ngan-hang → seed-de-3 → seed-demo-luyen-thi trên DB thật: **4/4**.
+- Kiểm tra DB thật sau seed (chỉ đọc): Bài 6, 7, 8 mỗi bài 30 trắc nghiệm + 8 Đúng/Sai đã công bố (Bài 7, 8 thêm 1 câu Đúng/Sai
+  của đề 3); đề 3 published, miễn phí, 24/24 + 4/4 câu đã công bố, không tư liệu nào còn nháp; 2 câu nháp cũ đã xóa; mô tả de-1
+  đã đổi. Sửa câu `select` kiểm tra ở cuối `seed-demo-luyen-thi.sql` (bản cũ lỗi GROUP BY).
+- **Lỗi thật E2E bắt được, đã sửa** (có từ GĐ4): câu luyện tập đã “Kiểm tra” được server lưu kèm `checked: true`; `readAnswers`
+  (lib/exams/attempt.ts) dùng schema chặt nên bỏ cả câu trả lời → lời giải ghi “Em bỏ trống câu này”, không hiện “Vì sao
+  sai”. Nay bỏ khóa `checked` trước khi đọc (schema chặt giữ cho thân request); thêm kiểm tra vào `exam-explain.test.ts`.
+- E2E `exam-generated` sửa theo dữ liệu mới: ma trận `thpt_2025` nay tự hiện (ngân hàng đủ câu) → kiểm trang ma trận mở được;
+  đề tự sinh Đúng/Sai có thể lấy câu thật → điểm kỳ vọng tính từ các câu được chọn, ghi chú thiếu câu theo bài chỉ là thông
+  tin. 5/5.
+- Hồi quy toàn bộ E2E luyện thi (TEST_PW): `luyen-thi-demo` · `exam-practice` · `exam-room` · `exam-attempts` · `exam-explain`
+  · `exam-shop` · `exam-generated` · `exam-quality` · `exam-bank`: **41 qua**. Dữ liệu thử sót trên DB: 0. Ảnh
+  `docs/screenshots/demo-luyen-tap.png`, `demo-de-3-phong-thi.png`, `demo-de-3-ket-qua-{360,768,1280}.png`, `demo-loi-giai.png`.
+- Unit **760/760**; lint, tsc, build sạch.
 - `docs/kich-ban-demo-luyen-thi.md`: chuẩn bị trước buổi demo + 10 bước (thao tác · điều cần chỉ · ảnh).

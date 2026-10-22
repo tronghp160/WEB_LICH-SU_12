@@ -194,7 +194,11 @@ export type AttemptView = {
 function readAnswers(raw: Record<string, unknown>): Record<string, ItemAnswer> {
   const answers: Record<string, ItemAnswer> = {};
   for (const [itemId, value] of Object.entries(raw)) {
-    const parsed = itemAnswerSchema.safeParse(value);
+    // Câu luyện tập đã "Kiểm tra" được server lưu kèm `checked: true` (check_attempt_item) — bỏ khóa này trước khi đọc;
+    // schema chặt vẫn giữ cho thân request để trình duyệt không tự đặt được cờ đó.
+    const answer = value && typeof value === "object" ? { ...(value as Record<string, unknown>) } : value;
+    if (answer && typeof answer === "object") delete (answer as Record<string, unknown>).checked;
+    const parsed = itemAnswerSchema.safeParse(answer);
     if (parsed.success) answers[itemId] = parsed.data;
   }
   return answers;

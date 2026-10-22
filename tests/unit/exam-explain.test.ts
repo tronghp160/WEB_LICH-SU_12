@@ -150,6 +150,9 @@ describe("lời giải theo thứ tự học sinh thấy (giống exam_attempt_v
     expect(view.questions[0].choiceNotes!.map((note) => note.trap)).toEqual(["thoi_gian", null, null, null]);
     expect(view.questions[0].choiceNotes![3]).toEqual({ note: "n3", lessonSlug: null, sectionId: null, ref: "SGK 11", trap: null });
     expect(view.questions[1].statementRefs![3]).toEqual({ lessonSlug: "8-khang-chien-chong-my-cuu-nuoc", sectionId: null, ref: null, trap: "tuyet_doi" });
+    // Câu luyện tập đã "Kiểm tra": server lưu câu trả lời kèm checked: true — vẫn phải đọc ra lựa chọn của em.
+    const checked = parseAttemptView({ attempt: { id: "a", status: "in_progress", mode: "practice", started_at: "x", server_now: "y" }, questions: [question], answers: { i1: { choice: 2, checked: true } } })!;
+    expect(checked.answers).toEqual({ i1: { choice: 2 } });
     const open = parseAttemptView({ attempt: { id: "a", status: "in_progress", started_at: "x", server_now: "y" }, questions: [{ ...question, choice_notes: undefined, remember: undefined, section_id: undefined }], answers: {} })!;
     expect(open.questions[0]).toMatchObject({ choiceNotes: null, remember: null, sectionId: null });
   });

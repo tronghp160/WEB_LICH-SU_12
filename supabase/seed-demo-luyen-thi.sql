@@ -83,8 +83,9 @@ commit;
 
 -- Kiểm tra (chạy sau):
 --   Số câu đã công bố theo bài / dạng (Bài 6, 7, 8: mỗi bài 30 mcq + 8 true_false):
---     select split_part(lesson_slug, '-', 1) as bai, kind, count(*) from public.exam_items
---      where workflow_status = 'published' and content_key is not null group by 1, 2 order by nullif(split_part(lesson_slug, '-', 1), '')::int nulls last, 2;
+--     select bai, kind, count(*) from (select coalesce(nullif(split_part(lesson_slug, '-', 1), ''), 'lop11') as bai, kind
+--       from public.exam_items where workflow_status = 'published' and content_key is not null) x
+--      group by 1, 2 order by nullif(regexp_replace(bai, '\D', '', 'g'), '')::int nulls last, 2;
 --   Đề 3: published, miễn phí, 24 + 4 câu, mọi câu và tư liệu đã công bố:
 --     select s.workflow_status, s.product_id is null as mien_phi, si.section, count(*),
 --            count(*) filter (where i.workflow_status = 'published') as cau_cong_bo,

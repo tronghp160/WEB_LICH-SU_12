@@ -109,7 +109,13 @@ test.describe.serial("Đề tự sinh, tổng quan, lộ trình — giao diện 
     await page.goto("/luyen-thi/de-ngau-nhien");
     await expect(page.getByTestId("blueprint-disclaimer")).toContainText("không phải ma trận chính thức của Bộ GD&ĐT");
     await expect(page.getByTestId("blueprint-tf_only")).toBeVisible();
-    await expect(page.getByTestId("blueprint-thpt_2025")).toHaveCount(0);
+    // Ma trận đầy đủ chỉ hiện khi ngân hàng đã công bố đủ câu cho 3 đề không trùng — từ khi nạp dữ liệu demo (GĐ-D4) là đủ.
+    // Hiện thì trang ma trận phải mở được (khách thấy lời mời mua gói, không lỗi).
+    if ((await page.getByTestId("blueprint-thpt_2025").count()) > 0) {
+      await page.goto("/luyen-thi/de-ngau-nhien/thpt_2025");
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await expect(page.getByText("Đề tự sinh thuộc Gói luyện thi")).toBeVisible();
+    }
     await page.goto("/luyen-thi");
     await expect(page.getByTestId("generated-link")).toBeVisible();
   });
@@ -141,8 +147,13 @@ test.describe.serial("Đề tự sinh, tổng quan, lộ trình — giao diện 
     expect(first!.sections).toEqual(Array(8).fill(2));
     // 8 câu Đúng/Sai ≈ 40 phút.
     expect(Math.round((Date.parse(first!.deadline_at!) - Date.parse(first!.started_at)) / 60_000)).toBe(40);
-    const { data: picked } = await db.from("exam_items").select("stem").in("id", first!.item_ids);
-    for (const item of picked!) expect(item.stem.startsWith(PREFIX)).toBe(true);
+    // Ngân hàng thật có câu Đúng/Sai đã công bố (dữ liệu demo GĐ-D4) → đề có thể lấy cả câu thật, không chỉ câu thử.
+    const { data: picked } = await db.from("exam_items").select("kind, statements, workflow_status").in("id", first!.item_ids);
+    for (const item of picked!) expect(item).toMatchObject({ kind: "true_false", workflow_status: "published" });
+    // Chọn “Đúng” ở mọi ý: điểm mỗi câu theo số ý đúng (0 / 0,1 / 0,25 / 0,5 / 1), thang 10 trên tối đa 8 điểm.
+    const milli = [0, 100, 250, 500, 1000];
+    const raw = picked!.reduce((sum, item) => sum + milli[(item.statements as { is_true: boolean }[]).filter((statement) => statement.is_true).length], 0);
+    const expected = `${Number(((raw / 8000) * 10).toFixed(2))}`.replace(".", ",");
 
     for (let index = 0; index < 8; index++) {
       for (const letter of ["a", "b", "c", "d"]) await page.getByRole("group", { name: `Ý ${letter})` }).getByRole("button", { name: "Đúng" }).click();
@@ -151,8 +162,7 @@ test.describe.serial("Đề tự sinh, tổng quan, lộ trình — giao diện 
     await page.getByRole("button", { name: "Nộp bài" }).click();
     await page.getByRole("dialog", { name: "Nộp bài?" }).getByRole("button", { name: "Nộp bài" }).click();
     await expect(page).toHaveURL(/\/luyen-thi\/ket-qua\/[0-9a-f-]{36}$/);
-    // Mỗi câu đúng 2/4 ý = 0,25 điểm → 2 / 8 điểm → 2,5 / 10.
-    await expect(page.getByTestId("exam-score")).toHaveText("2,5 điểm");
+    await expect(page.getByTestId("exam-score")).toHaveText(`${expected} điểm`);
     await expect(page.getByRole("heading", { name: "Kết quả: Đề tự sinh — Chỉ câu Đúng/Sai" })).toBeVisible();
     await page.getByRole("link", { name: "Làm đề mới cùng dạng" }).click();
     await expect(page).toHaveURL(/\/luyen-thi\/de-ngau-nhien\/tf_only$/);
@@ -163,7 +173,8 @@ test.describe.serial("Đề tự sinh, tổng quan, lộ trình — giao diện 
     expect(second.status()).toBe(200);
     const body = await second.json();
     expect(body.attempt.blueprint).toBe("tf_only");
-    expect(body.notes).toEqual([]);
+    // Ghi chú chỉ để thông tin (với câu thật nhiều bài có thể có “Một số bài thiếu câu…”).
+    expect(Array.isArray(body.notes)).toBe(true);
     const secondIds: string[] = body.questions.map((question: { item_id: string }) => question.item_id);
     expect(secondIds).toHaveLength(8);
     expect(secondIds.filter((id) => first!.item_ids.includes(id))).toEqual([]);
