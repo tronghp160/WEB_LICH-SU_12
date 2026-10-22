@@ -15,7 +15,7 @@ import { canEditContent } from "@/lib/admin/content-kinds";
 import { availableReviewActions } from "@/lib/admin/review";
 import { requireRole } from "@/lib/auth";
 import { canSubmitExam, examAdminPaths } from "@/lib/exams/admin";
-import { examBankPaths, examItemKindLabels, findNearDuplicates, itemWarnings } from "@/lib/exams/items";
+import { examBankPaths, examItemKindLabels, explainHints, findNearDuplicates, itemWarnings } from "@/lib/exams/items";
 import { isUuid } from "@/lib/queries/admin-content";
 import { getExamItem, getItemFormOptions, getStemsNear } from "@/lib/queries/exam-bank";
 import { getItemStats, lastRegrade, listItemReports } from "@/lib/queries/exam-quality";
@@ -33,7 +33,7 @@ export default async function ExamItemPage({ params, searchParams }: PageProps<"
   const query = await searchParams;
   const editable = canEditContent(staff.role, item.workflow_status);
   const nearby = findNearDuplicates(item.stem, await getStemsNear(item), item.id);
-  const warnings = itemWarnings(item);
+  const warnings = [...itemWarnings(item), ...explainHints(item)];
   const [stats, reports, regrade] = await Promise.all([getItemStats([item.id]), listItemReports(item.id), staff.role === "system_admin" ? lastRegrade(item.id) : null]);
 
   return (
@@ -96,7 +96,11 @@ export default async function ExamItemPage({ params, searchParams }: PageProps<"
           choices={item.choices}
           correctIndex={item.correct_index}
           statements={item.statements}
+          choiceNotes={item.choice_notes}
           explanation={item.explanation}
+          remember={item.remember}
+          lessonSlug={item.lesson_slug}
+          sectionId={item.section_id}
           showAnswers
         />
         {item.kind === "mcq" && <p className="text-xs text-muted-foreground">Trong đề, thứ tự lựa chọn có thể được xoay để rải đều đáp án.</p>}

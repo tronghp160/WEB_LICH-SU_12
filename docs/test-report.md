@@ -899,3 +899,21 @@ Nhánh `feat/luyen-thi`, kế hoạch `docs/ke-hoach-luyen-thi.md` ("Ghi chú G�
 | E2E `exam-generated` · `exam-practice` · `exam-shop` (sau khi nạp nháp) | **16 qua**; `exam-bank` 6 ca bỏ qua (cần TEST_PW) |
 | E2E cần TEST_PW (16/10/2026, người dùng chạy với mật khẩu thử) `exam-bank` · `staff` · `staff-create` | **17/17** sau khi sửa 2 kỳ vọng cũ ở `staff-create` (chưa chạy từ khi đổi giao diện): câu báo email đã có tài khoản giờ kèm hướng dẫn "Cấp quyền cho tài khoản đã có" (B7, commit 3614216); menu biên tập viên có thêm "Đề luyện thi", "Ngân hàng câu hỏi" (GĐ1). Dữ liệu thử sót: 0 hồ sơ / 0 câu / 0 tài khoản |
 | Lint | sạch |
+
+## 30. Demo luyện thi — GĐ-D1: lời giải "sai ở đâu – bài nào – mục nào" (22/10/2026)
+
+Nhánh `feat/demo-luyen-thi`, kế hoạch `docs/ke-hoach-demo-luyen-thi.md` (mục 4). Migration
+`supabase/migrations/20261101000000_exam_item_explain.sql`: `exam_items` thêm `section_id`, `choice_notes`, `remember`,
+`content_key`; trigger `exam_item_integrity` kiểm + giữ vị trí kiến thức / kiểu bẫy của từng lựa chọn, từng ý (công thức
+dấu vân tay không đổi); `exam_attempt_view` trả thêm `choice_notes` (xoay như `choices`), `statement_refs`, `section_id`,
+`remember`, `topic_tag` — chỉ khi câu đã lộ đáp án. Không bảng mới, không đổi quyền.
+
+| Nhóm | Kết quả |
+|---|---|
+| SQL `supabase/tests/exam_explain.sql` (mới) trên PGlite | **11/11** — trigger bỏ khóa lạ, giữ `section_id` / `trap` của ý; từ chối: 3 lời giải, Đúng/Sai có `choice_notes`, bẫy ở đáp án đúng, `section_id` sai dạng, mục không kèm bài / `content_key` trùng; lượt chưa nộp không có trường mới nào (kể cả `correct_index`); sau khi nộp `choice_notes[vị trí hiển thị]` khớp `choices[vị trí hiển thị]` với độ xoay 0, 1, 2, 3 (16 ô); đáp án đúng hiển thị = lựa chọn không có bẫy; `statement_refs` 4 phần tử; điểm không đổi |
+| SQL cũ chạy lại sau migration (PGlite) | `exam_bank` 31/31 · `exam_attempts` 21/21 · `exam_practice` 18/18 · `exam_quality` 9/9 · `exam_paper` 5/5 · `exam_generated` 10/10 |
+| Seed `scripts/build-exam-bank-sql.mjs` (PGlite) | câu có `content_key`: gắn khóa cho câu nháp cũ cùng dấu vân tay (88 → 90 câu, không nhân đôi), chạy lại không tạo trùng, câu nháp được cập nhật theo JSON, câu **đã công bố không bị ghi đè** |
+| Unit test | **749/749**, 55 file — thêm `exam-explain.test.ts` (schema + lỗi đúng ô, form, nhập JSON `content_key` / `event_slug` / nhắc, đọc view, xoay lời giải, nhãn "Bài N › Mục M", "Kiến thức cần ôn lại", chuyên đề liên quan) |
+| `npm run kiem-tra-ngan-hang` | 8 qua, 2 bỏ qua (kiểm chặt tệp `bai-*.json` / `lop-11.json` — chưa có tệp, chạy từ GĐ-D2) |
+| E2E `exam-explain.spec.ts` (mới) | **chờ chạy sau migration trên DB thật** |
+| Lint, tsc, build | sạch |

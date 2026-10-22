@@ -1,6 +1,6 @@
 import "server-only";
 
-import { foldForFingerprint, type ExamItemKind, type ExamItemLevel, type ExamStatement } from "@/lib/exams/items";
+import { foldForFingerprint, type ChoiceNote, type ExamItemKind, type ExamItemLevel, type ExamStatement } from "@/lib/exams/items";
 import { createClient } from "@/lib/supabase/server";
 import type { WorkflowStatus } from "@/lib/utils/labels";
 
@@ -36,9 +36,13 @@ export type SetItemView = {
   choices: string[] | null;
   correctIndex: number | null;
   statements: ExamStatement[] | null;
+  /** Lời giải từng lựa chọn theo thứ tự GỐC (trang ghép đề xoay cùng choices). */
+  choiceNotes: ChoiceNote[] | null;
   explanation: string;
+  remember: string | null;
   level: ExamItemLevel;
   lessonSlug: string | null;
+  sectionId: string | null;
   status: WorkflowStatus;
   passage: { title: string; body: string; source_citation: string } | null;
 };
@@ -55,7 +59,7 @@ export async function getExamSetForStaff(slug: string) {
   const { data: rows, error: itemError } = await supabase
     .from("exam_set_items")
     .select(
-      "item_id, section, position, choice_shift, exam_items(kind, stem, choices, correct_index, statements, explanation, level, lesson_slug, workflow_status, event_id, source_note, exam_passages(title, body, source_citation))",
+      "item_id, section, position, choice_shift, exam_items(kind, stem, choices, correct_index, statements, choice_notes, explanation, remember, level, lesson_slug, section_id, workflow_status, event_id, source_note, exam_passages(title, body, source_citation))",
     )
     .eq("set_id", set.id)
     .order("section")
@@ -75,9 +79,12 @@ export async function getExamSetForStaff(slug: string) {
         choices: item.choices,
         correctIndex: item.correct_index,
         statements: (item.statements as ExamStatement[] | null) ?? null,
+        choiceNotes: (item.choice_notes as ChoiceNote[] | null) ?? null,
         explanation: item.explanation,
+        remember: item.remember,
         level: item.level,
         lessonSlug: item.lesson_slug,
+        sectionId: item.section_id,
         status: item.workflow_status,
         passage: item.exam_passages,
         eventId: item.event_id,

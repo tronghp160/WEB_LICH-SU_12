@@ -1,6 +1,6 @@
 import "server-only";
 
-import { foldForFingerprint, type ExamItemKind, type ExamItemLevel, type ExamStatement } from "@/lib/exams/items";
+import { foldForFingerprint, type ChoiceNote, type ExamItemKind, type ExamItemLevel, type ExamStatement } from "@/lib/exams/items";
 import { createClient } from "@/lib/supabase/server";
 import type { WorkflowStatus } from "@/lib/utils/labels";
 
@@ -109,14 +109,18 @@ export type ExamItemDetail = {
   choices: string[] | null;
   correct_index: number | null;
   statements: ExamStatement[] | null;
+  choice_notes: ChoiceNote[] | null;
   explanation: string;
+  remember: string | null;
   grade: number;
   lesson_slug: string | null;
+  section_id: string | null;
   topic_tag: string | null;
   level: ExamItemLevel;
   competency: string;
   event_id: string | null;
   source_note: string;
+  content_key: string | null;
   workflow_status: WorkflowStatus;
   review_note: string | null;
   updated_at: string;
@@ -128,7 +132,7 @@ export async function getExamItem(id: string): Promise<ExamItemDetail | null> {
   const { data, error } = await supabase
     .from("exam_items")
     .select(
-      "id, kind, stem, choices, correct_index, statements, explanation, grade, lesson_slug, topic_tag, level, competency, event_id, source_note, workflow_status, review_note, updated_at, exam_passages(id, title, body, source_citation, workflow_status), exam_set_items(exam_sets(slug, title, workflow_status))",
+      "id, kind, stem, choices, correct_index, statements, choice_notes, explanation, remember, grade, lesson_slug, section_id, topic_tag, level, competency, event_id, source_note, content_key, workflow_status, review_note, updated_at, exam_passages(id, title, body, source_citation, workflow_status), exam_set_items(exam_sets(slug, title, workflow_status))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -138,6 +142,7 @@ export async function getExamItem(id: string): Promise<ExamItemDetail | null> {
   return {
     ...item,
     statements: (item.statements as ExamStatement[] | null) ?? null,
+    choice_notes: (item.choice_notes as ChoiceNote[] | null) ?? null,
     passage,
     sets: links.flatMap((link) => (link.exam_sets ? [link.exam_sets] : [])),
   };
@@ -195,13 +200,14 @@ export async function getPassage(id: string) {
 export async function getImportContext() {
   const supabase = await createClient();
   const [{ data: items, error: itemError }, { data: events, error: eventError }] = await Promise.all([
-    supabase.from("exam_items").select("fingerprint").limit(20000),
+    supabase.from("exam_items").select("fingerprint, content_key").limit(20000),
     supabase.from("historical_events").select("id, slug"),
   ]);
   if (itemError) throw itemError;
   if (eventError) throw eventError;
   return {
     existingFingerprints: new Set(items.map((item) => item.fingerprint)),
+    existingContentKeys: new Set(items.flatMap((item) => (item.content_key ? [item.content_key] : []))),
     eventIds: new Map(events.map((event) => [event.slug, event.id])),
   };
 }

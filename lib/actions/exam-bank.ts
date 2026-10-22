@@ -51,10 +51,14 @@ function bankDbError(error: DbErrorLike, values: Record<string, string>): Action
   if (error.code === "23505" && /fingerprint/.test(`${error.message ?? ""} ${error.details ?? ""}`)) {
     return fail("Câu này trùng với một câu đã có trong ngân hàng (cùng câu hỏi và cùng các lựa chọn / ý).", values);
   }
+  if (error.code === "23505" && /content_key/.test(`${error.message ?? ""} ${error.details ?? ""}`)) {
+    return fail("content_key của câu đã có trong ngân hàng — đổi khóa khác.", values);
+  }
   if (error.code === "23503") return fail("Không xóa được: câu / tư liệu đang được dùng trong đề hoặc trong câu hỏi khác. Gỡ ra trước.", values);
   return dbErrorState(error, values);
 }
 
+/** Cột ghi từ form / tệp nhập. KHÔNG có content_key: form không sửa khóa này (chỉ tệp nhập đặt, lúc tạo câu). */
 function itemColumns(item: ExamItemInput) {
   return {
     kind: item.kind,
@@ -62,8 +66,11 @@ function itemColumns(item: ExamItemInput) {
     passage_id: item.passage_id,
     choices: item.choices,
     correct_index: item.correct_index,
+    choice_notes: item.choice_notes as Json | null,
     statements: item.statements as Json | null,
     explanation: item.explanation,
+    remember: item.remember,
+    section_id: item.section_id,
     grade: item.grade,
     lesson_slug: item.lesson_slug,
     topic_tag: item.topic_tag,
@@ -340,7 +347,11 @@ export async function importExamBankAction(_previous: ImportState, formData: For
   if (raw.trim() === "") return { status: "error", message: "Chưa có nội dung JSON." };
 
   const context = await getImportContext();
-  const plan = planImport(raw, { existingFingerprints: context.existingFingerprints, eventSlugs: new Set(context.eventIds.keys()) });
+  const plan = planImport(raw, {
+    existingFingerprints: context.existingFingerprints,
+    eventSlugs: new Set(context.eventIds.keys()),
+    existingContentKeys: context.existingContentKeys,
+  });
   const ready = !importHasErrors(plan);
   const report = {
     fileErrors: plan.fileErrors,
@@ -369,7 +380,10 @@ export async function importExamBankAction(_previous: ImportState, formData: For
   // Một câu lệnh INSERT cho mọi câu: lỗi thì không câu nào được ghi; dọn tư liệu vừa tạo.
   const { error } = await supabase.from("exam_items").insert(
     plan.items.map(({ passage_key, event_slug, ...item }) =>
-      itemColumns({ ...item, passage_id: passage_key ? passageIds.get(passage_key)! : null, event_id: event_slug ? (context.eventIds.get(event_slug) ?? null) : null }),
+      ({
+        ...itemColumns({ ...item, passage_id: passage_key ? passageIds.get(passage_key)! : null, event_id: event_slug ? (context.eventIds.get(event_slug) ?? null) : null }),
+        content_key: item.content_key,
+      }),
     ),
   );
   if (error) {

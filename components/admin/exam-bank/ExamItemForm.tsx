@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useVersionedAction } from "@/components/admin/forms/useVersionedAction";
 import { Field, FormMessage } from "@/components/admin/forms/Field";
 import { Button } from "@/components/ui/Button";
@@ -12,12 +13,16 @@ import {
   EXAM_COMPETENCIES,
   EXAM_ITEM_LEVELS,
   STATEMENT_LETTERS,
+  TRAP_KINDS,
   examCompetencyLabels,
   examItemLevelLabels,
+  trapLabels,
+  type ChoiceNote,
   type ExamItemKind,
   type ExamStatement,
+  type KnowledgeRef,
 } from "@/lib/exams/items";
-import { sgkLessons } from "@/lib/sgk/curriculum";
+import { getSgkLesson, sgkLessons } from "@/lib/sgk/curriculum";
 import { workflowStatusLabels, type WorkflowStatus } from "@/lib/utils/labels";
 
 export type ExamItemFormValues = {
@@ -27,17 +32,80 @@ export type ExamItemFormValues = {
   choices: string[] | null;
   correct_index: number | null;
   statements: ExamStatement[] | null;
+  choice_notes: ChoiceNote[] | null;
   explanation: string;
+  remember: string | null;
   grade: number;
   lesson_slug: string | null;
+  section_id: string | null;
   topic_tag: string | null;
   level: string;
   competency: string;
   event_id: string | null;
   source_note: string;
+  content_key: string | null;
 };
 
 type Option = { id: string; label: string };
+
+type FieldValue = (name: string, fallback: string | number | boolean | null | undefined) => string;
+
+/** Mục SGK của một bài (rỗng khi chưa chọn bài). */
+function sectionsOf(lessonSlug: string) {
+  return getSgkLesson(lessonSlug)?.sections ?? [];
+}
+
+/**
+ * Vị trí kiến thức + kiểu bẫy của một lựa chọn / một ý: Bài (bỏ trống = cùng bài của câu), Mục (lọc theo bài), vị trí
+ * dạng chữ (câu lớp 11), kiểu bẫy (chỉ lựa chọn / ý SAI). Tên ô: <prefix>_lesson, _section, _ref, _trap (itemFromForm).
+ */
+function RefFields({ prefix, who, itemLesson, initial, value, errors }: { prefix: string; who: string; itemLesson: string; initial: KnowledgeRef | undefined; value: FieldValue; errors: Record<string, string> }) {
+  const [lesson, setLesson] = useState(() => value(`${prefix}_lesson`, initial?.lesson_slug));
+  const sections = sectionsOf(lesson || itemLesson);
+  return (
+    <div className="grid gap-2 sm:grid-cols-4">
+      <Field name={`${prefix}_lesson`} label={`Bài (${who})`} error={errors[`${prefix}_lesson`]}>
+        {(props) => (
+          <Select {...props} value={lesson} onChange={(event) => setLesson(event.target.value)}>
+            <option value="">Cùng bài của câu</option>
+            {sgkLessons.map((item) => (
+              <option key={item.slug} value={item.slug}>
+                Bài {item.number}
+              </option>
+            ))}
+          </Select>
+        )}
+      </Field>
+      <Field name={`${prefix}_section`} label={`Mục (${who})`} error={errors[`${prefix}_section`]}>
+        {(props) => (
+          <Select {...props} key={lesson || itemLesson} defaultValue={value(`${prefix}_section`, initial?.section_id)}>
+            <option value="">—</option>
+            {sections.map((section) => (
+              <option key={section.id} value={section.id}>
+                Mục {section.numeral}. {section.title}
+              </option>
+            ))}
+          </Select>
+        )}
+      </Field>
+      <Field name={`${prefix}_trap`} label={`Kiểu bẫy (${who}, nếu sai)`} error={errors[`${prefix}_trap`]}>
+        {(props) => (
+          <Select {...props} defaultValue={value(`${prefix}_trap`, initial?.trap)}>
+            <option value="">—</option>
+            {TRAP_KINDS.map((trap) => (
+              <option key={trap} value={trap}>
+                {trapLabels[trap]}
+              </option>
+            ))}
+          </Select>
+        )}
+      </Field>
+      <Field name={`${prefix}_ref`} label={`Vị trí dạng chữ (${who})`} error={errors[`${prefix}_ref`]} hint="Câu lớp 11, ví dụ: SGK Lịch sử 11, Bài 5, mục 2.">
+        {(props) => <Input {...props} defaultValue={value(`${prefix}_ref`, initial?.ref)} maxLength={160} />}
+      </Field>
+    </div>
+  );
+}
 
 type Props = {
   kind: ExamItemKind;
@@ -54,8 +122,9 @@ export function ExamItemForm({ kind, initial, readOnly = false, events, passages
   const [state, formAction, pending] = useVersionedAction(saveExamItemAction);
   const typed = state.status === "error" ? state.values : undefined;
   const errors = state.fieldErrors ?? {};
-  const value = (name: string, fallback: string | number | boolean | null | undefined) => typed?.[name] ?? (fallback === null || fallback === undefined ? "" : String(fallback));
+  const value: FieldValue = (name, fallback) => typed?.[name] ?? (fallback === null || fallback === undefined ? "" : String(fallback));
   const correct = value("correct_index", initial?.correct_index);
+  const [lesson, setLesson] = useState(() => value("lesson_slug", initial?.lesson_slug));
 
   return (
     <form action={formAction} noValidate className="flex flex-col gap-5">
@@ -93,22 +162,32 @@ export function ExamItemForm({ kind, initial, readOnly = false, events, passages
             <legend className="mb-1 text-sm font-medium text-foreground">
               Bốn lựa chọn — chọn nút tròn ở đáp án ĐÚNG<span className="ml-0.5 text-accent" aria-hidden="true">*</span>
             </legend>
-            <p className="text-xs text-muted-foreground">Đáp án đúng đặt ở vị trí nào cũng được — khi ghép đề, hệ thống xoay thứ tự để rải đều A/B/C/D.</p>
+            <p className="text-xs text-muted-foreground">
+              Đáp án đúng đặt ở vị trí nào cũng được — khi ghép đề, hệ thống xoay thứ tự để rải đều A/B/C/D. Mỗi lựa chọn nên có lời giải riêng: lựa chọn sai thì
+              nói nó là gì, vì sao không khớp câu hỏi, nằm ở bài / mục nào và kiểu bẫy.
+            </p>
             {CHOICE_LETTERS.map((letter, index) => (
-              <div key={letter} className="flex items-start gap-2">
-                <input
-                  type="radio"
-                  name="correct_index"
-                  value={String(index)}
-                  defaultChecked={correct === String(index)}
-                  aria-label={`Lựa chọn ${letter} là đáp án đúng`}
-                  className="mt-3 h-4 w-4 shrink-0 accent-[var(--accent)]"
-                />
-                <Field name={`choice_${index}`} label={`Lựa chọn ${letter}`} error={errors[`choice_${index}`]} className="flex-1">
-                  {(props) => <Input {...props} defaultValue={value(`choice_${index}`, initial?.choices?.[index])} maxLength={300} />}
+              <div key={letter} className="flex flex-col gap-2 rounded-lg border border-border p-3">
+                <div className="flex items-start gap-2">
+                  <input
+                    type="radio"
+                    name="correct_index"
+                    value={String(index)}
+                    defaultChecked={correct === String(index)}
+                    aria-label={`Lựa chọn ${letter} là đáp án đúng`}
+                    className="mt-3 h-4 w-4 shrink-0 accent-[var(--accent)]"
+                  />
+                  <Field name={`choice_${index}`} label={`Lựa chọn ${letter}`} error={errors[`choice_${index}`]} className="flex-1">
+                    {(props) => <Input {...props} defaultValue={value(`choice_${index}`, initial?.choices?.[index])} maxLength={300} />}
+                  </Field>
+                </div>
+                <Field name={`choice_${index}_note`} label={`Giải thích lựa chọn ${letter}`} error={errors[`choice_${index}_note`]}>
+                  {(props) => <Textarea {...props} rows={2} defaultValue={value(`choice_${index}_note`, initial?.choice_notes?.[index]?.note)} maxLength={500} />}
                 </Field>
+                <RefFields prefix={`choice_${index}`} who={`lựa chọn ${letter}`} itemLesson={lesson} initial={initial?.choice_notes?.[index]} value={value} errors={errors} />
               </div>
             ))}
+            {errors.choice_notes && <p className="text-sm text-accent">{errors.choice_notes}</p>}
             {(errors.correct_index || errors.choices) && <p className="text-sm text-accent">{errors.correct_index ?? errors.choices}</p>}
           </fieldset>
         ) : (
@@ -132,9 +211,15 @@ export function ExamItemForm({ kind, initial, readOnly = false, events, passages
                     ))}
                     {errors[`statement_${index}_true`] && <span className="text-accent">{errors[`statement_${index}_true`]}</span>}
                   </div>
-                  <Field name={`statement_${index}_explanation`} label={`Lời giải ý ${letter})`} error={errors[`statement_${index}_explanation`]}>
+                  <Field
+                    name={`statement_${index}_explanation`}
+                    label={`Lời giải ý ${letter})`}
+                    error={errors[`statement_${index}_explanation`]}
+                    hint="Ý sai: chỉ đúng chữ bị đánh tráo, ví dụ “đề viết ‘duy nhất’ — thực tế còn…”."
+                  >
                     {(props) => <Input {...props} defaultValue={value(`statement_${index}_explanation`, initial?.statements?.[index]?.explanation)} maxLength={1000} />}
                   </Field>
+                  <RefFields prefix={`statement_${index}`} who={`ý ${letter})`} itemLesson={lesson} initial={initial?.statements?.[index]} value={value} errors={errors} />
                 </div>
               );
             })}
@@ -144,6 +229,10 @@ export function ExamItemForm({ kind, initial, readOnly = false, events, passages
 
         <Field name="explanation" label={kind === "mcq" ? "Lời giải (hiện sau khi nộp bài)" : "Nhận xét chung (hiện sau khi nộp bài)"} required error={errors.explanation}>
           {(props) => <Textarea {...props} rows={3} defaultValue={value("explanation", initial?.explanation)} maxLength={2000} />}
+        </Field>
+
+        <Field name="remember" label="Ghi nhớ (một câu chốt kiến thức, hiện sau khi nộp bài)" error={errors.remember} hint="10–300 ký tự, ví dụ: Điện Biên Phủ (13-3 → 7-5-1954) đập tan hoàn toàn kế hoạch Na-va.">
+          {(props) => <Input {...props} defaultValue={value("remember", initial?.remember)} maxLength={300} />}
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -181,11 +270,23 @@ export function ExamItemForm({ kind, initial, readOnly = false, events, passages
           </Field>
           <Field name="lesson_slug" label="Bài SGK lớp 12" error={errors.lesson_slug} hint="Câu lớp 11 để trống, ghi chủ đề bên cạnh.">
             {(props) => (
-              <Select {...props} defaultValue={value("lesson_slug", initial?.lesson_slug)}>
+              <Select {...props} value={lesson} onChange={(event) => setLesson(event.target.value)}>
                 <option value="">— Không gắn —</option>
-                {sgkLessons.map((lesson) => (
-                  <option key={lesson.slug} value={lesson.slug}>
-                    Bài {lesson.number}. {lesson.shortTitle}
+                {sgkLessons.map((item) => (
+                  <option key={item.slug} value={item.slug}>
+                    Bài {item.number}. {item.shortTitle}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+          <Field name="section_id" label="Mục SGK chứa kiến thức chính" error={errors.section_id} hint="Học sinh bấm vào sẽ tới đúng mục của trang Bài.">
+            {(props) => (
+              <Select {...props} key={lesson} defaultValue={value("section_id", initial?.section_id)} disabled={!lesson}>
+                <option value="">{lesson ? "— Chọn mục —" : "— Chọn bài trước —"}</option>
+                {sectionsOf(lesson).map((section) => (
+                  <option key={section.id} value={section.id}>
+                    Mục {section.numeral}. {section.title}
                   </option>
                 ))}
               </Select>
@@ -211,6 +312,11 @@ export function ExamItemForm({ kind, initial, readOnly = false, events, passages
         <Field name="source_note" label="Nguồn" required error={errors.source_note} hint="Cụ thể đến bài / mục, ví dụ: SGK Lịch sử 12 (KNTT), Bài 7, mục 3. Không chép câu của sách / web thương mại.">
           {(props) => <Input {...props} defaultValue={value("source_note", initial?.source_note)} maxLength={500} />}
         </Field>
+        {initial?.content_key && (
+          <p className="text-xs text-muted-foreground">
+            Khóa nội dung: <code>{initial.content_key}</code> (đặt khi nhập từ tệp JSON, dùng để ghép đề — không sửa ở đây).
+          </p>
+        )}
       </fieldset>
 
       {!readOnly && (

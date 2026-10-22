@@ -973,8 +973,11 @@ export type Database = {
       }
       exam_items: {
         Row: {
+          /** Câu trắc nghiệm: 4 lời giải theo thứ tự lựa chọn GỐC (ChoiceNote, lib/exams/items.ts). */
+          choice_notes: Json | null
           choices: (string)[] | null
           competency: Database["public"]["Enums"]["exam_competency"]
+          content_key: string | null
           correct_index: number | null
           created_at: string
           created_by: string | null
@@ -988,7 +991,9 @@ export type Database = {
           lesson_slug: string | null
           level: Database["public"]["Enums"]["exam_item_level"]
           passage_id: string | null
+          remember: string | null
           review_note: string | null
+          section_id: string | null
           source_note: string
           statements: Json | null
           stem: string
@@ -997,8 +1002,10 @@ export type Database = {
           workflow_status: Database["public"]["Enums"]["content_workflow_status"]
         }
         Insert: {
+          choice_notes?: Json | null
           choices?: (string)[] | null
           competency: Database["public"]["Enums"]["exam_competency"]
+          content_key?: string | null
           correct_index?: number | null
           created_at?: string
           created_by?: string | null
@@ -1013,7 +1020,9 @@ export type Database = {
           lesson_slug?: string | null
           level: Database["public"]["Enums"]["exam_item_level"]
           passage_id?: string | null
+          remember?: string | null
           review_note?: string | null
+          section_id?: string | null
           source_note: string
           statements?: Json | null
           stem: string
@@ -1022,8 +1031,10 @@ export type Database = {
           workflow_status?: Database["public"]["Enums"]["content_workflow_status"]
         }
         Update: {
+          choice_notes?: Json | null
           choices?: (string)[] | null
           competency?: Database["public"]["Enums"]["exam_competency"]
+          content_key?: string | null
           correct_index?: number | null
           created_at?: string
           created_by?: string | null
@@ -1037,7 +1048,9 @@ export type Database = {
           lesson_slug?: string | null
           level?: Database["public"]["Enums"]["exam_item_level"]
           passage_id?: string | null
+          remember?: string | null
           review_note?: string | null
+          section_id?: string | null
           source_note?: string
           statements?: Json | null
           stem?: string

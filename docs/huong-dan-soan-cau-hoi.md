@@ -43,6 +43,25 @@ Kế hoạch tổng thể: `docs/ke-hoach-luyen-thi.md`.
 - Câu hỏi phải **cần đọc tư liệu** mới làm được — không hỏi điều chỉ cần nhớ SGK.
 - Một đoạn tư liệu dùng được cho nhiều câu; tư liệu được duyệt / công bố cùng câu đầu tiên dùng nó.
 
+## Lời giải từng phương án và vị trí kiến thức
+
+Trang lời giải chỉ cho học sinh **sai ở đâu – nằm ở bài nào – mục nào** (docs/ke-hoach-demo-luyen-thi.md, mục 4):
+
+- **Mục SGK** (`section_id`, ô "Mục SGK chứa kiến thức chính"): mục `muc-N` của bài đã chọn — học sinh bấm vào tới đúng mục
+  của trang Bài. Câu lớp 11 không có mục, ghi vị trí dạng chữ ở từng lựa chọn (`ref`, ví dụ "SGK Lịch sử 11 (KNTT), Bài 5, mục 2").
+- **Giải thích từng lựa chọn** (`choice_notes`, theo thứ tự lựa chọn khi soạn; khi ghép đề hệ thống tự xoay theo):
+  - lựa chọn **sai**: (1) sự thật của chính lựa chọn đó (nó là gì, xảy ra khi nào), (2) vì sao không khớp câu hỏi, (3) bài /
+    mục chứa lựa chọn đó — có thể khác bài của câu, (4) **kiểu bẫy**. Không viết "B sai vì không đúng".
+  - lựa chọn **đúng**: vì sao đúng, dữ kiện chốt.
+- **Kiểu bẫy** (chỉ ở lựa chọn / ý SAI): Đánh tráo thời gian · Đánh tráo chủ thể · Nhầm địa điểm · Sai số liệu · Nhầm nguyên
+  nhân – kết quả · Tuyệt đối hóa (duy nhất, hoàn toàn…) · Nhầm khái niệm · Hiểu sai bản chất sự kiện.
+- **Ý Đúng/Sai**: mỗi ý ghi được bài / mục riêng; ý sai ghi kiểu bẫy và lời giải chỉ đúng chữ bị đánh tráo ("đề viết
+  *duy nhất* — thực tế còn…").
+- **Ghi nhớ** (`remember`): một câu 10–300 ký tự để học sinh chép vào sổ.
+- Tệp JSON: `content_key` (vd. `b7-m3-tn-05`) là khóa ổn định — chạy lại seed thì câu còn nháp được cập nhật theo tệp, câu đã
+  công bố không bị ghi đè; đề tham chiếu câu bằng khóa này. Mẫu định dạng ở trang "Nhập từ JSON".
+- Trang quản trị nhắc (không chặn) khi câu lớp 12 thiếu mục, thiếu giải thích từng lựa chọn hoặc ý sai chưa có kiểu bẫy.
+
 ## Quy trình
 
 1. Soạn trên giao diện, hoặc soạn tệp JSON (`supabase/content/ngan-hang/<bài>.json`, định dạng ở trang "Nhập từ JSON")

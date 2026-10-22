@@ -67,11 +67,57 @@ describe.skipIf(files.length === 0)("ngân hàng câu hỏi (supabase/content/ng
     for (const count of letters) expect(count / total).toBeLessThanOrEqual(0.4);
   });
 
-  it("mỗi câu gắn bài SGK, có nguồn ghi tới bài", () => {
+  it("mỗi câu lớp 12 gắn bài SGK, có nguồn ghi tới bài; câu lớp 11 có chủ đề", () => {
     const lessons = new Set(sgkLessons.map((lesson) => lesson.slug));
     for (const { name, index, item } of items) {
+      if (item.grade === 11) {
+        expect(item.topic_tag, `${name} câu ${index}`).toBeTruthy();
+        continue;
+      }
       expect(item.lesson_slug && lessons.has(item.lesson_slug), `${name} câu ${index}`).toBe(true);
       expect(item.source_note, `${name} câu ${index}`).toMatch(/Bài \d+/);
     }
+  });
+
+  it("content_key không trùng giữa các tệp", () => {
+    const seen = new Map<string, string>();
+    const duplicates: string[] = [];
+    for (const { name, index, item } of items) {
+      if (!item.content_key) continue;
+      if (seen.has(item.content_key)) duplicates.push(`${item.content_key}: ${name} câu ${index} trùng ${seen.get(item.content_key)}`);
+      seen.set(item.content_key, `${name} câu ${index}`);
+    }
+    expect(duplicates).toEqual([]);
+  });
+
+  // Tệp nội dung chi tiết (docs/ke-hoach-demo-luyen-thi.md, GĐ-D2/D3): lời giải "sai ở đâu – bài nào – mục nào" bắt buộc.
+  const detailed = items.filter(({ name }) => /^(bai-\d+|lop-11)/.test(name));
+  it.skipIf(detailed.length === 0)("tệp bai-*.json / lop-11.json: đủ content_key, mục SGK (lớp 12) hoặc ref (lớp 11), lời giải 4 lựa chọn, bẫy ở mọi ý sai", () => {
+    const problems: string[] = [];
+    for (const { name, index, item } of detailed) {
+      const where = `${name} câu ${index}`;
+      if (!item.content_key) problems.push(`${where}: thiếu content_key`);
+      if (item.grade === 12 && !item.section_id) problems.push(`${where}: thiếu section_id`);
+      if (!item.remember) problems.push(`${where}: thiếu remember`);
+      if (item.kind === "mcq") {
+        if (item.choice_notes?.length !== 4) problems.push(`${where}: thiếu choice_notes`);
+        item.choice_notes?.forEach((note, slot) => {
+          if (slot !== item.correct_index && !note.trap) problems.push(`${where}: lựa chọn ${slot} sai mà chưa có trap`);
+          if (item.grade === 11 && !note.ref) problems.push(`${where}: lựa chọn ${slot} thiếu ref (lớp 11)`);
+        });
+      } else {
+        item.statements?.forEach((statement, slot) => {
+          if (!statement.is_true && !statement.trap) problems.push(`${where}: ý ${slot} sai mà chưa có trap`);
+        });
+      }
+    }
+    expect(problems).toEqual([]);
+  });
+
+  it.skipIf(detailed.length === 0)("tệp bai-*.json / lop-11.json: không còn nhắc bổ sung lời giải", () => {
+    const hints = plans
+      .filter(({ name }) => /^(bai-\d+|lop-11)/.test(name))
+      .flatMap(({ name, plan }) => plan.rows.flatMap((row) => row.hints.map((hint) => `${name} câu ${row.index}: ${hint}`)));
+    expect(hints).toEqual([]);
   });
 });

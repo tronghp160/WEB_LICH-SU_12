@@ -74,7 +74,11 @@ function Section({ title, target, rows, slug, editable }: { title: string; targe
                     choices={choices}
                     correctIndex={correct}
                     statements={row.statements}
+                    choiceNotes={row.choiceNotes ? rotateChoices(row.choiceNotes, row.shift) : null}
                     explanation={row.explanation}
+                    remember={row.remember}
+                    lessonSlug={row.lessonSlug}
+                    sectionId={row.sectionId}
                     showAnswers
                   />
                   <Link href={examBankPaths.edit(row.itemId)} className="mt-3 inline-flex items-center gap-1 text-sm text-accent hover:underline">

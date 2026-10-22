@@ -112,7 +112,7 @@ Dữ liệu demo đầy đủ cho Bài 6, 7, 8 · lời giải "sai ở đâu �
 | GĐ | Nội dung | Trạng thái |
 |---|---|---|
 | D0 | Khảo sát, skill `soan-cau-hoi-lich-su` + `kiem-tra-de-thpt`, agent `soat-cau-hoi` | Xong 22/10/2026 |
-| D1 | Lời giải từng phương án + vị trí kiến thức (migration `20261101000000_exam_item_explain.sql`) | |
+| D1 | Lời giải từng phương án + vị trí kiến thức (migration `20261101000000_exam_item_explain.sql`) | Code xong 22/10/2026 (test-report mục 30); migration chờ chủ dự án chạy, E2E `exam-explain` chạy sau đó |
 | D2 | Bài 6, 7, 8 mỗi bài 30 trắc nghiệm + 8 Đúng/Sai | |
 | D3 | Đề luyện thi số 3 (24 + 4) | |
 | D4 | Seed demo + công bố | |

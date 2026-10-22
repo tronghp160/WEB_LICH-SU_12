@@ -13,6 +13,7 @@ import { kindRows, lessonRows, levelRows, matchesFilter, points, solutionFilterL
 import { attemptPaths, parseAttemptView, type AttemptView } from "@/lib/exams/attempt";
 import { getBlueprint } from "@/lib/exams/blueprint";
 import { regradedNumbers } from "@/lib/exams/quality";
+import { reviewHints } from "@/lib/exams/review-hints";
 import { DEVICE_HEADER, examPaths, formatScore10, generatedKey } from "@/lib/exams/exam";
 import { formatDuration, parseHistory, previousAttempt, roomKeys, type HistoryEntry } from "@/lib/exams/room";
 import { getDeviceId, useHydrated } from "@/lib/hooks/useLicense";
@@ -116,6 +117,7 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
   // Câu chưa đạt tối đa (thi: kể cả bỏ trống; luyện tập: trong số câu đã kiểm tra) — như start_practice_attempt "retry".
   const retryable = view.questions.filter((question) => (practice ? question.checked : true) && (question.earnedMilli ?? 0) < (question.kind === "mcq" ? 250 : 1000)).length;
   const visible = view.questions.map((question, position) => ({ question, position })).filter(({ question }) => matchesFilter(filter, question, view.answers[question.itemId]));
+  const hints = reviewHints(view.questions, practice);
 
   return (
     <div className="flex flex-col gap-8">
@@ -215,6 +217,43 @@ export function ExamResult({ id, timedOut }: { id: string; timedOut: boolean }) 
         </div>
         <TimeBars times={times} />
       </section>
+
+      {hints.length > 0 && (
+        <section aria-labelledby="can-on" className="flex flex-col gap-3 rounded-card border border-border bg-surface p-5" data-testid="review-hints">
+          <div>
+            <h2 id="can-on" className="font-serif text-lg font-bold text-foreground">
+              Kiến thức cần ôn lại
+            </h2>
+            <p className="text-sm text-muted-foreground">Mục nào em sai nhiều nhất ở trên cùng. Đọc lại mục rồi luyện thêm vài câu của bài đó.</p>
+          </div>
+          <ol className="m-0 flex list-none flex-col gap-2 p-0">
+            {hints.map((hint) => (
+              <li key={hint.key} className="flex flex-col gap-2 rounded-lg border border-border px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-sm text-foreground">
+                  <strong>{hint.location.label}</strong>
+                  <span className="text-muted-foreground">
+                    {" "}
+                    — sai {hint.wrong}/{hint.total} câu
+                  </span>
+                </span>
+                <span className="flex shrink-0 flex-wrap gap-2">
+                  {hint.location.href && (
+                    <LinkButton href={hint.location.href} size="sm" variant="secondary">
+                      <BookOpen className="h-4 w-4" aria-hidden="true" />
+                      Đọc lại {hint.location.sectionId ? "mục" : "bài"}
+                    </LinkButton>
+                  )}
+                  {hint.practiceHref && (
+                    <LinkButton href={hint.practiceHref} size="sm" variant="secondary">
+                      Luyện 10 câu bài này
+                    </LinkButton>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       <section aria-labelledby="giai-thich" className="flex flex-col gap-3">
         <h2 id="giai-thich" className="font-serif text-lg font-bold text-foreground">

@@ -3,6 +3,7 @@
 // Dùng được ở cả client và server (không import server-only).
 
 import { z } from "zod";
+import { TRAP_KINDS, type TrapKind } from "@/lib/exams/items";
 import type { ItemAnswer } from "@/lib/exams/scoring";
 
 export const attemptPaths = {
@@ -49,6 +50,15 @@ export type AnswersBody = z.infer<typeof answersBodySchema>;
 
 const nullish = <T extends z.ZodType>(schema: T) => schema.nullish().transform((value) => value ?? null);
 
+// Vị trí kiến thức + kiểu bẫy (migration 20261101000000_exam_item_explain.sql). Kiểu bẫy lạ → bỏ, không làm hỏng cả lượt.
+const refShape = {
+  lesson_slug: nullish(z.string()),
+  section_id: nullish(z.string()),
+  ref: nullish(z.string()),
+  trap: nullish(z.enum(TRAP_KINDS).catch(null as never)),
+};
+const refSchema = z.object(refShape);
+
 const questionSchema = z.object({
   n: z.number().int(),
   item_id: z.string(),
@@ -61,9 +71,14 @@ const questionSchema = z.object({
   correct_index: nullish(z.number().int().min(0).max(3)),
   truths: nullish(z.array(z.boolean()).length(4)),
   statement_explanations: nullish(z.array(z.string())),
+  statement_refs: nullish(z.array(refSchema).length(4)),
+  choice_notes: nullish(z.array(z.object({ note: z.string(), ...refShape })).length(4)),
   explanation: nullish(z.string()),
+  remember: nullish(z.string()),
   level: nullish(z.string()),
   lesson_slug: nullish(z.string()),
+  section_id: nullish(z.string()),
+  topic_tag: nullish(z.string()),
   event_slug: nullish(z.string()),
   event_title: nullish(z.string()),
   earned_milli: nullish(z.number().int()),
@@ -120,14 +135,28 @@ export type AttemptQuestion = {
   correctIndex: number | null;
   truths: boolean[] | null;
   statementExplanations: string[] | null;
+  /** Vị trí kiến thức + kiểu bẫy của từng ý (theo thứ tự ý). */
+  statementRefs: AttemptRef[] | null;
+  /** Lời giải từng lựa chọn THEO THỨ TỰ HỌC SINH THẤY (server đã xoay như choices). */
+  choiceNotes: (AttemptRef & { note: string })[] | null;
   explanation: string | null;
+  remember: string | null;
   lessonSlug: string | null;
+  /** Mục SGK chứa kiến thức chính (muc-N). */
+  sectionId: string | null;
+  /** Chủ đề (câu lớp 11 / liên môn). */
+  topicTag: string | null;
   eventSlug: string | null;
   eventTitle: string | null;
   earnedMilli: number | null;
   /** Câu đã "Kiểm tra" trong lượt luyện tập (đã khóa, đã có đáp án). */
   checked: boolean;
 };
+
+/** Vị trí kiến thức của một lựa chọn / ý (bài trống = cùng bài của câu) và kiểu bẫy (chỉ ở lựa chọn / ý sai). */
+export type AttemptRef = { lessonSlug: string | null; sectionId: string | null; ref: string | null; trap: TrapKind | null };
+
+const toRef = (value: z.infer<typeof refSchema>): AttemptRef => ({ lessonSlug: value.lesson_slug, sectionId: value.section_id, ref: value.ref, trap: value.trap });
 
 /** Điểm đạt / tối đa (phần nghìn) và số câu của một nhóm (phần, bài, mức độ, dạng). */
 export type ScoreGroup = { earned: number; max: number; n: number };
@@ -213,8 +242,13 @@ export function parseAttemptView(value: unknown): AttemptView | null {
         correctIndex: question.correct_index,
         truths: question.truths,
         statementExplanations: question.statement_explanations,
+        statementRefs: question.statement_refs?.map(toRef) ?? null,
+        choiceNotes: question.choice_notes?.map((note) => ({ note: note.note, ...toRef(note) })) ?? null,
         explanation: question.explanation,
+        remember: question.remember,
         lessonSlug: question.lesson_slug,
+        sectionId: question.section_id,
+        topicTag: question.topic_tag,
         eventSlug: question.event_slug,
         eventTitle: question.event_title,
         earnedMilli: question.earned_milli,
