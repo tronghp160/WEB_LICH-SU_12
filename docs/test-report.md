@@ -979,3 +979,19 @@ Phần II câu 3 lộ đáp án câu 11 — đã bỏ câu đó khỏi tư liệ
 | Lint, tsc | sạch |
 
 Mô tả de-1, de-2 trong `seed-exam-mau.sql` đổi thành chỉ tới đề số 3 (trên DB thật cập nhật ở seed demo GĐ-D4).
+
+## 33. Demo luyện thi — GĐ-D4: seed demo và công bố (23/10/2026)
+
+`supabase/seed-demo-luyen-thi.sql` (mới): kiểm điều kiện trước (migration GĐ-D1, đủ 114 câu Bài 6 – 8 có `content_key`, đề
+`de-3` đủ 28 câu); xóa 2 câu nháp cũ đã bị thay (theo dấu vân tay gốc, chỉ khi còn nháp, chưa có khóa, không nằm trong đề);
+công bố tư liệu → câu (Bài 6 – 8 + mọi câu của đề 3) → đề 3, ghi `review_note = 'Demo 10/2026 — cần giáo viên đối chiếu SGK
+in'`; cập nhật mô tả de-1, de-2. **Chưa chạy lên DB thật** — chủ dự án chạy trong SQL Editor theo thứ tự
+`seed-ngan-hang.sql` → `seed-de-3.sql` → `seed-demo-luyen-thi.sql`.
+
+| Nhóm | Kết quả (PGlite, sau seed gốc 16/10) |
+|---|---|
+| Chạy chuỗi 3 file, seed demo chạy 2 lần | 211 → 209 câu (xóa đúng 2 câu nháp cũ), 157 câu đã công bố; lần 2 không đổi gì |
+| Đã công bố theo bài | Bài 6, 7, 8: mỗi bài 30 trắc nghiệm + 8 Đúng/Sai (Bài 7, 8 thêm 1 câu Đúng/Sai của đề 3); Bài 1 – 5, 10 – 17: câu của đề 3; lớp 11: 4 |
+| Đề 3 | published, miễn phí, Phần I 24/24 câu đã công bố, Phần II 4/4, không tư liệu nào còn nháp; `start_exam_attempt('de-3')` → 28 câu, không lộ đáp án |
+| Luyện tập (`start_practice_attempt`) | Bài 7 × Trắc nghiệm × Vận dụng × có tư liệu → 6 câu (đủ số câu có); 3 bài × có tư liệu × 30 → 30 câu; Bài 8 × Đúng/Sai → 9 câu |
+| Mô tả de-1 | “… Muốn làm đề đầy đủ …, xem Đề luyện thi số 3.” |
