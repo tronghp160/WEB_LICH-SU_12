@@ -115,7 +115,10 @@ test("trước khi nộp không lộ lời giải; nộp → Vì sao sai (đúng
   await expect(wrong.getByTestId("trap-badge")).toHaveText("Đánh tráo thời gian");
   await expect(solutions).toContainText("Đáp án đúng: B. Điện Biên Phủ 1954");
   await expect(solutions.getByTestId("remember")).toContainText("đập tan hoàn toàn kế hoạch Na-va");
-  await expect(solutions.getByRole("link", { name: "Bài học tương tác: Chiến dịch Điện Biên Phủ" })).toHaveAttribute("href", "/bai-hoc/chien-dich-dien-bien-phu");
+  await expect(solutions.getByTestId("solution-item").first().getByRole("link", { name: "Bài học tương tác: Chiến dịch Điện Biên Phủ" })).toHaveAttribute(
+    "href",
+    "/bai-hoc/chien-dich-dien-bien-phu",
+  );
 
   // Đúng/Sai: ý b sai có nhãn bẫy, ý d dẫn sang Bài 8.
   const tfItem = solutions.getByTestId("solution-item").nth(1);

@@ -70,7 +70,7 @@ test.describe("Trang bán hàng (GĐ8)", () => {
     if (tf === 0) await expect(benefits).not.toContainText("câu Đúng/Sai");
     await expect(page.getByTestId("free-trial")).toHaveAttribute("href", /\/luyen-thi\/de-1$/);
     await expect(page.getByRole("img", { name: /Phòng thi/ })).toBeVisible();
-    await expect(page.getByTestId("faq").locator("details")).toHaveCount(5);
+    await expect(page.getByTestId("faq").locator("details")).toHaveCount(6);
     await page.getByText("Một gói dùng được trên mấy máy?").click();
     await expect(page.getByTestId("faq")).toContainText(/tối đa \d thiết bị/);
     await expect(page.getByText(/40 câu/)).toHaveCount(0);
