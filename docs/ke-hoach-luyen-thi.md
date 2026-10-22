@@ -114,7 +114,7 @@ Dữ liệu demo đầy đủ cho Bài 6, 7, 8 · lời giải "sai ở đâu �
 | D0 | Khảo sát, skill `soan-cau-hoi-lich-su` + `kiem-tra-de-thpt`, agent `soat-cau-hoi` | Xong 22/10/2026 |
 | D1 | Lời giải từng phương án + vị trí kiến thức (migration `20261101000000_exam_item_explain.sql`) | Xong 22/10/2026 (test-report mục 30) — migration đã chạy trên DB thật |
 | D2 | Bài 6, 7, 8 mỗi bài 30 trắc nghiệm + 8 Đúng/Sai | Xong 22/10/2026 (test-report mục 31) — nháp, chờ giáo viên đối chiếu `docs/du-lieu-can-kiem-chung.md` mục 6f |
-| D3 | Đề luyện thi số 3 (24 + 4) | |
+| D3 | Đề luyện thi số 3 (24 + 4) | Xong 23/10/2026 (test-report mục 32) — câu nháp, chưa nạp DB; seed `seed-de-3.sql` |
 | D4 | Seed demo + công bố | |
 | D5 | Kiểm thử tổng | |
 | D6 | Kịch bản demo cho giáo viên | |
@@ -127,6 +127,11 @@ Kết quả khảo sát GĐ-D0:
 - `de-1` … `de-10` đã có dòng nháp từ `seed-payments.sql` (`generate_series`); `de-3` hiện thuộc gói gốc `goi-luyen-thi-2027`.
 - Câu nháp sẵn có của Bài 6 / 7 / 8 trong `chu-de-3.json`: 5 / 6 / 5 câu (kế hoạch ghi 6 / 7 / 5) — đều chuyển sang tệp mới ở GĐ-D2.
 - Migration `20261031000000_exam_plans.sql` (gói tháng / năm) vẫn **chưa chạy** — không ảnh hưởng đợt demo (đề 3 miễn phí).
+
+Quyết định khi làm GĐ-D3: mục 6.2 của kế hoạch tự mâu thuẫn (lời văn: 20 câu lớp 12 theo số tiết + 4 câu lớp 11; bảng: 21 + 3,
+chủ đề 3 có 6 câu gồm câu Bài 9). Dùng **20 + 4** như lời văn, checklist mục 11 và skill `kiem-tra-de-thpt`: bỏ câu Bài 9
+khỏi Phần I, thêm câu lớp 11 thứ tư (kháng chiến chống Mông – Nguyên, Thông hiểu) để giữ Phần I NB 10 · TH 8 · VD 6. Muốn
+theo bảng 21 + 3 thì sửa `supabase/content/de-thi/de-3.json` và `TOPIC_TARGET` / `GRADE11_TARGET` trong `scripts/kiem-tra-de.mjs`.
 
 ### Quyết định khi làm GĐ1 (khác / chi tiết hơn bản đầy đủ)
 

@@ -948,3 +948,34 @@ Thống kê (`node scripts/thong-ke-ngan-hang.mjs bai-0`):
 | Seed `supabase/seed-ngan-hang.sql` (sinh lại) trên PGlite, chạy sau seed gốc 16/10 | 88 → 188 câu (114 có `content_key`; 14 câu nháp cũ được gắn khóa, không nhân đôi); chạy lại vẫn 188; câu đã công bố không bị ghi đè. Còn 2 câu nháp cũ bị thay thế (b7-m2-tn-02, b7-m3-tn-02) — dọn ở seed demo GĐ-D4 |
 | Unit test | **755/755**, 55 file |
 | Lint | sạch |
+
+## 32. Demo luyện thi — GĐ-D3: đề luyện thi số 3 đầy đủ 24 + 4 (23/10/2026)
+
+Nhánh `feat/demo-luyen-thi`. Không có migration. Tệp mô tả đề `supabase/content/de-thi/de-3.json`; câu mới
+`supabase/content/ngan-hang/bo-sung-de-3.json` (15 trắc nghiệm lớp 12 cho Bài 1 – 5, 10 – 17; 4 câu Đúng/Sai Phần II
+`de3-ds-01…04`, 5 tư liệu tóm lược) và `lop-11.json` (4 câu lớp 11). Đề dùng thêm 5 câu Bài 6 – 8 từ GĐ-D2. Tránh trùng ý với
+đề mẫu de-1 / de-2 (đổi 6 câu dự kiến: ngày thành lập Liên hợp quốc, nơi thành lập ASEAN, Đại hội nào đề ra đổi mới, Ba
+Đình 2-9, cờ trên Dinh Độc Lập, bến Nhà Rồng). Câu mới đã qua agent `soat-cau-hoi`, sửa theo góp ý (lỗi nghiêm trọng: tư liệu
+Phần II câu 3 lộ đáp án câu 11 — đã bỏ câu đó khỏi tư liệu; câu 16 có nhiễu bị tư liệu Phần II câu 4 loại sẵn — đã đổi nhiễu).
+
+`npm run kiem-tra-de -- de-3` (scripts/kiem-tra-de.mjs) — **ĐẠT**:
+
+| Tiêu chí | Kết quả |
+|---|---|
+| Cấu trúc | Phần I 24 trắc nghiệm · Phần II 4 Đúng/Sai · 50 phút · `thpt_2025` · miễn phí |
+| Chủ đề lớp 12 (Phần I) | CĐ1: 3 · CĐ2: 2 · CĐ3: 5 · CĐ4: 3 · CĐ5: 3 · CĐ6: 4 + 4 câu lớp 11 (câu 21 – 24) |
+| Mức độ toàn đề | NB 10 · TH 8 · VD 10 (36 / 29 / 36%, trong ±10 điểm của 40/30/30); Phần I: 10 / 8 / 6 |
+| Tư liệu | Phần I 4 câu (7 – 8 dùng chung tư liệu Điện Biên Phủ, 10, 12); Phần II 4/4 |
+| Phần II | mỗi câu 2 ý đúng, tổng 8; không cột ý nào toàn Đúng / toàn Sai |
+| Đáp án Phần I sau khi xoay | 6 A · 6 B · 6 C · 6 D, không quá 3 câu liền cùng chữ — `BDCABDACCABDADCBABCDADBC` |
+| Lời giải | 100% câu lớp 12 có mục SGK, câu lớp 11 có `ref`; mọi lựa chọn / ý sai có kiểu bẫy |
+| Trùng đề mẫu | không câu nào giống ≥ 85% câu của de-1, de-2 |
+
+| Nhóm | Kết quả |
+|---|---|
+| `supabase/seed-de-3.sql` (mới, `npm run dung-de -- de-3`) trên PGlite, sau seed gốc + seed ngân hàng mới | ghép 24 + 4 câu theo `content_key`, chạy lại được; giả lập công bố → `start_exam_attempt('de-3')`: 28 câu, có hạn nộp, trước khi nộp không lộ đáp án / lời giải; nộp (chọn A mọi câu) → 1,5 điểm (6 × 0,25), đáp án hiển thị đúng thứ tự `kiem-tra-de` tính, lời giải từng lựa chọn xoay khớp |
+| `npm run kiem-tra-ngan-hang` | **15/15** (thêm tệp `bo-sung-*.json`, `lop-11.json` vào nhóm kiểm chặt) |
+| Unit test | **760/760**, 56 file — thêm `exam-set-build.test.ts` (rải đáp án 6/6/6/6, không quá 3 câu liền, có hạt giống; đề 3 đúng 24 + 4) |
+| Lint, tsc | sạch |
+
+Mô tả de-1, de-2 trong `seed-exam-mau.sql` đổi thành chỉ tới đề số 3 (trên DB thật cập nhật ở seed demo GĐ-D4).

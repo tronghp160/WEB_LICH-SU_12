@@ -11,7 +11,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "kiem-tra-ngan-hang": "vitest run tests/unit/exam-bank-content.test.ts"
+    "kiem-tra-ngan-hang": "vitest run tests/unit/exam-bank-content.test.ts",
+    "kiem-tra-de": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/kiem-tra-de.mjs",
+    "dung-de": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-exam-set-sql.mjs"
   },
   "dependencies": {
     "@payos/node": "2.0.5",

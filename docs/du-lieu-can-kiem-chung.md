@@ -252,6 +252,19 @@ Tệp `supabase/content/ngan-hang/bai-06-…json`, `bai-07-…json`, `bai-08-…
 | b8-m3-tn-03 | 10 giờ 45 phút (xe tăng vào Dinh Độc Lập) và 11 giờ 30 phút ngày 30-4-1975 (cờ trên nóc Dinh) |
 | Tư liệu `b8-khong-co-gi-quy`, `b8-hiep-dinh-pa-ri` | Đối chiếu nguyên văn với bản in (Hồ Chí Minh Toàn tập; văn bản Hiệp định), bổ sung số tập, trang vào nguồn |
 
+Đề số 3 (`bo-sung-de-3.json`, `lop-11.json`, 23/10/2026):
+
+| Chỗ | Cần đối chiếu |
+|---|---|
+| Cả 4 câu lớp 11 | Repo không có khung SGK Lịch sử 11: `ref` chỉ ghi tên chủ đề, **chưa có số chủ đề / số bài / mục** — bổ sung theo SGK in (dự kiến: chủ đề Chiến tranh bảo vệ Tổ quốc… — chống Tống, Mông – Nguyên, Lam Sơn, Tây Sơn; chủ đề Cải cách — Lê Thánh Tông, Minh Mạng; chủ đề Biển Đông) |
+| l11-mong-nguyen-01 | Câu trích “vua tôi đồng lòng, anh em hòa mục, cả nước góp sức” — chữ “hòa mục” theo bản SGK |
+| b14-m1-tn-01 | Việt Nam tham gia Phong trào Không liên kết năm 1976, Hội đồng Tương trợ kinh tế (SEV) năm 1978, là thành viên thứ 149 của Liên hợp quốc (9-1977) |
+| b4-m1-tn-01 | Khu vực mậu dịch tự do ASEAN (AFTA) — quyết định lập năm 1992 |
+| b15-m1-tn-01 | Nơi sinh Hồ Chí Minh: quê ngoại làng Hoàng Trù, gần làng Kim Liên (Nam Đàn, Nghệ An) — cách SGK ghi |
+| b11-m1-tn-01 | Cách SGK nói về thành tựu xuất khẩu gạo, giao quyền tự chủ cho hộ nông dân |
+| Tư liệu `b10-boi-canh-doi-moi` | Cụm “nhìn thẳng vào sự thật, đánh giá đúng sự thật, nói rõ sự thật” (Báo cáo chính trị Đại hội VI) |
+| Tư liệu `de3-gionevo-ngoai-giao`, `de3-hoi-nghi-pa-ri` | Thành phần hội nghị, chức vụ Phạm Văn Đồng năm 1954; mốc 5-1968, 1-1969, 6-1969 |
+
 Câu nháp cũ của Bài 6 – 8 (trước đây ở `chu-de-3.json`) được chuyển sang tệp mới; hai câu (b7-m2-tn-02, b7-m3-tn-02) đã
 sửa câu hỏi / lựa chọn nên khi chạy seed sẽ thành câu mới — câu nháp cũ tương ứng cần xóa (seed demo GĐ-D4 xử lý).
 

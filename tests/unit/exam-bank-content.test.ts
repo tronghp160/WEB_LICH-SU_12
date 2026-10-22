@@ -91,8 +91,9 @@ describe.skipIf(files.length === 0)("ngân hàng câu hỏi (supabase/content/ng
   });
 
   // Tệp nội dung chi tiết (docs/ke-hoach-demo-luyen-thi.md, GĐ-D2/D3): lời giải "sai ở đâu – bài nào – mục nào" bắt buộc.
-  const detailed = items.filter(({ name }) => /^(bai-\d+|lop-11)/.test(name));
-  it.skipIf(detailed.length === 0)("tệp bai-*.json / lop-11.json: đủ content_key, mục SGK (lớp 12) hoặc ref (lớp 11), lời giải 4 lựa chọn, bẫy ở mọi ý sai", () => {
+  const DETAILED_FILE = /^(bai-\d+|lop-11|bo-sung-)/;
+  const detailed = items.filter(({ name }) => DETAILED_FILE.test(name));
+  it.skipIf(detailed.length === 0)("tệp bai-*.json / lop-11.json / bo-sung-*.json: đủ content_key, mục SGK (lớp 12) hoặc ref (lớp 11), lời giải 4 lựa chọn, bẫy ở mọi ý sai", () => {
     const problems: string[] = [];
     for (const { name, index, item } of detailed) {
       const where = `${name} câu ${index}`;
@@ -114,9 +115,9 @@ describe.skipIf(files.length === 0)("ngân hàng câu hỏi (supabase/content/ng
     expect(problems).toEqual([]);
   });
 
-  it.skipIf(detailed.length === 0)("tệp bai-*.json / lop-11.json: không còn nhắc bổ sung lời giải", () => {
+  it.skipIf(detailed.length === 0)("tệp bai-*.json / lop-11.json / bo-sung-*.json: không còn nhắc bổ sung lời giải", () => {
     const hints = plans
-      .filter(({ name }) => /^(bai-\d+|lop-11)/.test(name))
+      .filter(({ name }) => DETAILED_FILE.test(name))
       .flatMap(({ name, plan }) => plan.rows.flatMap((row) => row.hints.map((hint) => `${name} câu ${row.index}: ${hint}`)));
     expect(hints).toEqual([]);
   });

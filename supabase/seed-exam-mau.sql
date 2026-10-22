@@ -14,14 +14,14 @@ begin;
 
 update public.exam_sets
    set title = 'Đề luyện thi số 1 (đề mẫu)',
-       description = 'Đề mẫu 10 câu trắc nghiệm, 15 phút — làm thử miễn phí. Đề đầy đủ (24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút) đang được biên soạn.',
+       description = 'Đề mẫu 10 câu trắc nghiệm, 15 phút — làm thử miễn phí. Muốn làm đề đầy đủ (24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút), xem Đề luyện thi số 3.',
        duration_min = 15,
        workflow_status = 'published'
  where slug = 'de-1';
 
 update public.exam_sets
    set title = 'Đề luyện thi số 2 (đề mẫu)',
-       description = 'Đề mẫu 10 câu trắc nghiệm, 15 phút — thuộc Gói luyện thi. Đề đầy đủ (24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút) đang được biên soạn.',
+       description = 'Đề mẫu 10 câu trắc nghiệm, 15 phút — thuộc Gói luyện thi. Đề đầy đủ miễn phí (24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút): Đề luyện thi số 3.',
        duration_min = 15,
        workflow_status = 'published'
  where slug = 'de-2';

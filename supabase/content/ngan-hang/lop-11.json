@@ -1,0 +1,165 @@
+{
+  "passages": [],
+  "items": [
+    {
+      "content_key": "l11-bien-dong-01",
+      "kind": "mcq",
+      "stem": "Khi tàu nước ngoài vi phạm vùng biển thuộc chủ quyền của Việt Nam, cách ứng xử nào sau đây phù hợp với chủ trương của Việt Nam ở Biển Đông?",
+      "choices": [
+        "Dùng vũ lực ngay để đánh đuổi tàu vi phạm",
+        "Đề nghị một nước lớn đứng ra quyết định thay các bên",
+        "Đấu tranh ngoại giao, pháp lí theo luật quốc tế, giữ kênh đối thoại",
+        "Tạm ngừng mọi hoạt động trên biển để tránh căng thẳng"
+      ],
+      "correct": 2,
+      "choice_notes": [
+        {
+          "note": "Trái chủ trương: Việt Nam kiên trì giải quyết tranh chấp bằng biện pháp hòa bình, không dùng vũ lực hay đe dọa dùng vũ lực.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Lịch sử bảo vệ chủ quyền, các quyền và lợi ích hợp pháp của Việt Nam ở Biển Đông",
+          "trap": "ban_chat"
+        },
+        {
+          "note": "Trái nguyên tắc độc lập, tự chủ: các bên liên quan giải quyết tranh chấp, không để nước khác quyết định thay.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Lịch sử bảo vệ chủ quyền, các quyền và lợi ích hợp pháp của Việt Nam ở Biển Đông",
+          "trap": "ban_chat"
+        },
+        {
+          "note": "Đúng. Việt Nam kiên quyết bảo vệ chủ quyền bằng biện pháp hòa bình: đấu tranh ngoại giao, pháp lí trên cơ sở luật pháp quốc tế, nhất là Công ước của Liên hợp quốc về Luật Biển năm 1982.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Lịch sử bảo vệ chủ quyền, các quyền và lợi ích hợp pháp của Việt Nam ở Biển Đông"
+        },
+        {
+          "note": "Hiểu sai: ngừng hoạt động trên biển là tự từ bỏ quyền hợp pháp; Việt Nam vẫn duy trì hoạt động kinh tế, khai thác hợp pháp trên vùng biển của mình.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Lịch sử bảo vệ chủ quyền, các quyền và lợi ích hợp pháp của Việt Nam ở Biển Đông",
+          "trap": "ban_chat"
+        }
+      ],
+      "explanation": "Chủ trương ở Biển Đông: kiên quyết bảo vệ chủ quyền, giải quyết tranh chấp bằng hòa bình, theo luật pháp quốc tế (UNCLOS 1982).",
+      "remember": "Biển Đông: giải quyết tranh chấp bằng hòa bình, theo luật pháp quốc tế (UNCLOS 1982).",
+      "grade": 11,
+      "topic_tag": "Lớp 11 – Biển Đông và chủ quyền biển đảo",
+      "level": "van_dung",
+      "competency": "van_dung_kien_thuc",
+      "source_note": "SGK Lịch sử 11 (KNTT), chủ đề Lịch sử bảo vệ chủ quyền, các quyền và lợi ích hợp pháp của Việt Nam ở Biển Đông"
+    },
+    {
+      "content_key": "l11-cai-cach-01",
+      "kind": "mcq",
+      "stem": "Điểm chung giữa cuộc cải cách của vua Lê Thánh Tông (thế kỉ XV) và vua Minh Mạng (thế kỉ XIX) là",
+      "choices": [
+        "đều chia cả nước thành 13 đạo thừa tuyên",
+        "đều đổi tên nước thành Đại Ngu",
+        "đều nhằm phân chia quyền lực cho các địa phương",
+        "đều xây dựng nhà nước quân chủ tập quyền"
+      ],
+      "correct": 3,
+      "choice_notes": [
+        {
+          "note": "Nhầm chủ thể: chia cả nước thành 13 đạo thừa tuyên là cải cách của Lê Thánh Tông; Minh Mạng chia cả nước thành các tỉnh.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Một số cuộc cải cách lớn trong lịch sử Việt Nam (trước năm 1858)",
+          "trap": "chu_the"
+        },
+        {
+          "note": "Nhầm chủ thể: Hồ Quý Ly đổi tên nước thành Đại Ngu (1400).",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Một số cuộc cải cách lớn trong lịch sử Việt Nam (trước năm 1858)",
+          "trap": "chu_the"
+        },
+        {
+          "note": "Ngược lại: cả hai cuộc cải cách đều tập trung quyền lực vào triều đình trung ương.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Một số cuộc cải cách lớn trong lịch sử Việt Nam (trước năm 1858)",
+          "trap": "ban_chat"
+        },
+        {
+          "note": "Đúng. Cả hai cuộc cải cách đều tăng cường quyền lực của nhà vua, xây dựng bộ máy nhà nước quân chủ tập quyền chặt chẽ.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Một số cuộc cải cách lớn trong lịch sử Việt Nam (trước năm 1858)"
+        }
+      ],
+      "explanation": "Lê Thánh Tông (chia 13 đạo thừa tuyên) và Minh Mạng (chia cả nước thành các tỉnh) đều cải cách hành chính để tăng cường quyền lực trung ương.",
+      "remember": "Lê Thánh Tông và Minh Mạng: cải cách hành chính, tăng cường quyền lực trung ương.",
+      "grade": 11,
+      "topic_tag": "Lớp 11 – Cải cách Lê Thánh Tông, Minh Mạng",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 11 (KNTT), chủ đề Một số cuộc cải cách lớn trong lịch sử Việt Nam (trước năm 1858)"
+    },
+    {
+      "content_key": "l11-lam-son-01",
+      "kind": "mcq",
+      "stem": "Cuộc khởi nghĩa Lam Sơn (1418 – 1427) chống quân Minh do ai lãnh đạo?",
+      "choices": [
+        "Trần Quốc Tuấn",
+        "Lê Lợi",
+        "Nguyễn Huệ",
+        "Lý Thường Kiệt"
+      ],
+      "correct": 1,
+      "choice_notes": [
+        {
+          "note": "Trần Quốc Tuấn (Hưng Đạo Đại Vương) là tổng chỉ huy quân đội nhà Trần trong kháng chiến chống quân Mông – Nguyên lần thứ hai, thứ ba (thế kỉ XIII).",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Chiến tranh bảo vệ Tổ quốc và chiến tranh giải phóng dân tộc — kháng chiến chống Mông – Nguyên",
+          "trap": "thoi_gian"
+        },
+        {
+          "note": "Đúng. Lê Lợi phát động khởi nghĩa ở Lam Sơn (Thanh Hóa) năm 1418; năm 1427 khởi nghĩa thắng lợi, năm 1428 Lê Lợi lên ngôi, lập triều Lê sơ.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Chiến tranh bảo vệ Tổ quốc và chiến tranh giải phóng dân tộc — khởi nghĩa Lam Sơn"
+        },
+        {
+          "note": "Nguyễn Huệ (Quang Trung) lãnh đạo phong trào Tây Sơn, đánh tan quân Thanh năm 1789.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Chiến tranh bảo vệ Tổ quốc và chiến tranh giải phóng dân tộc — phong trào Tây Sơn",
+          "trap": "thoi_gian"
+        },
+        {
+          "note": "Lý Thường Kiệt lãnh đạo kháng chiến chống quân Tống ở thế kỉ XI.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Chiến tranh bảo vệ Tổ quốc và chiến tranh giải phóng dân tộc — kháng chiến chống Tống",
+          "trap": "thoi_gian"
+        }
+      ],
+      "explanation": "Mỗi cuộc kháng chiến, khởi nghĩa gắn với người lãnh đạo: chống Tống — Lý Thường Kiệt; chống Mông – Nguyên — Trần Quốc Tuấn; Lam Sơn — Lê Lợi; Tây Sơn — Nguyễn Huệ.",
+      "remember": "Khởi nghĩa Lam Sơn (1418 – 1427) do Lê Lợi lãnh đạo.",
+      "grade": 11,
+      "topic_tag": "Lớp 11 – Khởi nghĩa Lam Sơn",
+      "level": "nhan_biet",
+      "competency": "tim_hieu_lich_su",
+      "source_note": "SGK Lịch sử 11 (KNTT), chủ đề Chiến tranh bảo vệ Tổ quốc và chiến tranh giải phóng dân tộc — khởi nghĩa Lam Sơn"
+    },
+    {
+      "content_key": "l11-mong-nguyen-01",
+      "kind": "mcq",
+      "stem": "Nguyên nhân quan trọng hàng đầu đưa đến thắng lợi của ba lần kháng chiến chống quân Mông – Nguyên (thế kỉ XIII) là",
+      "choices": [
+        "nhà Trần có quân đội đông hơn hẳn quân Mông – Nguyên",
+        "có sự giúp đỡ trực tiếp của nhà Minh",
+        "tinh thần đoàn kết toàn dân dưới sự lãnh đạo của nhà Trần",
+        "nhà Trần chủ yếu cố thủ trong các thành lũy kiên cố"
+      ],
+      "correct": 2,
+      "choice_notes": [
+        {
+          "note": "Sai số liệu: quân Mông – Nguyên rất đông và mạnh, từng chinh phục nhiều nước ở châu Á, châu Âu; nhà Trần thắng nhờ sức mạnh toàn dân và nghệ thuật quân sự.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Chiến tranh bảo vệ Tổ quốc và chiến tranh giải phóng dân tộc — kháng chiến chống Mông – Nguyên",
+          "trap": "so_lieu"
+        },
+        {
+          "note": "Sai thời gian: nhà Minh ra đời ở thế kỉ XIV, sau đó còn xâm lược Đại Việt (đầu thế kỉ XV).",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Chiến tranh bảo vệ Tổ quốc và chiến tranh giải phóng dân tộc — khởi nghĩa Lam Sơn",
+          "trap": "thoi_gian"
+        },
+        {
+          "note": "Đúng. “Vua tôi đồng lòng, anh em hòa mục, cả nước góp sức” — khối đoàn kết toàn dân dưới sự lãnh đạo của nhà Trần là nguyên nhân hàng đầu.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Chiến tranh bảo vệ Tổ quốc và chiến tranh giải phóng dân tộc — kháng chiến chống Mông – Nguyên"
+        },
+        {
+          "note": "Hiểu sai: nhà Trần thực hiện kế sách “vườn không nhà trống”, rút lui chiến lược rồi phản công, không cố thủ trong thành.",
+          "ref": "SGK Lịch sử 11 (KNTT), chủ đề Chiến tranh bảo vệ Tổ quốc và chiến tranh giải phóng dân tộc — kháng chiến chống Mông – Nguyên",
+          "trap": "ban_chat"
+        }
+      ],
+      "explanation": "Thắng lợi chống Mông – Nguyên nhờ khối đoàn kết toàn dân, sự lãnh đạo của nhà Trần và nghệ thuật quân sự (vườn không nhà trống, rút lui chiến lược rồi phản công).",
+      "remember": "Ba lần thắng quân Mông – Nguyên: nhờ khối đoàn kết toàn dân, nghệ thuật quân sự của nhà Trần.",
+      "grade": 11,
+      "topic_tag": "Lớp 11 – Kháng chiến chống Mông – Nguyên",
+      "level": "thong_hieu",
+      "competency": "nhan_thuc_tu_duy",
+      "source_note": "SGK Lịch sử 11 (KNTT), chủ đề Chiến tranh bảo vệ Tổ quốc và chiến tranh giải phóng dân tộc — kháng chiến chống Mông – Nguyên"
+    }
+  ]
+}
