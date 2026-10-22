@@ -995,3 +995,15 @@ in'`; cập nhật mô tả de-1, de-2. **Chưa chạy lên DB thật** — ch�
 | Đề 3 | published, miễn phí, Phần I 24/24 câu đã công bố, Phần II 4/4, không tư liệu nào còn nháp; `start_exam_attempt('de-3')` → 28 câu, không lộ đáp án |
 | Luyện tập (`start_practice_attempt`) | Bài 7 × Trắc nghiệm × Vận dụng × có tư liệu → 6 câu (đủ số câu có); 3 bài × có tư liệu × 30 → 30 câu; Bài 8 × Đúng/Sai → 9 câu |
 | Mô tả de-1 | “… Muốn làm đề đầy đủ …, xem Đề luyện thi số 3.” |
+
+## 34. Demo luyện thi — GĐ-D5 / D6: E2E dữ liệu demo, kịch bản demo (23/10/2026)
+
+- E2E mới `tests/e2e/luyen-thi-demo.spec.ts` (4 ca, chạy trên dữ liệu demo thật, chỉ tạo lượt làm bài rồi xóa): luyện tập
+  Bài 7 × Trắc nghiệm × Vận dụng × có tư liệu (khung tư liệu, trả lời sai → “Vì sao sai”, kiểu bẫy, ghi nhớ, liên kết `#muc-N`
+  mở đúng mục); đề 3 (24 + 4, đồng hồ 50 phút, quét HTML + phản hồi API trước khi nộp không có `choice_notes` /
+  `section_id` / `remember` / `correct_index` / `truths`, nộp → hai phần, “Kiến thức cần ôn lại”, 28 lời giải, axe, 360 / 768 /
+  1280 px không tràn ngang, ảnh `demo-*.png`); bản in đề 3 đủ hai phần, không lời giải; trang `/luyen-thi` báo có đề đầy đủ.
+  **Chưa chạy được**: đề 3 chưa công bố trên DB thật → cả tệp tự bỏ qua (đã thử: 4 bỏ qua). Chạy sau khi nạp
+  seed-ngan-hang → seed-de-3 → seed-demo-luyen-thi.
+- Hồi quy sau GĐ-D2 – D4: `exam-shop` · `exam-explain` **7/7**; unit **760/760**; lint, tsc, build sạch.
+- `docs/kich-ban-demo-luyen-thi.md`: chuẩn bị trước buổi demo + 10 bước (thao tác · điều cần chỉ · ảnh).

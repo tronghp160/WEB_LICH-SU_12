@@ -116,8 +116,8 @@ Dữ liệu demo đầy đủ cho Bài 6, 7, 8 · lời giải "sai ở đâu �
 | D2 | Bài 6, 7, 8 mỗi bài 30 trắc nghiệm + 8 Đúng/Sai | Xong 22/10/2026 (test-report mục 31) — nháp, chờ giáo viên đối chiếu `docs/du-lieu-can-kiem-chung.md` mục 6f |
 | D3 | Đề luyện thi số 3 (24 + 4) | Xong 23/10/2026 (test-report mục 32) — câu nháp, chưa nạp DB; seed `seed-de-3.sql` |
 | D4 | Seed demo + công bố | File xong 23/10/2026 (`supabase/seed-demo-luyen-thi.sql`, test-report mục 33) — **chờ chủ dự án chạy** seed-ngan-hang → seed-de-3 → seed-demo |
-| D5 | Kiểm thử tổng | |
-| D6 | Kịch bản demo cho giáo viên | |
+| D5 | Kiểm thử tổng | E2E `luyen-thi-demo.spec.ts` viết sẵn 23/10/2026 (tự bỏ qua khi đề 3 chưa công bố) — **chạy sau khi nạp seed demo**; unit, SQL, hồi quy đã đạt (test-report mục 30 – 34) |
+| D6 | Kịch bản demo cho giáo viên | Xong 23/10/2026 — `docs/kich-ban-demo-luyen-thi.md` (ảnh `demo-*.png` do E2E chụp sau khi nạp seed) |
 
 Kết quả khảo sát GĐ-D0:
 
