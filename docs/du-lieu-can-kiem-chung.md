@@ -226,6 +226,35 @@ Phải qua kiểm duyệt mới hiện công khai; nên duyệt chủ đề và 
   loại; xe nguyên bản lưu giữ tại Hà Nội — chú thích đã ghi rõ.
 - Video: VTV24, Báo Quân đội nhân dân, Báo Nhân Dân — đã xác minh tên kênh bằng YouTube oEmbed ngày 1 – 2/10/2026.
 
+## 6f. Ngân hàng câu hỏi demo Bài 6, 7, 8 (22/10/2026) — cần giáo viên đối chiếu SGK in
+
+Tệp `supabase/content/ngan-hang/bai-06-…json`, `bai-07-…json`, `bai-08-…json` (114 câu, do Claude soạn, đã qua agent soát
+độc lập). Dữ kiện đã soát chéo; những điểm dưới đây **chưa chắc**, cần đối chiếu từng chữ với SGK in trước khi công bố.
+
+| Chỗ | Cần đối chiếu |
+|---|---|
+| Tư liệu `b6-tuyen-ngon-su-that` (và câu b6-m1-tn-14, b6-m1-ds-05) | Nguyên văn “Sự thật là dân ta **đã** lấy lại nước Việt Nam từ tay Nhật…” — agent soát cho rằng không có chữ “đã”; bản thông dụng có chữ “đã”. Ghi đúng theo SGK in |
+| Tư liệu `b6-tuyen-ngon-mo-dau` | “Tuyên ngôn Nhân quyền và Dân quyền… năm 1791” là chữ trong nguyên văn (văn kiện ra đời năm 1789) — giữ nguyên |
+| b6-m1-tn-10 | Chỉ thị “Nhật – Pháp bắn nhau và hành động của chúng ta” (12-3-1945) có nằm trong Bài 6 mục 1 bản KNTT không |
+| b6-m2-ds-03 ý a | Câu chữ của bài học “kết hợp nhiệm vụ dân tộc với dân chủ…” theo đúng mục bài học kinh nghiệm của SGK |
+| Tư liệu `b7-sau-cach-mang` | “gần 20 vạn” / “hơn 20 vạn” quân Trung Hoa Dân quốc; “hơn 90%” dân số mù chữ |
+| Lời kêu gọi toàn quốc kháng chiến (`loi-keu-goi-toan-quoc-khang-chien`, `b7-loi-keu-goi-toan-dan`) | Viết đêm 19-12, phát đi sáng 20-12-1946 — SGK ghi ngày nào; “kỳ/kì”, “hy/hi” theo bản in |
+| b7-m1-tn-01, b7-m1-tn-06, b7-m1-ds-02 | Lời kêu gọi 19-12-1946 và đường lối kháng chiến thuộc mục 1 hay mục 2 của Bài 7 (khung mục trong `lib/sgk/curriculum.ts` là diễn đạt lại) |
+| b7-m3-tn-04 | “Hàng chục vạn dân công, hàng vạn xe đạp thồ” (số liệu thường dùng: khoảng 26 vạn dân công, hơn 2 vạn xe đạp thồ) |
+| b7-m3-tn-10 | Lí do Pháp chọn Điện Biên Phủ (che chở Thượng Lào) — SGK KNTT có nêu không |
+| b7-m3-tn-02, b8-m1-tn-03 | SGK KNTT có nhắc kế hoạch Xta-lây – Tay-lo (Bài 8), kế hoạch Mác-san (Bài 2) không |
+| b7-m4-tn-06 | Nguồn câu thơ “Chín năm làm một Điện Biên / Nên vành hoa đỏ, nên thiên sử vàng” (Tố Hữu — bài nào, năm nào) |
+| b7-m4-tn-02 | Cách gọi “ba thứ quân” trong SGK KNTT |
+| b8-m2-tn-01 và các lời giải nhắc Vạn Tường | Vạn Tường là “trận thắng lớn đầu tiên trước quân Mỹ” (trước đó đã có Núi Thành, 5-1965) — cách diễn đạt của SGK |
+| b8-m1-tn-03, b8-m2-tn-01 | Hai phương án nhiễu cũ “Chiến tranh tổng lực”, “Chiến tranh đơn phương” — SGK KNTT có dùng các cách gọi này không |
+| b8-m1-tn-04 | Vai trò hai miền theo Đại hội III (miền Bắc “quyết định nhất”, miền Nam “quyết định trực tiếp”) |
+| b8-m2-ds-01 ý c, b8-m4-ds-01 ý b | Mốc thống nhất về mặt nhà nước năm 1976 có nằm trong Bài 8 không |
+| b8-m3-tn-03 | 10 giờ 45 phút (xe tăng vào Dinh Độc Lập) và 11 giờ 30 phút ngày 30-4-1975 (cờ trên nóc Dinh) |
+| Tư liệu `b8-khong-co-gi-quy`, `b8-hiep-dinh-pa-ri` | Đối chiếu nguyên văn với bản in (Hồ Chí Minh Toàn tập; văn bản Hiệp định), bổ sung số tập, trang vào nguồn |
+
+Câu nháp cũ của Bài 6 – 8 (trước đây ở `chu-de-3.json`) được chuyển sang tệp mới; hai câu (b7-m2-tn-02, b7-m3-tn-02) đã
+sửa câu hỏi / lựa chọn nên khi chạy seed sẽ thành câu mới — câu nháp cũ tương ứng cần xóa (seed demo GĐ-D4 xử lý).
+
 ## 7. Việc cần làm tiếp
 
 1. Đối chiếu toàn bộ bảng trên với SGK Lịch sử 12 đang dùng.

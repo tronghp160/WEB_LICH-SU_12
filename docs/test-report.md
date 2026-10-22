@@ -920,3 +920,31 @@ dấu vân tay không đổi); `exam_attempt_view` trả thêm `choice_notes` (x
 | E2E `exam-explain.spec.ts` (mới, DB thật) | **1/1** — trước khi nộp: HTML và mọi phản hồi `/api/luyen-thi/*` không có `choice_notes` / `statement_refs` / `section_id` / `remember` / `correct_index` / `truths`; nộp → "Vì sao sai" đúng lựa chọn sau khi xoay (chọn A = gốc C), nhãn bẫy, "Đáp án đúng: B", Ghi nhớ, liên kết bài học tương tác, Đúng/Sai có 2 nhãn bẫy + liên kết Bài 8 › Mục 1, "Kiến thức cần ôn lại" (sai 2/2, nút luyện bài 7), axe không lỗi nghiêm trọng, bấm "Kiến thức này ở" → `/bai/7-khang-chien-chong-phap#muc-3` và mục 3 trong khung nhìn. Ảnh `docs/screenshots/demo-loi-giai.png` |
 | E2E hồi quy | `exam-room` · `exam-practice` · `exam-attempts` · `exam-generated` · `exam-quality` · `exam-shop` · `exam-bank` (TEST_PW): **36 qua**. Sửa kỳ vọng cũ ở `exam-shop`: hỏi đáp 5 → 6 câu (câu "Gói tháng và gói năm" thêm ở commit ea0c90d, test chưa cập nhật). 1 ca `exam-generated` lỗi một lần do mạng, chạy lại đạt |
 | Lint, tsc, build | sạch |
+
+## 31. Demo luyện thi — GĐ-D2: ngân hàng câu hỏi chi tiết Bài 6, 7, 8 (22/10/2026)
+
+Nhánh `feat/demo-luyen-thi`. Không có migration. Tệp `supabase/content/ngan-hang/bai-06-cach-mang-thang-tam.json`,
+`bai-07-khang-chien-chong-phap.json`, `bai-08-khang-chien-chong-my.json`: mỗi bài 30 trắc nghiệm + 8 Đúng/Sai, mọi câu có
+`content_key`, `section_id`, `remember`; mọi câu trắc nghiệm có lời giải 4 lựa chọn, mọi lựa chọn / ý sai có kiểu bẫy. 16 câu
+nháp cũ của ba bài chuyển từ `chu-de-3.json` (14 câu giữ nguyên câu hỏi, lựa chọn, ý để seed gắn khóa vào câu cũ; 2 câu sửa
+câu chữ). Do Claude soạn; mỗi bài đã qua agent `soat-cau-hoi` soát độc lập và sửa theo góp ý (lỗi nghiêm trọng đã sửa: lời
+giải tự mâu thuẫn mốc 14/15-8-1945, đồi A1 chỉ bị tiêu diệt ở đợt 3, mâu thuẫn ngày miền Nam hoàn toàn giải phóng
+30-4 / 2-5-1975). Những điểm chưa chắc ghi ở `docs/du-lieu-can-kiem-chung.md`, mục 6f — **cần giáo viên đối chiếu SGK in
+trước khi công bố**.
+
+Thống kê (`node scripts/thong-ke-ngan-hang.mjs bai-0`):
+
+| Bài | Trắc nghiệm NB/TH/VD | Có tư liệu | Đúng/Sai NB/TH/VD | Có tư liệu | Theo mục (TN / Đ-S) | Đáp án A/B/C/D | Tư liệu |
+|---|---|---|---|---|---|---|---|
+| 6 | 30 — 12/9/9 | 10 | 8 — 2/3/3 | 5 | m1 18/5 · m2 12/3 | 7/8/8/7 | 6 (2 trích Tuyên ngôn độc lập) |
+| 7 | 30 — 12/9/9 | 12 | 8 — 2/3/3 | 5 | m1 7/2 · m2 7/2 · m3 10/2 · m4 6/2 | 7/8/7/8 | 7 |
+| 8 | 30 — 12/9/9 | 11 | 8 — 2/3/3 | 5 | m1 7/2 · m2 9/2 · m3 8/2 · m4 6/2 | 7/8/8/7 | 7 |
+
+→ Lọc 1 bài × "Trắc nghiệm" × "Vận dụng" có 9 câu; 3 bài × "Chỉ câu có tư liệu" có 48 câu (33 trắc nghiệm + 15 Đúng/Sai).
+
+| Nhóm | Kết quả |
+|---|---|
+| `npm run kiem-tra-ngan-hang` | **13/13** — thêm 2 ca chặt cho tệp `bai-*.json`: đủ `content_key`, mục, ghi nhớ, lời giải 4 lựa chọn, bẫy ở mọi lựa chọn / ý sai; không còn nhắc bổ sung lời giải; `content_key` không trùng giữa các tệp. Đã bắt và sửa: 1 phương án chứa “tất cả”, 2 câu đáp án dài hơn hẳn |
+| Seed `supabase/seed-ngan-hang.sql` (sinh lại) trên PGlite, chạy sau seed gốc 16/10 | 88 → 188 câu (114 có `content_key`; 14 câu nháp cũ được gắn khóa, không nhân đôi); chạy lại vẫn 188; câu đã công bố không bị ghi đè. Còn 2 câu nháp cũ bị thay thế (b7-m2-tn-02, b7-m3-tn-02) — dọn ở seed demo GĐ-D4 |
+| Unit test | **755/755**, 55 file |
+| Lint | sạch |

@@ -94,8 +94,7 @@ describe("schema: lời giải từng lựa chọn, mục SGK, kiểu bẫy", ()
 
 describe("nhập JSON: content_key, event_slug, nhắc lời giải", () => {
   const context = { existingFingerprints: new Set<string>(), eventSlugs: new Set(["chien-dich-dien-bien-phu"]), existingContentKeys: new Set(["b7-m3-tn-99"]) };
-  const { correct_index: _correct, ...base } = mcq;
-  const row = (extra: object) => ({ ...base, correct: 3, ...extra });
+  const row = (extra: object) => ({ ...mcq, correct_index: undefined, correct: 3, ...extra });
 
   it("content_key trùng trong tệp / đã có trong ngân hàng bị báo; event_slug dùng như event", () => {
     const plan = planImport(
