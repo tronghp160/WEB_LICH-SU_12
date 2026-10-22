@@ -105,6 +105,29 @@ trình, sổ tay 17 bài, in đề. Trang `/luyen-thi` chỉ nói những gì đ
 | 8 | Trang bán hàng, kỹ năng, sổ tay, bản in | Xong 16/10/2026 (test-report mục 28) — xem "Quyết định khi làm GĐ8" |
 | 9 | (Tùy chọn) Thi thử định kỳ | |
 
+### Đợt demo luyện thi (kế hoạch `docs/ke-hoach-demo-luyen-thi.md`, nhánh `feat/demo-luyen-thi`)
+
+Dữ liệu demo đầy đủ cho Bài 6, 7, 8 · lời giải "sai ở đâu – bài nào – mục nào" · đề số 3 đầy đủ 24 + 4.
+
+| GĐ | Nội dung | Trạng thái |
+|---|---|---|
+| D0 | Khảo sát, skill `soan-cau-hoi-lich-su` + `kiem-tra-de-thpt`, agent `soat-cau-hoi` | Xong 22/10/2026 |
+| D1 | Lời giải từng phương án + vị trí kiến thức (migration `20261101000000_exam_item_explain.sql`) | |
+| D2 | Bài 6, 7, 8 mỗi bài 30 trắc nghiệm + 8 Đúng/Sai | |
+| D3 | Đề luyện thi số 3 (24 + 4) | |
+| D4 | Seed demo + công bố | |
+| D5 | Kiểm thử tổng | |
+| D6 | Kịch bản demo cho giáo viên | |
+
+Kết quả khảo sát GĐ-D0:
+
+- Trang `/bai/<slug>` đã có neo `id="muc-N"` cho từng mục (`app/(public)/bai/[slug]/page.tsx`) → liên kết
+  `sgkPaths.section()` dùng được ngay, không cần sửa.
+- Bản mới nhất của `exam_attempt_view` nằm ở `20261029000000_exam_quality.sql` (`exam_paper.sql` chỉ gọi lại view).
+- `de-1` … `de-10` đã có dòng nháp từ `seed-payments.sql` (`generate_series`); `de-3` hiện thuộc gói gốc `goi-luyen-thi-2027`.
+- Câu nháp sẵn có của Bài 6 / 7 / 8 trong `chu-de-3.json`: 5 / 6 / 5 câu (kế hoạch ghi 6 / 7 / 5) — đều chuyển sang tệp mới ở GĐ-D2.
+- Migration `20261031000000_exam_plans.sql` (gói tháng / năm) vẫn **chưa chạy** — không ảnh hưởng đợt demo (đề 3 miễn phí).
+
 ### Quyết định khi làm GĐ1 (khác / chi tiết hơn bản đầy đủ)
 
 - **Rải đáp án:** chọn cách lưu độ xoay trong `exam_set_items.choice_shift` (0–3). Học sinh thấy lựa chọn gốc i ở vị
