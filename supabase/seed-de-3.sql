@@ -22,7 +22,7 @@ update public.exam_sets
        format = 'thpt_2025',
        duration_min = 50,
        difficulty = 2,
-       product_id = null
+       product_id = product_id
  where slug = 'de-3';
 
 delete from public.exam_set_items where set_id = (select id from public.exam_sets where slug = 'de-3');

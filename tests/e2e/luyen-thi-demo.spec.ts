@@ -4,22 +4,67 @@ import { adminApi, hasHorizontalOverflow, hasSecretKey } from "./support";
 
 // Demo luyện thi GĐ-D5 (docs/ke-hoach-demo-luyen-thi.md, mục 8): chạy trên dữ liệu demo THẬT — cần đã chạy
 // seed-ngan-hang.sql → seed-de-3.sql → seed-demo-luyen-thi.sql (đề de-3 đã công bố). Chưa có thì bỏ qua cả tệp.
-// Không tạo câu / đề thử; chỉ tạo lượt làm bài và xóa các lượt đó ở cuối.
+// Không tạo câu / đề thử; chỉ tạo lượt làm bài và xóa các lượt đó ở cuối. Đề 3 thuộc gói (seed-de-3-tra-phi.sql) → làm
+// đề bằng học sinh thử zz-kiem-thu-demo-*@test.local có gói gắn tài khoản; dọn hết ở cuối.
 
 test.skip(!hasSecretKey(), "Cần SUPABASE_SECRET_KEY trong .env.local");
 
+const run = Date.now().toString(36);
+const EMAIL = `zz-kiem-thu-demo-${run}@test.local`;
+const PASSWORD = "lichsu2026A";
 const db = adminApi();
 const attemptIds = new Set<string>();
 const LEAK = /"(choice_notes|statement_refs|section_id|remember|correct_index|truths)"|Vì sao sai/;
+let userId = "";
+
+function randomLicenseCode(): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const part = () => Array.from({ length: 4 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
+  return `LT12-${part()}-${part()}-${part()}`;
+}
 
 test.beforeAll(async () => {
   const { data } = await db.from("exam_sets").select("workflow_status").eq("slug", "de-3").maybeSingle();
   test.skip(data?.workflow_status !== "published", "Đề de-3 chưa công bố — chạy seed demo (GĐ-D4) trước");
+
+  const { data: created, error } = await db.auth.admin.createUser({ email: EMAIL, password: PASSWORD, email_confirm: true, user_metadata: { display_name: "ZZ Demo E2E", terms_version: "2026-10" } });
+  if (error) throw error;
+  userId = created.user.id;
+  const { data: product } = await db.from("products").select("id").eq("kind", "exam_pack").eq("is_active", true).limit(1).single();
+  const { data: order, error: orderError } = await db
+    .from("orders")
+    .insert({ product_id: product!.id, amount_vnd: 29000, provider: "mock", access_token_hash: "f".repeat(64), user_id: userId })
+    .select("order_code")
+    .single();
+  if (orderError) throw orderError;
+  const { error: paidError } = await db.rpc("mark_order_paid", { p_order_code: order.order_code, p_amount: 29000, p_provider: "mock", p_provider_ref: `zz-demo-${run}`, p_license_code: randomLicenseCode() });
+  if (paidError) throw paidError;
 });
 
 test.afterAll(async () => {
   if (attemptIds.size > 0) await db.from("exam_attempts").delete().in("id", [...attemptIds]);
+  if (userId) {
+    await db.from("exam_attempts").delete().eq("user_id", userId);
+    await db.from("learner_item_state").delete().eq("user_id", userId);
+    await db.from("licenses").delete().eq("user_id", userId);
+    await db.from("orders").delete().eq("user_id", userId);
+    await db.auth.admin.deleteUser(userId);
+  }
 });
+
+async function login(page: Page, next: string) {
+  await page.goto(`/dang-nhap?next=${encodeURIComponent(next)}`);
+  await page.locator("#email").fill(EMAIL);
+  await page.locator("#password").fill(PASSWORD);
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  const target = new RegExp(next.replace(/[/?]/g, "\\$&"));
+  await page.waitForURL((url) => target.test(url.pathname) || url.pathname.startsWith("/dang-ky/hoan-tat"));
+  if (page.url().includes("/dang-ky/hoan-tat")) {
+    await page.locator('input[name="agree"]').check();
+    await page.getByRole("button", { name: "Hoàn tất" }).click();
+    await page.waitForURL((url) => target.test(url.pathname));
+  }
+}
 
 /** Ghi lại id lượt làm bài từ phản hồi API (để dọn), và nội dung phản hồi trước khi nộp (để quét lộ đáp án). */
 function watch(page: Page, bodies: string[] = []) {
@@ -73,8 +118,18 @@ test.describe("Demo luyện thi — dữ liệu Bài 6 – 8 và đề số 3", 
     await expect(page.locator(href.slice(href.indexOf("#")))).toBeInViewport();
   });
 
+  test("đề số 3 thuộc gói: khách chưa có gói không bắt đầu được, không thấy câu hỏi", async ({ page }) => {
+    await page.goto("/luyen-thi/de-3");
+    await expect(page.getByText("Đề này thuộc Gói luyện thi.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Bắt đầu làm bài" })).toHaveCount(0);
+    await page.goto("/luyen-thi/de-3/in");
+    await expect(page.getByText(/thuộc Gói luyện thi/)).toBeVisible();
+    await expect(page.getByTestId("paper-print")).toHaveCount(0);
+  });
+
   test("đề số 3: 24 + 4 câu, 50 phút, không lộ đáp án trước khi nộp; nộp → thang 10, hai phần, Kiến thức cần ôn lại", async ({ page }) => {
     const bodies = watch(page);
+    await login(page, "/luyen-thi/de-3");
     await page.goto("/luyen-thi/de-3");
     expect(await page.content()).not.toMatch(LEAK);
     await page.getByRole("button", { name: "Bắt đầu làm bài" }).click();
@@ -117,6 +172,7 @@ test.describe("Demo luyện thi — dữ liệu Bài 6 – 8 và đề số 3", 
 
   test("bản in đề số 3: đủ hai phần, phiếu trả lời, không có lời giải", async ({ page }) => {
     watch(page);
+    await login(page, "/luyen-thi/de-3/in");
     await page.goto("/luyen-thi/de-3/in");
     const print = page.getByTestId("paper-print");
     await expect(print).toContainText("28 câu");
@@ -127,7 +183,7 @@ test.describe("Demo luyện thi — dữ liệu Bài 6 – 8 và đề số 3", 
     expect(text).not.toMatch(/Vì sao sai|Ghi nhớ:|Đáp án:/);
   });
 
-  test("trang luyện thi: đề 3 hiện là đề đầy đủ miễn phí; câu chữ không còn “đang được biên soạn” cho đề đầy đủ", async ({ page }) => {
+  test("trang luyện thi: đề 3 hiện là đề đầy đủ (thuộc gói); câu chữ không còn “đang được biên soạn” cho đề đầy đủ", async ({ page }) => {
     await page.goto("/luyen-thi");
     await expect(page.getByRole("link", { name: /Đề luyện thi số 3/ }).first()).toBeVisible();
     await expect(page.getByTestId("exam-format-note")).toContainText(/Hiện có \d+ đề đầy đủ/);

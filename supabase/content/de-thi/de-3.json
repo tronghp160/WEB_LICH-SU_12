@@ -5,7 +5,7 @@
   "format": "thpt_2025",
   "duration_min": 50,
   "difficulty": 2,
-  "free": true,
+  "free": false,
   "section1": [
     "b1-m2-tn-01",
     "b2-m1-tn-01",

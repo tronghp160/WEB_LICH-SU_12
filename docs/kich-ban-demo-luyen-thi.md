@@ -28,7 +28,7 @@ chỉ cho giáo viên** · **ảnh** (ảnh `docs/screenshots/demo-*.png` do E2E
 
 - **Thao tác:** mở trang Luyện thi, cuộn tới danh sách đề.
 - **Chỉ cho giáo viên:** đề 1 (đề mẫu ngắn, miễn phí), đề 2 (thuộc gói), **đề 3 — đề đầy đủ 24 câu trắc nghiệm + 4 câu
-  Đúng/Sai, 50 phút, miễn phí**; ghi chú cấu trúc đề thi tốt nghiệp từ 2025 tự đổi thành “Hiện có … đề đầy đủ”.
+  Đúng/Sai, 50 phút, thuộc gói** (từ 10/2026 — demo bằng tài khoản có gói); ghi chú cấu trúc đề thi tốt nghiệp từ 2025 tự đổi thành “Hiện có … đề đầy đủ”.
 - **Ảnh:** —
 
 ### 2. Làm đề 3 — phòng thi

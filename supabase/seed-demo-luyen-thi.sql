@@ -65,7 +65,7 @@ update public.exam_items
  where id in (select id from demo_items)
    and workflow_status in ('draft', 'pending_review', 'needs_revision');
 
--- 4. Đề 3 (miễn phí — seed-de-3.sql đã đặt product_id = null).
+-- 4. Đề 3 (thuộc Gói luyện thi từ 10/2026 — product_id giữ như seed-payments.sql đặt; xem seed-de-3-tra-phi.sql).
 update public.exam_sets
    set workflow_status = 'published', review_note = null
  where slug = 'de-3'
@@ -76,7 +76,7 @@ update public.exam_sets
    set description = 'Đề mẫu 10 câu trắc nghiệm, 15 phút — làm thử miễn phí. Muốn làm đề đầy đủ (24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút), xem Đề luyện thi số 3.'
  where slug = 'de-1';
 update public.exam_sets
-   set description = 'Đề mẫu 10 câu trắc nghiệm, 15 phút — thuộc Gói luyện thi. Đề đầy đủ miễn phí (24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút): Đề luyện thi số 3.'
+   set description = 'Đề mẫu 10 câu trắc nghiệm, 15 phút — thuộc Gói luyện thi. Đề đầy đủ (24 câu trắc nghiệm + 4 câu Đúng/Sai, 50 phút): Đề luyện thi số 3.'
  where slug = 'de-2';
 
 commit;
@@ -86,12 +86,12 @@ commit;
 --     select bai, kind, count(*) from (select coalesce(nullif(split_part(lesson_slug, '-', 1), ''), 'lop11') as bai, kind
 --       from public.exam_items where workflow_status = 'published' and content_key is not null) x
 --      group by 1, 2 order by nullif(regexp_replace(bai, '\D', '', 'g'), '')::int nulls last, 2;
---   Đề 3: published, miễn phí, 24 + 4 câu, mọi câu và tư liệu đã công bố:
+--   Đề 3: published, thuộc gói (mien_phi = false), 24 + 4 câu, mọi câu và tư liệu đã công bố:
 --     select s.workflow_status, s.product_id is null as mien_phi, si.section, count(*),
 --            count(*) filter (where i.workflow_status = 'published') as cau_cong_bo,
 --            count(*) filter (where p.id is not null and p.workflow_status <> 'published') as tu_lieu_chua_cong_bo
 --       from public.exam_sets s join public.exam_set_items si on si.set_id = s.id join public.exam_items i on i.id = si.item_id
 --       left join public.exam_passages p on p.id = i.passage_id
---      where s.slug = 'de-3' group by 1, 2, 3 order by 3;                    → published · true · 1: 24/24/0 · 2: 4/4/0
+--      where s.slug = 'de-3' group by 1, 2, 3 order by 3;                    → published · false · 1: 24/24/0 · 2: 4/4/0
 --   Câu nháp cũ bị thay đã xóa (→ 0):
 --     select count(*) from public.exam_items where content_key is null and stem like 'Năm 1953, Pháp và Mỹ đề ra%';
