@@ -25,7 +25,8 @@ function lessonGroups(breakdown: unknown): Record<string, ScoreGroup> {
   return result;
 }
 
-export type LearnerOverview = { userId: string; attempts: AttemptSummary[]; examGoal: number | null; studyPlan: StudyPlan | null };
+/** `hasProfile`: có hồ sơ học sinh — mục tiêu / lộ trình lưu ở đó; tài khoản nhân sự chưa đăng ký học sinh thì không có. */
+export type LearnerOverview = { userId: string; attempts: AttemptSummary[]; hasProfile: boolean; examGoal: number | null; studyPlan: StudyPlan | null };
 
 /** null = chưa đăng nhập. Lỗi đọc → ném lỗi (trang hiện thông báo). */
 export async function loadLearnerOverview(): Promise<LearnerOverview | null> {
@@ -73,5 +74,5 @@ export async function loadLearnerOverview(): Promise<LearnerOverview | null> {
     };
   });
 
-  return { userId, attempts, examGoal: profileResult.data?.exam_goal ?? null, studyPlan: parseStudyPlan(profileResult.data?.study_plan) };
+  return { userId, attempts, hasProfile: profileResult.data !== null, examGoal: profileResult.data?.exam_goal ?? null, studyPlan: parseStudyPlan(profileResult.data?.study_plan) };
 }

@@ -7,7 +7,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
 import { saveExamGoalAction } from "@/lib/actions/study-plan";
-import { loginPath } from "@/lib/auth/routes";
+import { completeSignUpPath, loginPath } from "@/lib/auth/routes";
 import { getNotebook, hasAccountPack } from "@/lib/exams/attempts-server";
 import { daysUntilExam, EXAM_DATE } from "@/lib/exams/config";
 import { examPaths, formatScore10 } from "@/lib/exams/exam";
@@ -158,21 +158,30 @@ export default async function OverviewPage({ searchParams }: PageProps<"/luyen-t
             <Target className="h-4 w-4" aria-hidden="true" />
             Mục tiêu
           </span>
-          <form action={saveExamGoalAction} className="flex items-center gap-2">
-            <label htmlFor="goal" className="sr-only">
-              Mục tiêu điểm
-            </label>
-            <select id="goal" name="goal" defaultValue={overview.examGoal ?? 7} className="h-9 rounded-lg border border-border bg-surface px-2 text-foreground" data-testid="goal-select">
-              {GOAL_OPTIONS.map((value) => (
-                <option key={value} value={value}>
-                  {formatScore10(value)} điểm
-                </option>
-              ))}
-            </select>
-            <Button type="submit" size="sm" variant="secondary">
-              Lưu
-            </Button>
-          </form>
+          {overview.hasProfile ? (
+            <form action={saveExamGoalAction} className="flex items-center gap-2">
+              <label htmlFor="goal" className="sr-only">
+                Mục tiêu điểm
+              </label>
+              <select id="goal" name="goal" defaultValue={overview.examGoal ?? 7} className="h-9 rounded-lg border border-border bg-surface px-2 text-foreground" data-testid="goal-select">
+                {GOAL_OPTIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {formatScore10(value)} điểm
+                  </option>
+                ))}
+              </select>
+              <Button type="submit" size="sm" variant="secondary">
+                Lưu
+              </Button>
+            </form>
+          ) : (
+            <span className="text-sm text-foreground">
+              <Link href={completeSignUpPath(examPaths.overview)} className="text-accent underline">
+                Hoàn tất hồ sơ học sinh
+              </Link>{" "}
+              để đặt mục tiêu.
+            </span>
+          )}
           {overview.examGoal !== null && predicted && (
             <span className="text-xs text-muted-foreground" data-testid="goal-gap">
               {predicted.score >= overview.examGoal ? "Điểm dự kiến đã đạt mục tiêu." : `Còn ${formatScore10(Math.round((overview.examGoal - predicted.score) * 100) / 100)} điểm nữa.`}

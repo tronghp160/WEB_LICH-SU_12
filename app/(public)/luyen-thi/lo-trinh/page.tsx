@@ -7,7 +7,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Button } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
 import { buildStudyPlanAction } from "@/lib/actions/study-plan";
-import { loginPath } from "@/lib/auth/routes";
+import { completeSignUpPath, loginPath } from "@/lib/auth/routes";
 import { hasAccountPack } from "@/lib/exams/attempts-server";
 import { EXAM_DATE } from "@/lib/exams/config";
 import { examPaths } from "@/lib/exams/exam";
@@ -129,6 +129,21 @@ export default async function StudyPlanPage({ searchParams }: PageProps<"/luyen-
             Xem Gói luyện thi
           </Link>{" "}
           (đã mua bằng mã? Thêm mã vào tài khoản ở trang Tài khoản).
+        </Callout>
+      </Shell>
+    );
+  }
+
+  if (!overview.hasProfile) {
+    // Lộ trình lưu trong hồ sơ học sinh; tài khoản (vd. nhân sự) chưa có hồ sơ thì lưu không được → mời hoàn tất trước.
+    return (
+      <Shell>
+        <Callout variant="info" title="Hoàn tất hồ sơ học sinh để lập lộ trình">
+          Tài khoản này chưa có hồ sơ học sinh.{" "}
+          <Link href={completeSignUpPath(examPaths.plan)} className="text-accent underline">
+            Hoàn tất hồ sơ
+          </Link>{" "}
+          (đồng ý điều khoản, chọn tên hiển thị) rồi quay lại đây.
         </Callout>
       </Shell>
     );
